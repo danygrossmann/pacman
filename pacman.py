@@ -3114,8 +3114,17 @@ def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, in
     # Afficher les items dans l'inventaire
     font = pygame.font.Font(None, 24)
     
-    # Bouton retour ou commencer
+    # Bouton retour et/ou commencer
     font_button = pygame.font.Font(None, 36)
+    # Toujours afficher le bouton retour
+    retour_button = pygame.Rect(10, 10, 100, 40)
+    pygame.draw.rect(screen, RED, retour_button)
+    pygame.draw.rect(screen, WHITE, retour_button, 2)
+    retour_text = font_button.render("RETOUR", True, WHITE)
+    retour_text_rect = retour_text.get_rect(center=retour_button.center)
+    screen.blit(retour_text, retour_text_rect)
+    
+    # Afficher aussi le bouton "Commencer" si show_start_button est True
     if show_start_button:
         # Afficher un bouton "Commencer" à droite en bas
         start_button = pygame.Rect(WINDOW_WIDTH - 150, WINDOW_HEIGHT - 60, 140, 50)
@@ -3124,15 +3133,8 @@ def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, in
         start_text = font_button.render("COMMENCER", True, WHITE)
         start_text_rect = start_text.get_rect(center=start_button.center)
         screen.blit(start_text, start_text_rect)
-        retour_button = None  # Pas de bouton retour quand on montre le bouton commencer
         start_button_for_slots = start_button
     else:
-        retour_button = pygame.Rect(10, 10, 100, 40)
-        pygame.draw.rect(screen, RED, retour_button)
-        pygame.draw.rect(screen, WHITE, retour_button, 2)
-        retour_text = font_button.render("RETOUR", True, WHITE)
-        retour_text_rect = retour_text.get_rect(center=retour_button.center)
-        screen.blit(retour_text, retour_text_rect)
         start_button_for_slots = None
     
     # Créer un dictionnaire avec tous les rectangles des slots pour le drag and drop
