@@ -4283,6 +4283,7 @@ def draw_vente(screen, inventaire_items=None, jeton_poche=0, crown_poche=0, scro
         'coffre fort': (5000, 0),  # 50% de 10000
         'coffre au trésor': (7500, 0),  # 50% de 15000
         'gadget': (5000, 500),  # 50% de 10000 pacoins et 1000 couronnes
+        'double gadget': (4000, 0),  # Prix de vente fixe de 4000 pacoins
         'pacgum': (2000, 0),  # 50% de 4000
         'indigestion': (1750, 0),  # 50% de 3500
         'gel': (2500, 0),  # 50% de 5000
@@ -6019,6 +6020,7 @@ def main():
                             'coffre fort': (5000, 0),  # 50% de 10000
                             'coffre au trésor': (7500, 0),  # 50% de 15000
                             'gadget': (5000, 500),  # 50% de 10000 pacoins et 1000 couronnes
+                            'double gadget': (4000, 0),  # Prix de vente fixe de 4000 pacoins
                             'pacgum': (2000, 0),  # 50% de 4000
                             'indigestion': (1750, 0),  # 50% de 3500
                             'gel': (2500, 0),  # 50% de 5000
