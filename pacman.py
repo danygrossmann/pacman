@@ -2440,7 +2440,7 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
     
     # Bouton "Invincibilité" (aligné à droite, en dessous de "Bonne vue")
     invincibilite_button = pygame.Rect(button_x_right, item_y + item_spacing * 4, button_width, item_height)
-    pygame.draw.rect(screen, (255, 215, 0), invincibilite_button)  # Or/Doré
+    pygame.draw.rect(screen, (128, 0, 128), invincibilite_button)  # Violet
     pygame.draw.rect(screen, WHITE, invincibilite_button, 2)
     
     invincibilite_count = capacite_items.count("invincibilité")
