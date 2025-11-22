@@ -2885,7 +2885,7 @@ def draw_difficulty(screen):
     
     return retour_button, button1, button2, button3, button4
 
-def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, inventaire_items=None, item_description=None, mouse_pos=None):
+def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, inventaire_items=None, item_description=None, mouse_pos=None, show_start_button=False):
     """Dessine l'écran de l'inventaire (style Minecraft)"""
     if pouvoir_items is None:
         pouvoir_items = []
@@ -3018,14 +3018,26 @@ def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, in
     # Afficher les items dans l'inventaire
     font = pygame.font.Font(None, 24)
     
-    # Bouton retour
+    # Bouton retour ou commencer
     font_button = pygame.font.Font(None, 36)
-    retour_button = pygame.Rect(10, 10, 100, 40)
-    pygame.draw.rect(screen, RED, retour_button)
-    pygame.draw.rect(screen, WHITE, retour_button, 2)
-    retour_text = font_button.render("RETOUR", True, WHITE)
-    retour_text_rect = retour_text.get_rect(center=retour_button.center)
-    screen.blit(retour_text, retour_text_rect)
+    if show_start_button:
+        # Afficher un bouton "Commencer" à droite en bas
+        start_button = pygame.Rect(WINDOW_WIDTH - 150, WINDOW_HEIGHT - 60, 140, 50)
+        pygame.draw.rect(screen, (0, 255, 0), start_button)  # Vert
+        pygame.draw.rect(screen, WHITE, start_button, 2)
+        start_text = font_button.render("COMMENCER", True, WHITE)
+        start_text_rect = start_text.get_rect(center=start_button.center)
+        screen.blit(start_text, start_text_rect)
+        retour_button = None  # Pas de bouton retour quand on montre le bouton commencer
+        start_button_for_slots = start_button
+    else:
+        retour_button = pygame.Rect(10, 10, 100, 40)
+        pygame.draw.rect(screen, RED, retour_button)
+        pygame.draw.rect(screen, WHITE, retour_button, 2)
+        retour_text = font_button.render("RETOUR", True, WHITE)
+        retour_text_rect = retour_text.get_rect(center=retour_button.center)
+        screen.blit(retour_text, retour_text_rect)
+        start_button_for_slots = None
     
     # Créer un dictionnaire avec tous les rectangles des slots pour le drag and drop
     slots = {
@@ -3033,8 +3045,11 @@ def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, in
         'gadget': gadget_slot_rect,
         'capacite1': capacite_slot_rect1,
         'capacite2': capacite_slot_rect2,
-        'retour': retour_button
     }
+    if retour_button:
+        slots['retour'] = retour_button
+    if start_button_for_slots:
+        slots['commencer'] = start_button_for_slots
     # Ajouter les cases d'objets
     for i, rect in enumerate(objet_slot_rects):
         slots[f'objet{i}'] = rect
@@ -4201,7 +4216,7 @@ def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, in
             desc_text = font_desc.render(lines[i], True, YELLOW)
             screen.blit(desc_text, (20, desc_y + 10 + i * 25))
     
-    return retour_button, slots
+    return retour_button, slots, start_button_for_slots if show_start_button else None
 
 def draw_vente(screen, inventaire_items=None, jeton_poche=0, crown_poche=0, scroll_offset=0, capacite_items=None, bon_marche_ameliore=False):
     """Dessine l'écran de vente"""
@@ -4511,6 +4526,8 @@ def main():
     # Variables pour l'inventaire
     inventaire_retour_button = None
     inventaire_slots = None
+    inventaire_start_button = None
+    inventaire_before_game = False  # Variable pour savoir si on est dans l'inventaire avant de commencer la partie
     shop_retour_button = None
     shop_gadget_button = None
     shop_pouvoir_button = None
@@ -4643,12 +4660,9 @@ def main():
                                 has_indigestion = False
                                 indigestion_timer = 0
                                 game_needs_reset = False
-                            # Recalculer les vies à chaque fois qu'on clique sur "JEU" selon les armures équipées
-                            armor_lives_bonus = calculate_armor_lives_bonus(inventaire_items)
-                            lives = 2 + armor_lives_bonus  # Base 2 vies + bonus d'armures (1 ou 2 selon combien sont équipées)
-                            if not game_initialized:
-                                game_initialized = True
-                            current_state = GAME
+                            # Ouvrir l'inventaire pour permettre de changer l'équipement avant de commencer
+                            current_state = INVENTAIRE
+                            inventaire_before_game = True  # Variable pour indiquer qu'on est dans l'inventaire avant de commencer la partie
                         elif magasin_button.collidepoint(mouse_pos):
                             current_state = SHOP
                         elif difficulte_button.collidepoint(mouse_pos):
@@ -6096,16 +6110,70 @@ def main():
                                             # Sortir de la boucle après avoir vendu l'item
                                             break
                     elif current_state == INVENTAIRE:
+                        # Vérifier si on clique sur le bouton commencer
+                        if inventaire_before_game and inventaire_start_button is not None and inventaire_start_button.collidepoint(mouse_pos):
+                            # Démarrer la partie
+                            if game_needs_reset:
+                                # Réinitialiser la partie complètement
+                                maze = [row[:] for row in MAZES[0]]
+                                pacman = Pacman(10, 15)
+                                ghosts = [
+                                    Ghost(10, 9, BLUE),
+                                ]
+                                # Définir le chemin pour tous les fantômes bleus
+                                for ghost in ghosts:
+                                    if ghost.color == BLUE:
+                                        ghost.set_path(maze)
+                                score = 0
+                                level = 1
+                                last_bonus_score = 0
+                                game_over = False
+                                won = False
+                                vulnerable_timer = 0
+                                ice_tiles = {}  # Réinitialiser les cases de glace
+                                fire_tiles = {}  # Réinitialiser les cases de feu
+                                fire_active = False
+                                fire_timer = 0
+                                gadget_cooldown = 0
+                                mort_cooldown = 0
+                                bombe_cooldown = 0
+                                bombe_active = False
+                                pieges = {}
+                                portal1_pos = None
+                                portal2_pos = None
+                                portal_use_count = 0
+                                mur_pos = None
+                                mur_use_count = 0
+                                gadget_use_count = 0
+                                invincibility_timer = 30 + invincibilite_bonus  # Réinitialiser le timer d'invincibilité
+                                level_transition = False
+                                level_transition_timer = 0
+                                respawn_timer = 0
+                                crown_count = 0  # Réinitialiser le compteur de couronnes temporaires
+                                jeton_count = 0  # Réinitialiser le compteur de jetons temporaires
+                                last_ghost_time = 0  # Réinitialiser le timer depuis le dernier fantôme mangé
+                                has_indigestion = False
+                                indigestion_timer = 0
+                                game_needs_reset = False
+                            # Recalculer les vies selon les armures équipées
+                            armor_lives_bonus = calculate_armor_lives_bonus(inventaire_items)
+                            lives = 2 + armor_lives_bonus  # Base 2 vies + bonus d'armures (1 ou 2 selon combien sont équipées)
+                            if not game_initialized:
+                                game_initialized = True
+                            current_state = GAME
+                            inventaire_before_game = False  # Réinitialiser la variable
+                            item_description = None  # Effacer la description
                         # Vérifier si on clique sur le bouton retour
-                        if inventaire_retour_button is not None and inventaire_retour_button.collidepoint(mouse_pos):
+                        elif inventaire_retour_button is not None and inventaire_retour_button.collidepoint(mouse_pos):
                             current_state = MENU
+                            inventaire_before_game = False  # Réinitialiser la variable
                             item_description = None  # Effacer la description quand on retourne au menu
                         # Vérifier si on clique sur un slot pour sélectionner un item
                         elif inventaire_slots is not None:
                             # Si on clique gauche ailleurs (pas sur un slot), effacer la description
                             clicked_on_slot = False
                             for slot_name, slot_rect in inventaire_slots.items():
-                                if slot_name != 'retour' and slot_rect.collidepoint(mouse_pos):
+                                if slot_name != 'retour' and slot_name != 'commencer' and slot_rect.collidepoint(mouse_pos):
                                     clicked_on_slot = True
                                     # Si on clique sur un slot qui contient un item, le sélectionner ou désélectionner
                                     if slot_name in inventaire_items:
@@ -8336,7 +8404,7 @@ def main():
         elif current_state == INVENTAIRE:
             # Obtenir la position de la souris pour le tooltip
             mouse_pos = pygame.mouse.get_pos()
-            inventaire_retour_button, inventaire_slots = draw_inventaire(screen, crown_poche, jeton_poche, pouvoir_items, inventaire_items, item_description, mouse_pos)
+            inventaire_retour_button, inventaire_slots, inventaire_start_button = draw_inventaire(screen, crown_poche, jeton_poche, pouvoir_items, inventaire_items, item_description, mouse_pos, show_start_button=inventaire_before_game)
             # Afficher l'item sélectionné qui suit la souris
             if selected_item is not None:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
