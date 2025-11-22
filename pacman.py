@@ -4544,20 +4544,34 @@ def main():
                 if current_state == VENTE:
                     # Calculer le nombre total d'items
                     num_items = len(inventaire_items)
-                    items_per_column = 8
-                    item_height = 50
-                    item_spacing = 5
+                    # Utiliser les mêmes valeurs que dans draw_vente
+                    items_per_column = 12
+                    item_height = 35
+                    item_spacing = 3
                     start_y = 220
                     visible_area_top = 180
                     visible_area_bottom = WINDOW_HEIGHT
                     visible_height = visible_area_bottom - visible_area_top
                     
                     # Calculer la hauteur totale nécessaire pour afficher tous les items
-                    num_rows = (num_items + items_per_column - 1) // items_per_column  # Arrondir vers le haut
-                    total_height = num_rows * (item_height + item_spacing)
+                    # Les items sont répartis en deux colonnes : items_per_column dans la première, le reste dans la deuxième
+                    num_items_col1 = min(items_per_column, num_items)
+                    num_items_col2 = max(0, num_items - items_per_column)
+                    # Le nombre de lignes est le maximum entre les deux colonnes
+                    num_rows_col1 = num_items_col1
+                    num_rows_col2 = num_items_col2
+                    max_rows = max(num_rows_col1, num_rows_col2)
                     
-                    # Calculer le défilement maximum (ne peut pas dépasser la hauteur totale)
-                    max_scroll = max(0, total_height - visible_height + 50)  # +50 pour un peu de marge
+                    # Calculer le défilement maximum
+                    # La position du dernier item (en bas) serait : start_y + (max_rows - 1) * (item_height + item_spacing) + item_height
+                    # Pour que le dernier item soit visible, on doit avoir :
+                    # start_y + (max_rows - 1) * (item_height + item_spacing) + item_height - scroll_offset <= visible_area_bottom
+                    # Donc : scroll_offset >= start_y + (max_rows - 1) * (item_height + item_spacing) + item_height - visible_area_bottom
+                    if max_rows > 0:
+                        last_item_bottom = start_y + (max_rows - 1) * (item_height + item_spacing) + item_height
+                        max_scroll = max(0, last_item_bottom - visible_area_bottom)
+                    else:
+                        max_scroll = 0
                     
                     # Ajuster le défilement selon la molette (event.y est positif vers le haut, négatif vers le bas)
                     scroll_speed = 30  # Vitesse de défilement
