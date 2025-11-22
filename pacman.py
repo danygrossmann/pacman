@@ -1476,16 +1476,16 @@ def draw_shop_pouvoir(screen, jeton_poche=0, pouvoir_items=None, crown_poche=0, 
     retour_text_rect = retour_text.get_rect(center=retour_button.center)
     screen.blit(retour_text, retour_text_rect)
     
-    # Item "Scine bleu" (en haut à droite)
+    # Item "Skin bleu" (en haut à droite)
     scine_bleu_y = item_y  # Même niveau que "Longue vue"
     
-    # Bouton "Scine bleu" (aligné à droite)
+    # Bouton "Skin bleu" (aligné à droite)
     scine_bleu_button = pygame.Rect(button_x_right, scine_bleu_y, button_width, item_height)
     pygame.draw.rect(screen, YELLOW, scine_bleu_button)  # Jaune
     pygame.draw.rect(screen, WHITE, scine_bleu_button, 2)
     
     scine_bleu_count = pouvoir_items.count("scine bleu")
-    scine_bleu_name = f"Scine bleu x{scine_bleu_count}" if scine_bleu_count > 0 else "Scine bleu"
+    scine_bleu_name = f"Skin bleu x{scine_bleu_count}" if scine_bleu_count > 0 else "Skin bleu"
     scine_bleu_text = font_item.render(scine_bleu_name, True, BLACK)
     scine_bleu_text_rect = scine_bleu_text.get_rect(center=(scine_bleu_button.centerx, scine_bleu_button.centery - 10))
     screen.blit(scine_bleu_text, scine_bleu_text_rect)
@@ -1515,16 +1515,16 @@ def draw_shop_pouvoir(screen, jeton_poche=0, pouvoir_items=None, crown_poche=0, 
         owned_text_rect = owned_text.get_rect(center=(scine_bleu_button.centerx, scine_bleu_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
-    # Item "Scine orange" (juste en dessous de "Scine bleu")
+    # Item "Skin orange" (juste en dessous de "Skin bleu")
     scine_orange_y = scine_bleu_y + item_spacing
     
-    # Bouton "Scine orange" (aligné à droite)
+    # Bouton "Skin orange" (aligné à droite)
     scine_orange_button = pygame.Rect(button_x_right, scine_orange_y, button_width, item_height)
     pygame.draw.rect(screen, YELLOW, scine_orange_button)  # Jaune
     pygame.draw.rect(screen, WHITE, scine_orange_button, 2)
     
     scine_orange_count = pouvoir_items.count("scine orange")
-    scine_orange_name = f"Scine orange x{scine_orange_count}" if scine_orange_count > 0 else "Scine orange"
+    scine_orange_name = f"Skin orange x{scine_orange_count}" if scine_orange_count > 0 else "Skin orange"
     scine_orange_text = font_item.render(scine_orange_name, True, BLACK)
     scine_orange_text_rect = scine_orange_text.get_rect(center=(scine_orange_button.centerx, scine_orange_button.centery - 10))
     screen.blit(scine_orange_text, scine_orange_text_rect)
@@ -1554,7 +1554,7 @@ def draw_shop_pouvoir(screen, jeton_poche=0, pouvoir_items=None, crown_poche=0, 
         owned_text_rect = owned_text.get_rect(center=(scine_orange_button.centerx, scine_orange_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
-    # Item "Glace" (en dessous de "Scine orange")
+    # Item "Glace" (en dessous de "Skin orange")
     glace_y = scine_orange_y + item_spacing
     
     # Bouton "Glace" (aligné à droite)
@@ -2762,35 +2762,35 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
         owned_text_rect = owned_text.get_rect(center=(givre_button.centerx, givre_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
-    # Item "Infrin rouge" (aligné à gauche, en dessous de "Flamme")
-    infrin_rouge_y = flamme_button.y + item_spacing
+    # Item "Infra rouge" (aligné à gauche, en dessous de "Flamme")
+    infra_rouge_y = flamme_button.y + item_spacing
     
-    # Bouton "Infrin rouge" (aligné à gauche)
-    infrin_rouge_button = pygame.Rect(button_x, infrin_rouge_y, button_width, item_height)
-    pygame.draw.rect(screen, (255, 0, 0), infrin_rouge_button)  # Rouge
-    pygame.draw.rect(screen, WHITE, infrin_rouge_button, 2)
+    # Bouton "Infra rouge" (aligné à gauche)
+    infra_rouge_button = pygame.Rect(button_x, infra_rouge_y, button_width, item_height)
+    pygame.draw.rect(screen, (255, 0, 0), infra_rouge_button)  # Rouge
+    pygame.draw.rect(screen, WHITE, infra_rouge_button, 2)
     
-    infrin_rouge_name = "Infrin rouge"
-    infrin_rouge_text = font_item.render(infrin_rouge_name, True, WHITE)
-    infrin_rouge_text_rect = infrin_rouge_text.get_rect(center=(infrin_rouge_button.centerx, infrin_rouge_button.centery - 10))
-    screen.blit(infrin_rouge_text, infrin_rouge_text_rect)
+    infra_rouge_name = "Infra rouge"
+    infra_rouge_text = font_item.render(infra_rouge_name, True, WHITE)
+    infra_rouge_text_rect = infra_rouge_text.get_rect(center=(infra_rouge_button.centerx, infra_rouge_button.centery - 10))
+    screen.blit(infra_rouge_text, infra_rouge_text_rect)
     
-    infrin_rouge_price = max(0, 4000 - price_reduction)  # Prix réduit si "bon marché" est équipé
-    infrin_rouge_price_text = font_price.render(f"Prix: {infrin_rouge_price} pacoins", True, BLACK)
-    infrin_rouge_price_text_rect = infrin_rouge_price_text.get_rect(center=(infrin_rouge_button.centerx, infrin_rouge_button.centery + 10))
-    screen.blit(infrin_rouge_price_text, infrin_rouge_price_text_rect)
+    infra_rouge_price = max(0, 4000 - price_reduction)  # Prix réduit si "bon marché" est équipé
+    infra_rouge_price_text = font_price.render(f"Prix: {infra_rouge_price} pacoins", True, BLACK)
+    infra_rouge_price_text_rect = infra_rouge_price_text.get_rect(center=(infra_rouge_button.centerx, infra_rouge_button.centery + 10))
+    screen.blit(infra_rouge_price_text, infra_rouge_price_text_rect)
     
     # Vérifier si déjà acheté
-    if "infrin rouge" in objet_items:
+    if "infra rouge" in objet_items:
         font_owned = pygame.font.Font(None, 18)
         owned_text = font_owned.render("(Déjà acheté)", True, (0, 255, 0))  # Vert
         if owned_text.get_width() > button_width - 10:
             owned_text = font_owned.render("(Acheté)", True, (0, 255, 0))
-        owned_text_rect = owned_text.get_rect(center=(infrin_rouge_button.centerx, infrin_rouge_button.centery + 22))
+        owned_text_rect = owned_text.get_rect(center=(infra_rouge_button.centerx, infra_rouge_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
-    # Item "Coffre fort" (aligné à gauche, en dessous de "Infrin rouge")
-    coffre_fort_y = infrin_rouge_button.y + item_spacing
+    # Item "Coffre fort" (aligné à gauche, en dessous de "Infra rouge")
+    coffre_fort_y = infra_rouge_button.y + item_spacing
     
     # Bouton "Coffre fort" (aligné à gauche)
     coffre_fort_button = pygame.Rect(button_x, coffre_fort_y, button_width, item_height)
@@ -2909,8 +2909,8 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
         item_description = "Flamme: Augmente la durée d'activation du feu de 50% quand équipé."
     elif givre_button.collidepoint(mouse_pos):
         item_description = "Givre: Diminue encore plus la vitesse de déplacement des fantômes sur la glace si équipé avec le pouvoir 'glace'."
-    elif infrin_rouge_button.collidepoint(mouse_pos):
-        item_description = "Infrin rouge: Diminue le temps de rechargement de Vision X si équipé."
+    elif infra_rouge_button.collidepoint(mouse_pos):
+        item_description = "Infra rouge: Diminue le temps de rechargement de Vision X si équipé."
     elif bric_button.collidepoint(mouse_pos):
         item_description = "Bric: Si équipé avec le gadget 'mur', permet de poser 2 murs (1ère et 2ème utilisation) puis de les enlever (3ème utilisation)."
     elif coffre_fort_button.collidepoint(mouse_pos):
@@ -2920,7 +2920,7 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     elif double_gadget_button.collidepoint(mouse_pos):
         item_description = "Double gadget: Permet d'utiliser un gadget deux fois avant que le temps de recharge commence."
     
-    return retour_button, piece_mythique_button, grosse_armure_button, armure_fer_button, flamme_button, givre_button, infrin_rouge_button, bric_button, coffre_fort_button, coffre_tresor_button, double_gadget_button
+    return retour_button, piece_mythique_button, grosse_armure_button, armure_fer_button, flamme_button, givre_button, infra_rouge_button, bric_button, coffre_fort_button, coffre_tresor_button, double_gadget_button
 
 def draw_difficulty(screen):
     """Dessine l'écran de sélection de difficulté"""
@@ -4127,8 +4127,8 @@ def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, in
                 # Lignes horizontales pour l'effet de brique
                 pygame.draw.line(screen, (101, 67, 33), (brick_rect.left, center_y - 2), (brick_rect.right, center_y - 2), 1)
                 pygame.draw.line(screen, (101, 67, 33), (brick_rect.left, center_y + 2), (brick_rect.right, center_y + 2), 1)
-            elif item_data.get('type') == 'infrin rouge':
-                # Dessiner un infrin rouge (cristal rouge)
+            elif item_data.get('type') == 'infra rouge':
+                # Dessiner un infra rouge (cristal rouge)
                 center_x = slot_rect.centerx
                 center_y = slot_rect.centery
                 
@@ -4236,8 +4236,8 @@ def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, in
                         'bon goût': 'Bon goût',
                         'pas d\'indigestion': 'Pas d\'indigestion',
                         'glace': 'Glace',
-                        'scine bleu': 'Scine bleu',
-                        'scine orange': 'Scine orange',
+                        'scine bleu': 'Skin bleu',
+                        'scine orange': 'Skin orange',
                         'scine rose': 'Scine rose',
                         'scine rouge': 'Scine rouge',
                         'bon marché': 'Bon marché',
@@ -4248,7 +4248,7 @@ def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, in
                         'feu': 'Feu',
                         'flamme': 'Flamme',
                         'givre': 'Givre',
-                        'infrin rouge': 'Infrin rouge',
+                        'infra rouge': 'Infra rouge',
                         'bric': 'Bric',
                         'coffre fort': 'Coffre fort',
                         'coffre au trésor': 'Coffre au trésor',
@@ -4393,7 +4393,7 @@ def draw_vente(screen, inventaire_items=None, jeton_poche=0, crown_poche=0, scro
         'armure de fer': (250, 0),  # 50% de 500
         'flamme': (1000, 0),  # 50% de 2000
         'givre': (1500, 0),  # 50% de 3000
-        'infrin rouge': (2000, 0),  # 50% de 4000
+        'infra rouge': (2000, 0),  # 50% de 4000
         'bric': (2500, 0),  # 50% de 5000
         'coffre fort': (5000, 0),  # 50% de 10000
         'coffre au trésor': (7500, 0),  # 50% de 15000
@@ -5134,7 +5134,7 @@ def main():
                                     if grid_slot_found:
                                         break
                         elif shop_scine_bleu_button is not None and shop_scine_bleu_button.collidepoint(mouse_pos):
-                            # Acheter "Scine bleu" pour 10000 pacoins et 1000 couronnes (réduit si "bon marché" équipé au niveau 1)
+                            # Acheter "Skin bleu" pour 10000 pacoins et 1000 couronnes (réduit si "bon marché" équipé au niveau 1)
                             scine_bleu_price = max(0, 10000 - price_reduction)
                             if "scine bleu" not in pouvoir_items and jeton_poche >= scine_bleu_price and crown_poche >= 1000:
                                 pouvoir_items.append("scine bleu")
@@ -5147,13 +5147,13 @@ def main():
                                     for col in range(4):
                                         slot_name = f'grid_{row}_{col}'
                                         if slot_name not in inventaire_items:
-                                            inventaire_items[slot_name] = {'type': 'scine bleu', 'name': 'Scine bleu'}
+                                            inventaire_items[slot_name] = {'type': 'scine bleu', 'name': 'Skin bleu'}
                                             grid_slot_found = True
                                             break
                                     if grid_slot_found:
                                         break
                         elif shop_scine_orange_button is not None and shop_scine_orange_button.collidepoint(mouse_pos):
-                            # Acheter "Scine orange" pour 10000 pacoins et 1000 couronnes (réduit si "bon marché" équipé au niveau 1)
+                            # Acheter "Skin orange" pour 10000 pacoins et 1000 couronnes (réduit si "bon marché" équipé au niveau 1)
                             scine_orange_price = max(0, 10000 - price_reduction)
                             if "scine orange" not in pouvoir_items and jeton_poche >= scine_orange_price and crown_poche >= 1000:
                                 pouvoir_items.append("scine orange")
@@ -5166,7 +5166,7 @@ def main():
                                     for col in range(4):
                                         slot_name = f'grid_{row}_{col}'
                                         if slot_name not in inventaire_items:
-                                            inventaire_items[slot_name] = {'type': 'scine orange', 'name': 'Scine orange'}
+                                            inventaire_items[slot_name] = {'type': 'scine orange', 'name': 'Skin orange'}
                                             grid_slot_found = True
                                             break
                                     if grid_slot_found:
@@ -5812,21 +5812,21 @@ def main():
                                                 break
                                         if slot_found:
                                             break
-                        elif shop_infrin_rouge_button is not None and shop_infrin_rouge_button.collidepoint(mouse_pos):
-                            # Acheter "Infrin rouge" pour 4000 pacoins (réduit si "bon marché" est équipé)
-                            infrin_rouge_price = max(0, 4000 - price_reduction)
-                            # Permettre d'acheter un seul infrin rouge
-                            if "infrin rouge" not in objet_items and jeton_poche >= infrin_rouge_price:
-                                objet_items.append("infrin rouge")
-                                jeton_poche -= infrin_rouge_price
-                                # Ajouter "infrin rouge" dans un slot objet (objet0, objet1, ou objet2) ou dans la grille
+                        elif shop_infra_rouge_button is not None and shop_infra_rouge_button.collidepoint(mouse_pos):
+                            # Acheter "Infra rouge" pour 4000 pacoins (réduit si "bon marché" est équipé)
+                            infra_rouge_price = max(0, 4000 - price_reduction)
+                            # Permettre d'acheter un seul infra rouge
+                            if "infra rouge" not in objet_items and jeton_poche >= infra_rouge_price:
+                                objet_items.append("infra rouge")
+                                jeton_poche -= infra_rouge_price
+                                # Ajouter "infra rouge" dans un slot objet (objet0, objet1, ou objet2) ou dans la grille
                                 # Essayer d'abord les slots objet, puis la grille si aucun n'est disponible
                                 slot_found = False
                                 # Chercher dans les slots objet d'abord
                                 for i in range(3):
                                     slot_name = f'objet{i}'
                                     if slot_name not in inventaire_items:
-                                        inventaire_items[slot_name] = {'type': 'infrin rouge', 'name': 'Infrin rouge'}
+                                        inventaire_items[slot_name] = {'type': 'infra rouge', 'name': 'Infra rouge'}
                                         slot_found = True
                                         break
                                 # Si aucun slot objet n'est disponible, chercher dans la grille
@@ -5835,7 +5835,7 @@ def main():
                                         for col in range(4):
                                             slot_name = f'grid_{row}_{col}'
                                             if slot_name not in inventaire_items:
-                                                inventaire_items[slot_name] = {'type': 'infrin rouge', 'name': 'Infrin rouge'}
+                                                inventaire_items[slot_name] = {'type': 'infra rouge', 'name': 'Infra rouge'}
                                                 slot_found = True
                                                 break
                                         if slot_found:
@@ -6019,7 +6019,7 @@ def main():
                             'armure de fer': (250, 0),  # 50% de 500
                             'flamme': (1000, 0),  # 50% de 2000
                             'givre': (1500, 0),  # 50% de 3000
-                            'infrin rouge': (2000, 0),  # 50% de 4000
+                            'infra rouge': (2000, 0),  # 50% de 4000
                             'bric': (2500, 0),  # 50% de 5000
                             'coffre fort': (5000, 0),  # 50% de 10000
                             'coffre au trésor': (7500, 0),  # 50% de 15000
@@ -6234,8 +6234,8 @@ def main():
                                                     del inventaire_items[old_slot]
                                                 selected_item = None
                                             # Sinon, ne pas déplacer (rester sélectionné)
-                                        elif item_data.get('type') == 'infrin rouge':
-                                            # L'infrin rouge peut aller dans les slots objet (objet0, objet1, objet2) ou dans la grille d'inventaire
+                                        elif item_data.get('type') == 'infra rouge':
+                                            # L'infra rouge peut aller dans les slots objet (objet0, objet1, objet2) ou dans la grille d'inventaire
                                             if slot_name == 'objet0' or slot_name == 'objet1' or slot_name == 'objet2' or slot_name.startswith('grid_'):
                                                 inventaire_items[slot_name] = item_data
                                                 if old_slot in inventaire_items:
@@ -6423,11 +6423,11 @@ def main():
                                                                    ('capacite2' in inventaire_items and inventaire_items['capacite2'].get('type') == 'bonne vue'))
                                             bon_vue_level = capacite_items.count("bonne vue") if capacite_items else 0
                                             cooldown_reduction = bon_vue_level * 25 if has_bon_vue_capacity else 0  # Réduction de 2.5 secondes par niveau (25 frames à 10 FPS)
-                                            # Calculer le bonus de "infrin rouge" si équipé
-                                            has_infrin_rouge = (('objet0' in inventaire_items and inventaire_items['objet0'].get('type') == 'infrin rouge') or
-                                                               ('objet1' in inventaire_items and inventaire_items['objet1'].get('type') == 'infrin rouge') or
-                                                               ('objet2' in inventaire_items and inventaire_items['objet2'].get('type') == 'infrin rouge'))
-                                            if has_infrin_rouge:
+                                            # Calculer le bonus de "infra rouge" si équipé
+                                            has_infra_rouge = (('objet0' in inventaire_items and inventaire_items['objet0'].get('type') == 'infra rouge') or
+                                                               ('objet1' in inventaire_items and inventaire_items['objet1'].get('type') == 'infra rouge') or
+                                                               ('objet2' in inventaire_items and inventaire_items['objet2'].get('type') == 'infra rouge'))
+                                            if has_infra_rouge:
                                                 cooldown_reduction += 50  # Réduction supplémentaire de 5 secondes (50 frames à 10 FPS)
                                             # Gérer le temps de recharge avec "double gadget" (alternance recharge instantanée/normale)
                                             if has_double_gadget:
@@ -6693,9 +6693,9 @@ def main():
                                         elif item_type == 'glace':
                                             item_description = "Glace: Crée de la glace derrière vous quand vous vous déplacez. Ralentit les fantômes et disparaît après 3 secondes."
                                         elif item_type == 'scine bleu':
-                                            item_description = "Scine bleu: Vous traversez les fantômes bleus sans mourir. Vous ne pouvez pas être tué par les fantômes bleus."
+                                            item_description = "Skin bleu: Vous traversez les fantômes bleus sans mourir. Vous ne pouvez pas être tué par les fantômes bleus."
                                         elif item_type == 'scine orange':
-                                            item_description = "Scine orange: Vous avez 85% de chance de ne pas mourir si vous touchez un fantôme orange."
+                                            item_description = "Skin orange: Vous avez 85% de chance de ne pas mourir si vous touchez un fantôme orange."
                                         elif item_type == 'scine rose':
                                             item_description = "Scine rose: Vous avez 75% de chance de ne pas mourir si vous touchez un fantôme rose."
                                         elif item_type == 'scine rouge':
@@ -6767,8 +6767,8 @@ def main():
                                             item_description = "Flamme: Augmente la durée d'activation du feu de 50% quand équipé."
                                         elif item_type == 'givre':
                                             item_description = "Givre: Diminue encore plus la vitesse de déplacement des fantômes sur la glace si équipé avec le pouvoir 'glace'."
-                                        elif item_type == 'infrin rouge':
-                                            item_description = "Infrin rouge: Diminue le temps de rechargement de Vision X si équipé."
+                                        elif item_type == 'infra rouge':
+                                            item_description = "Infra rouge: Diminue le temps de rechargement de Vision X si équipé."
                                         elif item_type == 'bric':
                                             item_description = "Bric: Si équipé avec le gadget 'mur', permet de poser 2 murs (1ère et 2ème utilisation) puis de les enlever (3ème utilisation)."
                                         elif item_type == 'coffre fort':
@@ -6799,9 +6799,9 @@ def main():
                         elif shop_glace_button is not None and shop_glace_button.collidepoint(mouse_pos):
                             item_description = "Glace: Crée de la glace derrière vous quand vous vous déplacez. Ralentit les fantômes et disparaît après 3 secondes."
                         elif shop_scine_bleu_button is not None and shop_scine_bleu_button.collidepoint(mouse_pos):
-                            item_description = "Scine bleu: Permet de ne pas mourir si on touche un fantome bleu."
+                            item_description = "Skin bleu: Permet de ne pas mourir si on touche un fantome bleu."
                         elif shop_scine_orange_button is not None and shop_scine_orange_button.collidepoint(mouse_pos):
-                            item_description = "Scine orange: Quand tu l'équipes, tu as 85 pour cent de chance de ne pas mourir quand tu touches un fantome orange."
+                            item_description = "Skin orange: Quand tu l'équipes, tu as 85 pour cent de chance de ne pas mourir quand tu touches un fantome orange."
                         elif shop_scine_rose_button is not None and shop_scine_rose_button.collidepoint(mouse_pos):
                             item_description = "Scine rose: Quand tu l'équipes, tu as 75 pour cent de chance de ne pas mourir quand tu touches un fantome rose."
                         elif shop_scine_rouge_button is not None and shop_scine_rouge_button.collidepoint(mouse_pos):
@@ -6891,8 +6891,8 @@ def main():
                             item_description = "Flamme: Augmente la durée d'activation du feu de 50% quand équipé."
                         elif shop_givre_button is not None and shop_givre_button.collidepoint(mouse_pos):
                             item_description = "Givre: Diminue encore plus la vitesse de déplacement des fantômes sur la glace si équipé avec le pouvoir 'glace'."
-                        elif shop_infrin_rouge_button is not None and shop_infrin_rouge_button.collidepoint(mouse_pos):
-                            item_description = "Infrin rouge: Diminue le temps de rechargement de Vision X si équipé."
+                        elif shop_infra_rouge_button is not None and shop_infra_rouge_button.collidepoint(mouse_pos):
+                            item_description = "Infra rouge: Diminue le temps de rechargement de Vision X si équipé."
                         elif shop_bric_button is not None and shop_bric_button.collidepoint(mouse_pos):
                             item_description = "Bric: Si équipé avec le gadget 'mur', permet de poser 2 murs (1ère et 2ème utilisation) puis de les enlever (3ème utilisation)."
                         elif shop_coffre_fort_button is not None and shop_coffre_fort_button.collidepoint(mouse_pos):
@@ -8388,7 +8388,7 @@ def main():
         elif current_state == SHOP_CAPACITE:
             shop_capacite_retour_button, shop_bon_marche_button, shop_gadget_button, shop_piquant_button, shop_pacgum_button, shop_bonbe_button, shop_indigestion_button, shop_bon_vue_button, shop_gel_button, shop_lunette_button, shop_invincibilite_button, shop_ameliorer_button = draw_shop_capacite(screen, jeton_poche, capacite_items, crown_poche, item_description, bon_marche_ameliore)
         elif current_state == SHOP_OBJET:
-            shop_objet_retour_button, shop_piece_mythique_button, shop_grosse_armure_button, shop_armure_fer_button, shop_flamme_button, shop_givre_button, shop_infrin_rouge_button, shop_bric_button, shop_coffre_fort_button, shop_coffre_tresor_button, shop_double_gadget_button = draw_shop_objet(screen, jeton_poche, objet_items, crown_poche, item_description, level, inventaire_items, bon_marche_ameliore, capacite_items)
+            shop_objet_retour_button, shop_piece_mythique_button, shop_grosse_armure_button, shop_armure_fer_button, shop_flamme_button, shop_givre_button, shop_infra_rouge_button, shop_bric_button, shop_coffre_fort_button, shop_coffre_tresor_button, shop_double_gadget_button = draw_shop_objet(screen, jeton_poche, objet_items, crown_poche, item_description, level, inventaire_items, bon_marche_ameliore, capacite_items)
         elif current_state == DIFFICULTY:
             retour_button, button1, button2, button3, button4 = draw_difficulty(screen)
         elif current_state == POCHE:
