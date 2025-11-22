@@ -2294,7 +2294,7 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
     
     # Bouton "Indigestion" (aligné à droite, en dessous de "Piquant")
     indigestion_button = pygame.Rect(button_x_right, item_y + item_spacing * 2, button_width, item_height)
-    pygame.draw.rect(screen, (128, 0, 128), indigestion_button)  # Violet
+    pygame.draw.rect(screen, (0, 0, 255), indigestion_button)  # Bleu
     pygame.draw.rect(screen, WHITE, indigestion_button, 2)
     
     indigestion_count = capacite_items.count("indigestion")
