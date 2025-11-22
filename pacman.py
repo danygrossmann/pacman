@@ -2628,7 +2628,7 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     
     # Bouton "Pièce mythique" (aligné à gauche)
     piece_mythique_button = pygame.Rect(button_x, item_y, button_width, item_height)
-    pygame.draw.rect(screen, (255, 215, 0), piece_mythique_button)  # Or/Doré
+    pygame.draw.rect(screen, (255, 255, 0), piece_mythique_button)  # Jaune
     pygame.draw.rect(screen, WHITE, piece_mythique_button, 2)
     
     font_item = pygame.font.Font(None, 28)
@@ -2713,7 +2713,7 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     
     # Bouton "Flamme" (aligné à gauche, en dessous de "Pièce mythique")
     flamme_button = pygame.Rect(button_x, item_y + item_spacing, button_width, item_height)
-    pygame.draw.rect(screen, (255, 69, 0), flamme_button)  # Orange-rouge (couleur de flamme)
+    pygame.draw.rect(screen, (0, 0, 255), flamme_button)  # Bleu
     pygame.draw.rect(screen, WHITE, flamme_button, 2)
     
     flamme_name = "Flamme"
