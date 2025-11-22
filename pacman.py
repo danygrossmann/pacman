@@ -2054,7 +2054,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     
     # Bouton "Mur" (aligné à gauche, en dessous de Portail)
     mur_button = pygame.Rect(button_x, item_y + item_spacing * 4, button_width, item_height)
-    pygame.draw.rect(screen, (100, 100, 100), mur_button)  # Gris
+    pygame.draw.rect(screen, (0, 100, 200), mur_button)  # Bleu
     pygame.draw.rect(screen, WHITE, mur_button, 2)
     
     mur_count = gadget_items.count("mur")
