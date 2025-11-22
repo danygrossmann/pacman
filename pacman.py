@@ -1880,7 +1880,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     
     # Bouton "Tir" (aligné à droite, en dessous de Feu)
     tir_button = pygame.Rect(button_x_right, item_y + item_spacing, button_width, item_height)
-    pygame.draw.rect(screen, (255, 140, 0), tir_button)  # Orange foncé
+    pygame.draw.rect(screen, (0, 255, 0), tir_button)  # Vert
     pygame.draw.rect(screen, WHITE, tir_button, 2)
     
     tir_count = gadget_items.count("tir")
@@ -1938,7 +1938,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     
     # Bouton "Bombe Téléguidée" (aligné à gauche, en dessous de Vision X)
     bombe_button = pygame.Rect(button_x, item_y + item_spacing * 2, button_width, item_height)
-    pygame.draw.rect(screen, (255, 0, 0), bombe_button)  # Rouge
+    pygame.draw.rect(screen, (0, 255, 0), bombe_button)  # Vert
     pygame.draw.rect(screen, WHITE, bombe_button, 2)
     
     bombe_count = gadget_items.count("bombe téléguidée")
@@ -1967,7 +1967,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     
     # Bouton "Piège" (aligné à droite, en dessous de Mort)
     piege_button = pygame.Rect(button_x_right, item_y + item_spacing * 3, button_width, item_height)
-    pygame.draw.rect(screen, (139, 69, 19), piege_button)  # Brun/marron
+    pygame.draw.rect(screen, (0, 255, 0), piege_button)  # Vert
     pygame.draw.rect(screen, WHITE, piege_button, 2)
     
     piege_count = gadget_items.count("piège")
@@ -2054,7 +2054,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     
     # Bouton "Mur" (aligné à gauche, en dessous de Portail)
     mur_button = pygame.Rect(button_x, item_y + item_spacing * 4, button_width, item_height)
-    pygame.draw.rect(screen, (0, 100, 200), mur_button)  # Bleu
+    pygame.draw.rect(screen, (100, 100, 100), mur_button)  # Gris
     pygame.draw.rect(screen, WHITE, mur_button, 2)
     
     mur_count = gadget_items.count("mur")
