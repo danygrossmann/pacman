@@ -3130,7 +3130,9 @@ def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, in
         start_button = pygame.Rect(WINDOW_WIDTH - 150, WINDOW_HEIGHT - 60, 140, 50)
         pygame.draw.rect(screen, (0, 255, 0), start_button)  # Vert
         pygame.draw.rect(screen, WHITE, start_button, 2)
-        start_text = font_button.render("COMMENCER", True, WHITE)
+        # Utiliser une police plus petite pour le bouton "Commencer"
+        font_start = pygame.font.Font(None, 28)
+        start_text = font_start.render("COMMENCER", True, WHITE)
         start_text_rect = start_text.get_rect(center=start_button.center)
         screen.blit(start_text, start_text_rect)
         start_button_for_slots = start_button
