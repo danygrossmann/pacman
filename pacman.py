@@ -1013,7 +1013,83 @@ def respawn_player_and_ghosts(pacman, ghosts, invincibilite_bonus=0):
         ghost.direction = random.choice([(1, 0), (-1, 0), (0, 1), (0, -1)])
     return pacman, 30 + invincibilite_bonus  # Retourner aussi le timer d'invincibilité (3 secondes + bonus)
 
-def draw_menu(screen, super_vie_active=False):
+def start_game_with_difficulty(difficulty, inventaire_items, capacite_items, invincibilite_bonus, ghosts):
+    """Démarre la partie selon la difficulté choisie"""
+    # Supprimer le fantôme d'indigestion s'il existe
+    ghosts[:] = [ghost for ghost in ghosts if not ghost.harmless]
+    has_indigestion = False
+    indigestion_timer = 0
+    
+    if difficulty == "facile":
+        # Facile : niveau 1 avec 5 vies
+        maze, pacman, ghosts = start_next_level(1)
+        armor_lives_bonus_init = calculate_armor_lives_bonus(inventaire_items)
+        lives = 5 + armor_lives_bonus_init
+    elif difficulty == "moyen":
+        # Moyen : niveau 3 avec un fantôme bleu supplémentaire
+        maze, pacman, ghosts = start_next_level(3)
+        # Ajouter un fantôme bleu supplémentaire pour le mode moyen
+        new_ghost = Ghost(11, 9, BLUE)
+        ghosts.append(new_ghost)
+        new_ghost.set_path(maze)
+        armor_lives_bonus_init = calculate_armor_lives_bonus(inventaire_items)
+        lives = 2 + armor_lives_bonus_init
+    elif difficulty == "difficile":
+        # Difficile : niveau 1 avec 1 vie
+        maze, pacman, ghosts = start_next_level(1)
+        armor_lives_bonus_init = calculate_armor_lives_bonus(inventaire_items)
+        lives = 1 + armor_lives_bonus_init
+    elif difficulty == "hardcore":
+        # Hardcore : niveau 5 avec 1 vie
+        maze, pacman, ghosts = start_next_level(5)
+        armor_lives_bonus_init = calculate_armor_lives_bonus(inventaire_items)
+        lives = 1 + armor_lives_bonus_init
+    else:
+        # Par défaut : facile
+        maze, pacman, ghosts = start_next_level(1)
+        armor_lives_bonus_init = calculate_armor_lives_bonus(inventaire_items)
+        lives = 2 + armor_lives_bonus_init
+    
+    # Initialisations communes
+    score = 0
+    last_bonus_score = 0
+    game_over = False
+    won = False
+    ice_tiles = {}
+    pacman_last_pos = (pacman.x, pacman.y)
+    vulnerable_timer = 0
+    level_transition = False
+    level_transition_timer = 0
+    respawn_timer = 0
+    invincibility_timer = 30 + invincibilite_bonus
+    crown_timer = 0
+    crown_count = 0
+    jeton_count = 0
+    last_ghost_time = 0
+    fire_tiles = {}
+    fire_active = False
+    fire_timer = 0
+    gadget_cooldown = 0
+    mort_cooldown = 0
+    bombe_cooldown = 0
+    bombe_active = False
+    pieges = {}
+    portal1_pos = None
+    portal2_pos = None
+    portal_use_count = 0
+    mur_pos = None
+    mur_use_count = 0
+    gadget_use_count = 0
+    
+    # Retourner toutes les variables initialisées
+    return (maze, pacman, ghosts, score, lives, last_bonus_score, game_over, won,
+            ice_tiles, pacman_last_pos, vulnerable_timer, level_transition, level_transition_timer,
+            respawn_timer, invincibility_timer, crown_timer, crown_count, jeton_count, last_ghost_time,
+            fire_tiles, fire_active, fire_timer, gadget_cooldown, mort_cooldown, bombe_cooldown,
+            bombe_active, pieges, portal1_pos, portal2_pos, portal_use_count, mur_pos, mur_use_count,
+            gadget_use_count, has_indigestion, indigestion_timer)
+
+def draw_menu(screen, super_vie_active=False, difficulty=None):
     """Dessine le menu principal"""
     screen.fill(BLACK)
     
@@ -1029,6 +1105,26 @@ def draw_menu(screen, super_vie_active=False):
     button_width = 150
     button_spacing = 50
     start_y = 180
+    
+    # Afficher la difficulté choisie au-dessus du bouton "Jouer" si une difficulté a été sélectionnée
+    if difficulty:
+        font_difficulty = pygame.font.Font(None, 28)
+        difficulty_names = {
+            "facile": "FACILE",
+            "moyen": "MOYEN",
+            "difficile": "DIFFICILE",
+            "hardcore": "HARDCORE"
+        }
+        difficulty_colors = {
+            "facile": (0, 200, 0),  # Vert
+            "moyen": (200, 200, 0),  # Jaune
+            "difficile": (200, 0, 0),  # Rouge
+            "hardcore": (128, 0, 128)  # Violet
+        }
+        difficulty_text_str = difficulty_names.get(difficulty, difficulty.upper())
+        difficulty_text = font_difficulty.render(f"Difficulté: {difficulty_text_str}", True, difficulty_colors.get(difficulty, WHITE))
+        difficulty_text_rect = difficulty_text.get_rect(center=(WINDOW_WIDTH//2, start_y - 25))
+        screen.blit(difficulty_text, difficulty_text_rect)
     
     # Bouton Jeu
     jeu_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y, button_width, button_height)
@@ -5860,131 +5956,21 @@ def main():
                         if retour_button.collidepoint(mouse_pos):
                             current_state = MENU
                         elif button1.collidepoint(mouse_pos):
-                            # Bouton FACILE - commencer avec 5 vies (+1 par armure équipée)
+                            # Bouton FACILE - sauvegarder la difficulté et revenir au menu
                             difficulty = "facile"
-                            maze = [row[:] for row in MAZES[0]]
-                            pacman = Pacman(10, 15)
-                            ghosts = [
-                                Ghost(10, 9, BLUE),
-                            ]
-                            # Définir le chemin pour tous les fantômes bleus
-                            for ghost in ghosts:
-                                if ghost.color == BLUE:
-                                    ghost.set_path(maze)
-                            score = 0
-                            level = 1
-                            # Initialiser les vies : base 5 + bonus d'armures (grosse armure et armure de fer)
-                            armor_lives_bonus_init = calculate_armor_lives_bonus(inventaire_items)
-                            lives = 5 + armor_lives_bonus_init  # Chaque armure équipée donne +1 coeur (jusqu'à +2 si les deux sont équipées)
-                            last_bonus_score = 0
-                            game_over = False
-                            won = False
-                            vulnerable_timer = 0
-                            level_transition = False
-                            level_transition_timer = 0
-                            respawn_timer = 0
-                            invincibilite_bonus = calculate_invincibilite_bonus(capacite_items, inventaire_items)
-                            invincibility_timer = 30 + invincibilite_bonus
-                            crown_timer = 0
-                            crown_count = 0
-                            jeton_count = 0
-                            last_ghost_time = 0
-                            game_initialized = True  # Marquer le jeu comme initialisé
-                            current_state = GAME
+                            current_state = MENU
                         elif button2.collidepoint(mouse_pos):
-                            # Bouton MOYEN - commencer au niveau 3 avec un fantôme bleu supplémentaire
+                            # Bouton MOYEN - sauvegarder la difficulté et revenir au menu
                             difficulty = "moyen"
-                            level = 3
-                            # Supprimer le fantôme d'indigestion s'il existe
-                            ghosts[:] = [ghost for ghost in ghosts if not ghost.harmless]
-                            has_indigestion = False
-                            indigestion_timer = 0
-                            maze, pacman, ghosts = start_next_level(level)
-                            # Ajouter un fantôme bleu supplémentaire pour le mode moyen
-                            new_ghost = Ghost(11, 9, BLUE)
-                            ghosts.append(new_ghost)
-                            new_ghost.set_path(maze)
-                            score = 0
-                            # Initialiser les vies : base 2 + bonus d'armures (grosse armure et armure de fer)
-                            armor_lives_bonus_init = calculate_armor_lives_bonus(inventaire_items)
-                            lives = 2 + armor_lives_bonus_init  # Chaque armure équipée donne +1 coeur (jusqu'à +2 si les deux sont équipées)
-                            last_bonus_score = 0
-                            game_over = False
-                            won = False
-                            ice_tiles = {}  # Réinitialiser les cases de glace au nouveau niveau
-                            pacman_last_pos = (pacman.x, pacman.y)  # Réinitialiser la position précédente
-                            vulnerable_timer = 0
-                            level_transition = False
-                            level_transition_timer = 0
-                            respawn_timer = 0
-                            invincibilite_bonus = calculate_invincibilite_bonus(capacite_items, inventaire_items)
-                            invincibility_timer = 30 + invincibilite_bonus
-                            crown_timer = 0
-                            crown_count = 0
-                            jeton_count = 0
-                            last_ghost_time = 0
-                            game_initialized = True  # Marquer le jeu comme initialisé
-                            current_state = GAME
+                            current_state = MENU
                         elif button3.collidepoint(mouse_pos):
-                            # Bouton DIFFICILE - commencer au niveau 1 avec +2 fantômes orange aux niveaux 3+
+                            # Bouton DIFFICILE - sauvegarder la difficulté et revenir au menu
                             difficulty = "difficile"
-                            level = 1
-                            # Supprimer le fantôme d'indigestion s'il existe
-                            ghosts[:] = [ghost for ghost in ghosts if not ghost.harmless]
-                            has_indigestion = False
-                            indigestion_timer = 0
-                            maze, pacman, ghosts = start_next_level(level)
-                            score = 0
-                            # Initialiser les vies : base 1 + bonus d'armures (grosse armure et armure de fer)
-                            armor_lives_bonus_init = calculate_armor_lives_bonus(inventaire_items)
-                            lives = 1 + armor_lives_bonus_init  # Chaque armure équipée donne +1 coeur (jusqu'à +2 si les deux sont équipées)
-                            last_bonus_score = 0
-                            game_over = False
-                            won = False
-                            ice_tiles = {}  # Réinitialiser les cases de glace au nouveau niveau
-                            pacman_last_pos = (pacman.x, pacman.y)  # Réinitialiser la position précédente
-                            vulnerable_timer = 0
-                            level_transition = False
-                            level_transition_timer = 0
-                            respawn_timer = 0
-                            invincibilite_bonus = calculate_invincibilite_bonus(capacite_items, inventaire_items)
-                            invincibility_timer = 30 + invincibilite_bonus
-                            crown_timer = 0
-                            crown_count = 0
-                            jeton_count = 0
-                            last_ghost_time = 0
-                            game_initialized = True  # Marquer le jeu comme initialisé
-                            current_state = GAME
+                            current_state = MENU
                         elif button4.collidepoint(mouse_pos):
-                            # Bouton HARDCORE - commencer au niveau 5 avec 0 vie (ou 1 si grosse armure)
+                            # Bouton HARDCORE - sauvegarder la difficulté et revenir au menu
                             difficulty = "hardcore"
-                            level = 5
-                            # Supprimer le fantôme d'indigestion s'il existe
-                            ghosts[:] = [ghost for ghost in ghosts if not ghost.harmless]
-                            has_indigestion = False
-                            indigestion_timer = 0
-                            maze, pacman, ghosts = start_next_level(level)
-                            score = 0
-                            # Initialiser les vies : base 1 + bonus d'armures (grosse armure et armure de fer)
-                            armor_lives_bonus_init = calculate_armor_lives_bonus(inventaire_items)
-                            lives = 1 + armor_lives_bonus_init  # Chaque armure équipée donne +1 coeur (jusqu'à +2 si les deux sont équipées)
-                            last_bonus_score = 0
-                            game_over = False
-                            won = False
-                            ice_tiles = {}  # Réinitialiser les cases de glace au nouveau niveau
-                            pacman_last_pos = (pacman.x, pacman.y)  # Réinitialiser la position précédente
-                            vulnerable_timer = 0
-                            level_transition = False
-                            level_transition_timer = 0
-                            respawn_timer = 0
-                            invincibilite_bonus = calculate_invincibilite_bonus(capacite_items, inventaire_items)
-                            invincibility_timer = 30 + invincibilite_bonus
-                            crown_timer = 0
-                            crown_count = 0
-                            jeton_count = 0
-                            last_ghost_time = 0
-                            game_initialized = True  # Marquer le jeu comme initialisé
-                            current_state = GAME
+                            current_state = MENU
                     elif current_state == POCHE:
                         retour_button = pygame.Rect(10, 10, 100, 40)
                         if retour_button.collidepoint(mouse_pos):
@@ -6112,52 +6098,30 @@ def main():
                     elif current_state == INVENTAIRE:
                         # Vérifier si on clique sur le bouton commencer
                         if inventaire_before_game and inventaire_start_button is not None and inventaire_start_button.collidepoint(mouse_pos):
-                            # Démarrer la partie
-                            if game_needs_reset:
-                                # Réinitialiser la partie complètement
-                                maze = [row[:] for row in MAZES[0]]
-                                pacman = Pacman(10, 15)
-                                ghosts = [
-                                    Ghost(10, 9, BLUE),
-                                ]
-                                # Définir le chemin pour tous les fantômes bleus
-                                for ghost in ghosts:
-                                    if ghost.color == BLUE:
-                                        ghost.set_path(maze)
-                                score = 0
+                            # Démarrer la partie avec la difficulté choisie (ou facile par défaut)
+                            if difficulty is None:
+                                difficulty = "facile"  # Par défaut facile si aucune difficulté choisie
+                            
+                            (maze, pacman, ghosts, score, lives, last_bonus_score, game_over, won,
+                             ice_tiles, pacman_last_pos, vulnerable_timer, level_transition, level_transition_timer,
+                             respawn_timer, invincibility_timer, crown_timer, crown_count, jeton_count, last_ghost_time,
+                             fire_tiles, fire_active, fire_timer, gadget_cooldown, mort_cooldown, bombe_cooldown,
+                             bombe_active, pieges, portal1_pos, portal2_pos, portal_use_count, mur_pos, mur_use_count,
+                             gadget_use_count, has_indigestion, indigestion_timer) = start_game_with_difficulty(
+                                difficulty, inventaire_items, capacite_items, invincibilite_bonus, ghosts)
+                            
+                            if difficulty == "facile":
                                 level = 1
-                                last_bonus_score = 0
-                                game_over = False
-                                won = False
-                                vulnerable_timer = 0
-                                ice_tiles = {}  # Réinitialiser les cases de glace
-                                fire_tiles = {}  # Réinitialiser les cases de feu
-                                fire_active = False
-                                fire_timer = 0
-                                gadget_cooldown = 0
-                                mort_cooldown = 0
-                                bombe_cooldown = 0
-                                bombe_active = False
-                                pieges = {}
-                                portal1_pos = None
-                                portal2_pos = None
-                                portal_use_count = 0
-                                mur_pos = None
-                                mur_use_count = 0
-                                gadget_use_count = 0
-                                invincibility_timer = 30 + invincibilite_bonus  # Réinitialiser le timer d'invincibilité
-                                level_transition = False
-                                level_transition_timer = 0
-                                respawn_timer = 0
-                                crown_count = 0  # Réinitialiser le compteur de couronnes temporaires
-                                jeton_count = 0  # Réinitialiser le compteur de jetons temporaires
-                                last_ghost_time = 0  # Réinitialiser le timer depuis le dernier fantôme mangé
-                                has_indigestion = False
-                                indigestion_timer = 0
-                                game_needs_reset = False
-                            # Recalculer les vies selon les armures équipées
-                            armor_lives_bonus = calculate_armor_lives_bonus(inventaire_items)
-                            lives = 2 + armor_lives_bonus  # Base 2 vies + bonus d'armures (1 ou 2 selon combien sont équipées)
+                            elif difficulty == "moyen":
+                                level = 3
+                            elif difficulty == "difficile":
+                                level = 1
+                            elif difficulty == "hardcore":
+                                level = 5
+                            else:
+                                level = 1
+                            
+                            game_needs_reset = False
                             if not game_initialized:
                                 game_initialized = True
                             current_state = GAME
@@ -8384,7 +8348,7 @@ def main():
         
         # Dessiner selon l'état actuel
         if current_state == MENU:
-            jeu_button, magasin_button, difficulte_button, poche_button, inventaire_button, vente_button, fabriqueur_button, super_vie_button = draw_menu(screen, super_vie_active=super_vie_active)
+            jeu_button, magasin_button, difficulte_button, poche_button, inventaire_button, vente_button, fabriqueur_button, super_vie_button = draw_menu(screen, super_vie_active=super_vie_active, difficulty=difficulty)
         elif current_state == SHOP:
             shop_retour_button, shop_gadget_button, shop_pouvoir_button, shop_objet_button, shop_capacite_button = draw_shop(screen)
         elif current_state == SHOP_GADGET:
