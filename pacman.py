@@ -2767,7 +2767,7 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     
     # Bouton "Infra rouge" (aligné à gauche)
     infra_rouge_button = pygame.Rect(button_x, infra_rouge_y, button_width, item_height)
-    pygame.draw.rect(screen, (255, 0, 0), infra_rouge_button)  # Rouge
+    pygame.draw.rect(screen, (0, 255, 0), infra_rouge_button)  # Vert
     pygame.draw.rect(screen, WHITE, infra_rouge_button, 2)
     
     infra_rouge_name = "Infra rouge"
@@ -2794,7 +2794,7 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     
     # Bouton "Coffre fort" (aligné à gauche)
     coffre_fort_button = pygame.Rect(button_x, coffre_fort_y, button_width, item_height)
-    pygame.draw.rect(screen, (184, 134, 11), coffre_fort_button)  # Or (couleur de coffre fort)
+    pygame.draw.rect(screen, (0, 255, 0), coffre_fort_button)  # Vert
     pygame.draw.rect(screen, WHITE, coffre_fort_button, 2)
     
     coffre_fort_name = "Coffre fort"
@@ -2848,7 +2848,7 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     
     # Bouton "Coffre au trésor" (aligné à gauche)
     coffre_tresor_button = pygame.Rect(button_x, coffre_tresor_y, button_width, item_height)
-    pygame.draw.rect(screen, (255, 215, 0), coffre_tresor_button)  # Or brillant (couleur de coffre au trésor)
+    pygame.draw.rect(screen, (0, 255, 0), coffre_tresor_button)  # Vert
     pygame.draw.rect(screen, WHITE, coffre_tresor_button, 2)
     
     coffre_tresor_name = "Coffre au trésor"
