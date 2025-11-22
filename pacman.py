@@ -6024,7 +6024,11 @@ def main():
                             'pacgum': (2000, 0),  # 50% de 4000
                             'indigestion': (1750, 0),  # 50% de 3500
                             'gel': (2500, 0),  # 50% de 5000
-                            'lunette': (3000, 0),  # 50% de 6000
+                            'lunette': (5000, 5000),  # 50% de 10000 pacoins et 10000 couronnes
+                            'invincibilité': (2500, 0),  # 50% de 5000
+                            'piquant': (2500, 0),  # 50% de 5000
+                            'bonne vue': (2500, 0),  # 50% de 5000
+                            'bonbe': (2500, 0),  # 50% de 5000
                         }
                         
                         # Appliquer la réduction de prix aux prix de vente
