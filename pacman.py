@@ -1168,7 +1168,7 @@ def draw_menu(screen, super_vie_active=False, difficulty=None):
     
     # Bouton Vente
     vente_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 5, button_width, button_height)
-    pygame.draw.rect(screen, (255, 140, 0), vente_button)  # Orange
+    pygame.draw.rect(screen, BLUE, vente_button)  # Bleu
     pygame.draw.rect(screen, WHITE, vente_button, 3)
     vente_text = font_button.render("VENTE", True, WHITE)
     vente_text_rect = vente_text.get_rect(center=vente_button.center)
