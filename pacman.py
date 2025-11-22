@@ -4360,7 +4360,7 @@ def draw_vente(screen, inventaire_items=None, jeton_poche=0, crown_poche=0, scro
     
     # Instructions
     font_instructions = pygame.font.Font(None, 24)
-    instructions_text = font_instructions.render("Cliquez sur un item pour le vendre", True, WHITE)
+    instructions_text = font_instructions.render("Cliquez sur un objet pour le vendre", True, WHITE)
     instructions_rect = instructions_text.get_rect(center=(WINDOW_WIDTH//2, 180))
     screen.blit(instructions_text, instructions_rect)
     
