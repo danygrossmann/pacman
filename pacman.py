@@ -2153,7 +2153,7 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
     
     # Bouton "Gadget" (aligné à droite)
     gadget_button = pygame.Rect(button_x_right, item_y, button_width, item_height)
-    pygame.draw.rect(screen, (100, 150, 255), gadget_button)  # Bleu
+    pygame.draw.rect(screen, (255, 255, 0), gadget_button)  # Jaune
     pygame.draw.rect(screen, WHITE, gadget_button, 2)
     
     gadget_count = capacite_items.count("gadget")
@@ -2393,7 +2393,7 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
     
     # Bouton "Lunette" (aligné à gauche, en dessous de "Gel")
     lunette_button = pygame.Rect(button_x, item_y + item_spacing * 4, button_width, item_height)
-    pygame.draw.rect(screen, (200, 200, 255), lunette_button)  # Bleu très clair
+    pygame.draw.rect(screen, (255, 255, 0), lunette_button)  # Jaune
     pygame.draw.rect(screen, WHITE, lunette_button, 2)
     
     lunette_count = capacite_items.count("lunette")
