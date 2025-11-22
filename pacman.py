@@ -1909,7 +1909,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     
     # Bouton "Mort" (aligné à droite, en dessous de Tir)
     mort_button = pygame.Rect(button_x_right, item_y + item_spacing * 2, button_width, item_height)
-    pygame.draw.rect(screen, (128, 0, 128), mort_button)  # Violet foncé/violet
+    pygame.draw.rect(screen, (255, 255, 0), mort_button)  # Jaune
     pygame.draw.rect(screen, WHITE, mort_button, 2)
     
     mort_count = gadget_items.count("mort")
