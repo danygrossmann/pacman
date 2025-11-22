@@ -1845,9 +1845,9 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     # Gestion du survol pour afficher la description
     mouse_pos = pygame.mouse.get_pos()
     if explosion_button.collidepoint(mouse_pos):
-        item_description = "Explosion: Utilisez le clic gauche de la souris pour activer. Tue tous les fantômes sur le terrain. Vous ne récupérez pas de couronnes. Cooldown de 1 minute entre chaque utilisation."
+        item_description = "Explosion: Utilisez le clic gauche de la souris pour activer. Tue tous les fantômes sur le terrain. Vous ne récupérez pas de couronnes. Temps de recharge de 1 minute entre chaque utilisation."
     elif vision_x_button.collidepoint(mouse_pos):
-        item_description = "Vision X: Utilisez le clic gauche de la souris pour activer. Fait disparaître tous les fantômes d'indigestion sur le terrain. Cooldown de 1 minute entre chaque utilisation."
+        item_description = "Vision X: Utilisez le clic gauche de la souris pour activer. Fait disparaître tous les fantômes d'indigestion sur le terrain. Temps de recharge de 1 minute entre chaque utilisation."
     
     # Bouton "Feu" (aligné à droite, même niveau que Explosion)
     feu_button = pygame.Rect(button_x_right, item_y, button_width, item_height)
@@ -1876,7 +1876,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     
     # Mettre à jour la description pour "feu"
     if feu_button.collidepoint(mouse_pos):
-        item_description = "Feu: Utilisez le clic gauche de la souris pour activer. Place du feu derrière Pacman lorsqu'il se déplace. Si un fantôme marche dessus, il vous fuit pendant 10 secondes. Cooldown de 1 minute entre chaque utilisation."
+        item_description = "Feu: Utilisez le clic gauche de la souris pour activer. Place du feu derrière Pacman lorsqu'il se déplace. Si un fantôme marche dessus, il vous fuit pendant 10 secondes. Temps de recharge de 1 minute entre chaque utilisation."
     
     # Bouton "Tir" (aligné à droite, en dessous de Feu)
     tir_button = pygame.Rect(button_x_right, item_y + item_spacing, button_width, item_height)
@@ -1905,7 +1905,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     
     # Mettre à jour la description pour "tir"
     if tir_button.collidepoint(mouse_pos):
-        item_description = "Tir: Utilisez le clic gauche de la souris pour activer. Tue un fantôme dans votre champ de vision (direction où vous regardez). Vous ne récupérez pas de couronnes. Cooldown de 1 minute entre chaque utilisation."
+        item_description = "Tir: Utilisez le clic gauche de la souris pour activer. Tue un fantôme dans votre champ de vision (direction où vous regardez). Vous ne récupérez pas de couronnes. Temps de recharge de 1 minute entre chaque utilisation."
     
     # Bouton "Mort" (aligné à droite, en dessous de Tir)
     mort_button = pygame.Rect(button_x_right, item_y + item_spacing * 2, button_width, item_height)
@@ -1934,7 +1934,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     
     # Mettre à jour la description pour "mort"
     if mort_button.collidepoint(mouse_pos):
-        item_description = "Mort: Utilisez le clic gauche de la souris pour activer. Tue définitivement le fantôme le plus proche de vous, peu importe sa position. Le fantôme ne réapparaîtra plus. Cooldown de 1 minute entre chaque utilisation."
+        item_description = "Mort: Utilisez le clic gauche de la souris pour activer. Tue définitivement le fantôme le plus proche de vous, peu importe sa position. Le fantôme ne réapparaîtra plus. Temps de recharge de 1 minute entre chaque utilisation."
     
     # Bouton "Bombe Téléguidée" (aligné à gauche, en dessous de Vision X)
     bombe_button = pygame.Rect(button_x, item_y + item_spacing * 2, button_width, item_height)
@@ -1963,7 +1963,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     
     # Mettre à jour la description pour "bombe téléguidée"
     if bombe_button.collidepoint(mouse_pos):
-        item_description = "Bombe Téléguidée: Utilisez le clic gauche de la souris pour activer. Pacman s'arrête et vous contrôlez une bombe avec les flèches directionnelles. Après 10 secondes, la bombe explose : les fantômes touchés meurent et les murs se cassent. Cooldown de 1 minute entre chaque utilisation."
+        item_description = "Bombe Téléguidée: Utilisez le clic gauche de la souris pour activer. Pacman s'arrête et vous contrôlez une bombe avec les flèches directionnelles. Après 10 secondes, la bombe explose : les fantômes touchés meurent et les murs se cassent. Temps de recharge de 1 minute entre chaque utilisation."
     
     # Bouton "Piège" (aligné à droite, en dessous de Mort)
     piege_button = pygame.Rect(button_x_right, item_y + item_spacing * 3, button_width, item_height)
@@ -1992,7 +1992,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     
     # Mettre à jour la description pour "piège"
     if piege_button.collidepoint(mouse_pos):
-        item_description = "Piège: Utilisez le clic gauche de la souris pour activer. Pose un piège à votre position. Si un fantôme marche sur le piège, il est immobilisé pendant 10 secondes. Cooldown de 1 minute entre chaque utilisation."
+        item_description = "Piège: Utilisez le clic gauche de la souris pour activer. Pose un piège à votre position. Si un fantôme marche sur le piège, il est immobilisé pendant 10 secondes. Temps de recharge de 1 minute entre chaque utilisation."
     
     # Bouton "TP" (aligné à gauche, en dessous de Bombe Téléguidée)
     tp_button = pygame.Rect(button_x, item_y + item_spacing * 3, button_width, item_height)
@@ -2021,7 +2021,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     
     # Mettre à jour la description pour "tp"
     if tp_button.collidepoint(mouse_pos):
-        item_description = "TP: Utilisez le clic gauche de la souris pour activer. Téléporte Pacman à la position de la souris, sauf si c'est un mur. Cooldown de 25 secondes entre chaque utilisation."
+        item_description = "TP: Utilisez le clic gauche de la souris pour activer. Téléporte Pacman à la position de la souris, sauf si c'est un mur. Temps de recharge de 25 secondes entre chaque utilisation."
     
     # Bouton "Portail" (aligné à droite, en dessous de Piège)
     portail_button = pygame.Rect(button_x_right, item_y + item_spacing * 4, button_width, item_height)
@@ -2050,7 +2050,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     
     # Mettre à jour la description pour "portail"
     if portail_button.collidepoint(mouse_pos):
-        item_description = "Portail: Utilisez le clic gauche de la souris pour activer. 1ère utilisation : pose un portail à votre position. 2ème utilisation : pose un deuxième portail. Si vous entrez dans un portail, vous ressortez par l'autre. 3ème utilisation : enlève les portails. Cooldown de 25 secondes entre chaque utilisation."
+        item_description = "Portail: Utilisez le clic gauche de la souris pour activer. 1ère utilisation : pose un portail à votre position. 2ème utilisation : pose un deuxième portail. Si vous entrez dans un portail, vous ressortez par l'autre. 3ème utilisation : enlève les portails. Temps de recharge de 25 secondes entre chaque utilisation."
     
     # Bouton "Mur" (aligné à gauche, en dessous de Portail)
     mur_button = pygame.Rect(button_x, item_y + item_spacing * 4, button_width, item_height)
@@ -2079,7 +2079,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     
     # Mettre à jour la description pour "mur"
     if mur_button.collidepoint(mouse_pos):
-        item_description = "Mur: Utilisez le clic gauche de la souris pour activer. 1ère utilisation : crée un mur à votre position (si ce n'est pas déjà un mur). 2ème utilisation : enlève le mur créé. Cooldown de 25 secondes entre chaque utilisation."
+        item_description = "Mur: Utilisez le clic gauche de la souris pour activer. 1ère utilisation : crée un mur à votre position (si ce n'est pas déjà un mur). 2ème utilisation : enlève le mur créé. Temps de recharge de 25 secondes entre chaque utilisation."
     
     return retour_button, explosion_button, vision_x_button, feu_button, tir_button, mort_button, bombe_button, piege_button, tp_button, portail_button, mur_button
 
@@ -2918,7 +2918,7 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     elif coffre_tresor_button.collidepoint(mouse_pos):
         item_description = "Coffre au trésor: Si équipé, vous donne des couronnes et des pacoins à chaque fois que vous gagnez un niveau."
     elif double_gadget_button.collidepoint(mouse_pos):
-        item_description = "Double gadget: Permet d'utiliser un gadget deux fois avant que le cooldown commence."
+        item_description = "Double gadget: Permet d'utiliser un gadget deux fois avant que le temps de recharge commence."
     
     return retour_button, piece_mythique_button, grosse_armure_button, armure_fer_button, flamme_button, givre_button, infrin_rouge_button, bric_button, coffre_fort_button, coffre_tresor_button, double_gadget_button
 
@@ -6290,7 +6290,7 @@ def main():
                             game_needs_reset = True  # Marquer que la partie doit être réinitialisée au retour
                             current_state = MENU
                         else:
-                            # Activer le gadget équipé dans le slot "gadget" avec le clic gauche (seulement si le cooldown est terminé)
+                            # Activer le gadget équipé dans le slot "gadget" avec le clic gauche (seulement si le temps de recharge est terminé)
                             equipped_gadget = get_equipped_gadget(inventaire_items)
                             if equipped_gadget:
                                 gadget_type = equipped_gadget.get('type')
@@ -6298,7 +6298,7 @@ def main():
                                 has_double_gadget = (('objet0' in inventaire_items and inventaire_items['objet0'].get('type') == 'double gadget') or
                                                     ('objet1' in inventaire_items and inventaire_items['objet1'].get('type') == 'double gadget') or
                                                     ('objet2' in inventaire_items and inventaire_items['objet2'].get('type') == 'double gadget'))
-                                # Vérifier le cooldown approprié selon le gadget
+                                # Vérifier le temps de recharge approprié selon le gadget
                                 if gadget_type == 'mort':
                                     can_activate = (mort_cooldown == 0)
                                 elif gadget_type == 'bombe téléguidée':
@@ -6311,7 +6311,7 @@ def main():
                                         # Activer la lave (durée calculée selon si "flamme" est équipé)
                                         fire_active = True
                                         fire_timer = calculate_fire_duration(inventaire_items, FIRE_DURATION)
-                                        # Gérer le cooldown avec "double gadget" (alternance recharge instantanée/normale)
+                                        # Gérer le temps de recharge avec "double gadget" (alternance recharge instantanée/normale)
                                         if has_double_gadget:
                                             gadget_use_count += 1
                                             if gadget_use_count % 2 == 1:  # Utilisation impaire (1, 3, 5...) : recharge instantanée
@@ -6324,7 +6324,7 @@ def main():
                                         # Activer le feu (durée calculée selon si "flamme" est équipé)
                                         fire_active = True
                                         fire_timer = calculate_fire_duration(inventaire_items, FIRE_DURATION)
-                                        # Gérer le cooldown avec "double gadget" (alternance recharge instantanée/normale)
+                                        # Gérer le temps de recharge avec "double gadget" (alternance recharge instantanée/normale)
                                         if has_double_gadget:
                                             gadget_use_count += 1
                                             if gadget_use_count % 2 == 1:  # Utilisation impaire (1, 3, 5...) : recharge instantanée
@@ -6344,7 +6344,7 @@ def main():
                                                 ghost.returning = False
                                                 # Ajouter des points mais pas de couronnes
                                                 score += 300
-                                        # Gérer le cooldown avec "double gadget" (alternance recharge instantanée/normale)
+                                        # Gérer le temps de recharge avec "double gadget" (alternance recharge instantanée/normale)
                                         if has_double_gadget:
                                             gadget_use_count += 1
                                             if gadget_use_count % 2 == 1:  # Utilisation impaire (1, 3, 5...) : recharge instantanée
@@ -6400,7 +6400,7 @@ def main():
                                                 # Ajouter des points mais pas de couronnes
                                                 score += 300
                                         
-                                        # Gérer le cooldown avec "double gadget" (alternance recharge instantanée/normale)
+                                        # Gérer le temps de recharge avec "double gadget" (alternance recharge instantanée/normale)
                                         if has_double_gadget:
                                             gadget_use_count += 1
                                             if gadget_use_count % 2 == 1:  # Utilisation impaire (1, 3, 5...) : recharge instantanée
@@ -6429,7 +6429,7 @@ def main():
                                                                ('objet2' in inventaire_items and inventaire_items['objet2'].get('type') == 'infrin rouge'))
                                             if has_infrin_rouge:
                                                 cooldown_reduction += 50  # Réduction supplémentaire de 5 secondes (50 frames à 10 FPS)
-                                            # Gérer le cooldown avec "double gadget" (alternance recharge instantanée/normale)
+                                            # Gérer le temps de recharge avec "double gadget" (alternance recharge instantanée/normale)
                                             if has_double_gadget:
                                                 gadget_use_count += 1
                                                 if gadget_use_count % 2 == 1:  # Utilisation impaire (1, 3, 5...) : recharge instantanée
@@ -6458,7 +6458,7 @@ def main():
                                             # Ajouter des points mais pas de couronnes
                                             score += 300
                                         
-                                        # Gérer le cooldown avec "double gadget" (alternance recharge instantanée/normale)
+                                        # Gérer le temps de recharge avec "double gadget" (alternance recharge instantanée/normale)
                                         if has_double_gadget:
                                             gadget_use_count += 1
                                             if gadget_use_count % 2 == 1:  # Utilisation impaire (1, 3, 5...) : recharge instantanée
@@ -6477,7 +6477,7 @@ def main():
                                         # Arrêter Pacman
                                         pacman.direction = (0, 0)
                                         pacman.next_direction = (0, 0)
-                                        # Gérer le cooldown avec "double gadget" (alternance recharge instantanée/normale)
+                                        # Gérer le temps de recharge avec "double gadget" (alternance recharge instantanée/normale)
                                         if has_double_gadget:
                                             gadget_use_count += 1
                                             if gadget_use_count % 2 == 1:  # Utilisation impaire (1, 3, 5...) : recharge instantanée
@@ -6493,7 +6493,7 @@ def main():
                                             if maze[pacman.y][pacman.x] != 1:  # Pas un mur
                                                 # Poser le piège à la position de Pacman
                                                 pieges[(pacman.x, pacman.y)] = True
-                                                # Gérer le cooldown avec "double gadget" (alternance recharge instantanée/normale)
+                                                # Gérer le temps de recharge avec "double gadget" (alternance recharge instantanée/normale)
                                                 if has_double_gadget:
                                                     gadget_use_count += 1
                                                     if gadget_use_count % 2 == 1:  # Utilisation impaire (1, 3, 5...) : recharge instantanée
@@ -6514,7 +6514,7 @@ def main():
                                                 # Téléporter Pacman à cette position
                                                 pacman.x = grid_x
                                                 pacman.y = grid_y
-                                                # Gérer le cooldown avec "double gadget" (alternance recharge instantanée/normale)
+                                                # Gérer le temps de recharge avec "double gadget" (alternance recharge instantanée/normale)
                                                 if has_double_gadget:
                                                     gadget_use_count += 1
                                                     if gadget_use_count % 2 == 1:  # Utilisation impaire (1, 3, 5...) : recharge instantanée
@@ -6541,7 +6541,7 @@ def main():
                                                     portal1_pos = None
                                                     portal2_pos = None
                                                     portal_use_count = 0
-                                                # Gérer le cooldown avec "double gadget" (alternance recharge instantanée/normale)
+                                                # Gérer le temps de recharge avec "double gadget" (alternance recharge instantanée/normale)
                                                 if has_double_gadget:
                                                     gadget_use_count += 1
                                                     if gadget_use_count % 2 == 1:  # Utilisation impaire (1, 3, 5...) : recharge instantanée
@@ -6616,7 +6616,7 @@ def main():
                                                                 maze[mur_y][mur_x] = 0  # Enlever le mur (remettre en chemin)
                                                         mur_pos = None
                                                         mur_use_count = 0
-                                            # Gérer le cooldown avec "double gadget" (alternance recharge instantanée/normale)
+                                            # Gérer le temps de recharge avec "double gadget" (alternance recharge instantanée/normale)
                                             if has_double_gadget:
                                                 gadget_use_count += 1
                                                 if gadget_use_count % 2 == 1:  # Utilisation impaire (1, 3, 5...) : recharge instantanée
@@ -6730,33 +6730,33 @@ def main():
                                         elif item_type == 'bonne vue':
                                             bon_vue_level = capacite_items.count("bonne vue") if capacite_items else 0
                                             cooldown_reduction = bon_vue_level * 25  # Réduction de 2.5 secondes par niveau (25 frames à 10 FPS)
-                                            item_description = f"Bonne vue: Réduit le cooldown de Vision X de {cooldown_reduction} frames ({bon_vue_level * 2.5} seconde(s)) par niveau. Niveau actuel: {bon_vue_level}"
+                                            item_description = f"Bonne vue: Réduit le temps de recharge de Vision X de {cooldown_reduction} frames ({bon_vue_level * 2.5} seconde(s)) par niveau. Niveau actuel: {bon_vue_level}"
                                         elif item_type == 'bonbe':
                                             bonbe_level = capacite_items.count("bonbe") if capacite_items else 0
                                             radius_bonus = bonbe_level  # +1 case de rayon par niveau
                                             item_description = f"Bonbe: Augmente la grandeur de l'explosion de la bombe téléguidée de {radius_bonus} case(s) par niveau. Niveau actuel: {bonbe_level}"
                                         elif item_type == 'lave':
-                                            item_description = "Lave: Utilisez le clic gauche de la souris pour activer. Place de la lave sur votre chemin pendant 10 secondes. Si un fantôme touche la lave, il vous fuit pendant 10 secondes. Cooldown de 1 minute entre chaque utilisation."
+                                            item_description = "Lave: Utilisez le clic gauche de la souris pour activer. Place la lave sur votre chemin pendant 10 secondes. Si un fantôme touche la lave, il vous fuit pendant 10 secondes. Temps de recharge de 1 minute entre chaque utilisation."
                                         elif item_type == 'feu':
-                                            item_description = "Feu: Utilisez le clic gauche de la souris pour activer. Place du feu derrière Pacman lorsqu'il se déplace. Si un fantôme marche dessus, il vous fuit pendant 10 secondes. Cooldown de 1 minute entre chaque utilisation."
+                                            item_description = "Feu: Utilisez le clic gauche de la souris pour activer. Place du feu derrière Pacman lorsqu'il se déplace. Si un fantôme marche dessus, il vous fuit pendant 10 secondes. Temps de recharge de 1 minute entre chaque utilisation."
                                         elif item_type == 'explosion':
-                                            item_description = "Explosion: Utilisez le clic gauche de la souris pour activer. Tue tous les fantômes sur le terrain. Vous ne récupérez pas de couronnes. Cooldown de 1 minute entre chaque utilisation."
+                                            item_description = "Explosion: Utilisez le clic gauche de la souris pour activer. Tue tous les fantômes sur le terrain. Vous ne récupérez pas de couronnes. Temps de recharge de 1 minute entre chaque utilisation."
                                         elif item_type == 'tir':
-                                            item_description = "Tir: Utilisez le clic gauche de la souris pour activer. Tue un fantôme dans votre champ de vision (direction où vous regardez). Vous ne récupérez pas de couronnes. Cooldown de 1 minute entre chaque utilisation."
+                                            item_description = "Tir: Utilisez le clic gauche de la souris pour activer. Tue un fantôme dans votre champ de vision (direction où vous regardez). Vous ne récupérez pas de couronnes. Temps de recharge de 1 minute entre chaque utilisation."
                                         elif item_type == 'vision x':
-                                            item_description = "Vision X: Utilisez le clic gauche de la souris pour activer. Fait disparaître tous les fantômes d'indigestion sur le terrain. Cooldown de 1 minute entre chaque utilisation."
+                                            item_description = "Vision X: Utilisez le clic gauche de la souris pour activer. Fait disparaître tous les fantômes d'indigestion sur le terrain. Temps de recharge de 1 minute entre chaque utilisation."
                                         elif item_type == 'mort':
-                                            item_description = "Mort: Utilisez le clic gauche de la souris pour activer. Tue définitivement le fantôme le plus proche de vous, peu importe sa position. Le fantôme ne réapparaîtra plus. Cooldown de 1 minute entre chaque utilisation."
+                                            item_description = "Mort: Utilisez le clic gauche de la souris pour activer. Tue définitivement le fantôme le plus proche de vous, peu importe sa position. Le fantôme ne réapparaîtra plus. Temps de recharge de 1 minute entre chaque utilisation."
                                         elif item_type == 'bombe téléguidée':
-                                            item_description = "Bombe Téléguidée: Utilisez le clic gauche de la souris pour activer. Pacman s'arrête et vous contrôlez une bombe avec les flèches directionnelles. Après 10 secondes, la bombe explose : les fantômes touchés meurent et les murs se cassent. Cooldown de 1 minute entre chaque utilisation."
+                                            item_description = "Bombe Téléguidée: Utilisez le clic gauche de la souris pour activer. Pacman s'arrête et vous contrôlez une bombe avec les flèches directionnelles. Après 10 secondes, la bombe explose : les fantômes touchés meurent et les murs se cassent. Temps de recharge de 1 minute entre chaque utilisation."
                                         elif item_type == 'piège':
-                                            item_description = "Piège: Utilisez le clic gauche de la souris pour activer. Pose un piège à votre position. Si un fantôme marche sur le piège, il est immobilisé pendant 10 secondes. Cooldown de 1 minute entre chaque utilisation."
+                                            item_description = "Piège: Utilisez le clic gauche de la souris pour activer. Pose un piège à votre position. Si un fantôme marche sur le piège, il est immobilisé pendant 10 secondes. Temps de recharge de 1 minute entre chaque utilisation."
                                         elif item_type == 'tp':
-                                            item_description = "TP: Utilisez le clic gauche de la souris pour activer. Téléporte Pacman à la position de la souris, sauf si c'est un mur. Cooldown de 25 secondes entre chaque utilisation."
+                                            item_description = "TP: Utilisez le clic gauche de la souris pour activer. Téléporte Pacman à la position de la souris, sauf si c'est un mur. Temps de recharge de 25 secondes entre chaque utilisation."
                                         elif item_type == 'portail':
-                                            item_description = "Portail: Utilisez le clic gauche de la souris pour activer. 1ère utilisation : pose un portail à votre position. 2ème utilisation : pose un deuxième portail. Si vous entrez dans un portail, vous ressortez par l'autre. 3ème utilisation : enlève les portails. Cooldown de 25 secondes entre chaque utilisation."
+                                            item_description = "Portail: Utilisez le clic gauche de la souris pour activer. 1ère utilisation : pose un portail à votre position. 2ème utilisation : pose un deuxième portail. Si vous entrez dans un portail, vous ressortez par l'autre. 3ème utilisation : enlève les portails. Temps de recharge de 25 secondes entre chaque utilisation."
                                         elif item_type == 'mur':
-                                            item_description = "Mur: Utilisez le clic gauche de la souris pour activer. 1ère utilisation : crée un mur à votre position (si ce n'est pas déjà un mur). 2ème utilisation : enlève le mur créé. Cooldown de 25 secondes entre chaque utilisation."
+                                            item_description = "Mur: Utilisez le clic gauche de la souris pour activer. 1ère utilisation : crée un mur à votre position (si ce n'est pas déjà un mur). 2ème utilisation : enlève le mur créé. Temps de recharge de 25 secondes entre chaque utilisation."
                                         elif item_type == 'pièce mythique':
                                             item_description = "Pièce mythique: Une pièce légendaire aux pouvoirs mystiques. Double les pièces gagnées quand équipée."
                                         elif item_type == 'grosse armure':
@@ -6776,7 +6776,7 @@ def main():
                                         elif item_type == 'coffre au trésor':
                                             item_description = "Coffre au trésor: Si équipé, vous donne des couronnes et des pacoins à chaque fois que vous gagnez un niveau."
                                         elif item_type == 'double gadget':
-                                            item_description = "Double gadget: Permet d'utiliser un gadget deux fois avant que le cooldown commence."
+                                            item_description = "Double gadget: Permet d'utiliser un gadget deux fois avant que le temps de recharge commence."
                                         else:
                                             item_description = None
                                         break
@@ -6807,15 +6807,15 @@ def main():
                         elif shop_scine_rouge_button is not None and shop_scine_rouge_button.collidepoint(mouse_pos):
                             item_description = "Scine rouge: Quand tu l'équipes, tu as 50 pour cent de chance de ne pas mourir quand tu touches un fantome rouge."
                         elif shop_bombe_button is not None and shop_bombe_button.collidepoint(mouse_pos):
-                            item_description = "Bombe Téléguidée: Utilisez le clic gauche de la souris pour activer. Pacman s'arrête et vous contrôlez une bombe avec les flèches directionnelles. Après 10 secondes, la bombe explose : les fantômes touchés meurent et les murs se cassent. Cooldown de 1 minute entre chaque utilisation."
+                            item_description = "Bombe Téléguidée: Utilisez le clic gauche de la souris pour activer. Pacman s'arrête et vous contrôlez une bombe avec les flèches directionnelles. Après 10 secondes, la bombe explose : les fantômes touchés meurent et les murs se cassent. Temps de recharge de 1 minute entre chaque utilisation."
                         elif shop_piege_button is not None and shop_piege_button.collidepoint(mouse_pos):
-                            item_description = "Piège: Utilisez le clic gauche de la souris pour activer. Pose un piège à votre position. Si un fantôme marche sur le piège, il est immobilisé pendant 10 secondes. Cooldown de 1 minute entre chaque utilisation."
+                            item_description = "Piège: Utilisez le clic gauche de la souris pour activer. Pose un piège à votre position. Si un fantôme marche sur le piège, il est immobilisé pendant 10 secondes. Temps de recharge de 1 minute entre chaque utilisation."
                         elif shop_tp_button is not None and shop_tp_button.collidepoint(mouse_pos):
-                            item_description = "TP: Utilisez le clic gauche de la souris pour activer. Téléporte Pacman à la position de la souris, sauf si c'est un mur. Cooldown de 25 secondes entre chaque utilisation."
+                            item_description = "TP: Utilisez le clic gauche de la souris pour activer. Téléporte Pacman à la position de la souris, sauf si c'est un mur. Temps de recharge de 25 secondes entre chaque utilisation."
                         elif shop_portail_button is not None and shop_portail_button.collidepoint(mouse_pos):
-                            item_description = "Portail: Utilisez le clic gauche de la souris pour activer. 1ère utilisation : pose un portail à votre position. 2ème utilisation : pose un deuxième portail. Si vous entrez dans un portail, vous ressortez par l'autre. 3ème utilisation : enlève les portails. Cooldown de 25 secondes entre chaque utilisation."
+                            item_description = "Portail: Utilisez le clic gauche de la souris pour activer. 1ère utilisation : pose un portail à votre position. 2ème utilisation : pose un deuxième portail. Si vous entrez dans un portail, vous ressortez par l'autre. 3ème utilisation : enlève les portails. Temps de recharge de 25 secondes entre chaque utilisation."
                         elif shop_mur_button is not None and shop_mur_button.collidepoint(mouse_pos):
-                            item_description = "Mur: Utilisez le clic gauche de la souris pour activer. 1ère utilisation : crée un mur à votre position (si ce n'est pas déjà un mur). 2ème utilisation : enlève le mur créé. Cooldown de 25 secondes entre chaque utilisation."
+                            item_description = "Mur: Utilisez le clic gauche de la souris pour activer. 1ère utilisation : crée un mur à votre position (si ce n'est pas déjà un mur). 2ème utilisation : enlève le mur créé. Temps de recharge de 25 secondes entre chaque utilisation."
                         else:
                             # Si on clique ailleurs, ne pas changer la description (la laisser telle quelle)
                             pass
@@ -6852,7 +6852,7 @@ def main():
                         elif shop_bon_vue_button is not None and shop_bon_vue_button.collidepoint(mouse_pos):
                             bon_vue_level = capacite_items.count("bonne vue") if capacite_items else 0
                             cooldown_reduction = bon_vue_level * 25  # Réduction de 2.5 secondes par niveau (25 frames à 10 FPS)
-                            item_description = f"Bonne vue: Réduit le cooldown de Vision X de {cooldown_reduction} frames ({bon_vue_level * 2.5} seconde(s)) par niveau. Niveau actuel: {bon_vue_level}"
+                            item_description = f"Bonne vue: Réduit le temps de recharge de Vision X de {cooldown_reduction} frames ({bon_vue_level * 2.5} seconde(s)) par niveau. Niveau actuel: {bon_vue_level}"
                         elif shop_bonbe_button is not None and shop_bonbe_button.collidepoint(mouse_pos):
                             bonbe_level = capacite_items.count("bonbe") if capacite_items else 0
                             radius_bonus = bonbe_level  # +1 case de rayon par niveau
@@ -6864,17 +6864,17 @@ def main():
                         # Vérifier si on fait un clic droit sur un bouton d'item
                         mouse_pos = event.pos
                         if shop_explosion_button is not None and shop_explosion_button.collidepoint(mouse_pos):
-                            item_description = "Explosion: Utilisez le clic gauche de la souris pour activer. Tue tous les fantômes sur le terrain. Vous ne récupérez pas de couronnes. Cooldown de 1 minute entre chaque utilisation."
+                            item_description = "Explosion: Utilisez le clic gauche de la souris pour activer. Tue tous les fantômes sur le terrain. Vous ne récupérez pas de couronnes. Temps de recharge de 1 minute entre chaque utilisation."
                         elif shop_vision_x_button is not None and shop_vision_x_button.collidepoint(mouse_pos):
-                            item_description = "Vision X: Utilisez le clic gauche de la souris pour activer. Fait disparaître tous les fantômes d'indigestion sur le terrain. Cooldown de 1 minute entre chaque utilisation."
+                            item_description = "Vision X: Utilisez le clic gauche de la souris pour activer. Fait disparaître tous les fantômes d'indigestion sur le terrain. Temps de recharge de 1 minute entre chaque utilisation."
                         elif shop_tir_button is not None and shop_tir_button.collidepoint(mouse_pos):
-                            item_description = "Tir: Utilisez le clic gauche de la souris pour activer. Tue un fantôme dans votre champ de vision (direction où vous regardez). Vous ne récupérez pas de couronnes. Cooldown de 1 minute entre chaque utilisation."
+                            item_description = "Tir: Utilisez le clic gauche de la souris pour activer. Tue un fantôme dans votre champ de vision (direction où vous regardez). Vous ne récupérez pas de couronnes. Temps de recharge de 1 minute entre chaque utilisation."
                         elif shop_feu_button is not None and shop_feu_button.collidepoint(mouse_pos):
-                            item_description = "Feu: Utilisez le clic gauche de la souris pour activer. Place du feu derrière Pacman lorsqu'il se déplace. Si un fantôme marche dessus, il vous fuit pendant 10 secondes. Cooldown de 1 minute entre chaque utilisation."
+                            item_description = "Feu: Utilisez le clic gauche de la souris pour activer. Place du feu derrière Pacman lorsqu'il se déplace. Si un fantôme marche dessus, il vous fuit pendant 10 secondes. Temps de recharge de 1 minute entre chaque utilisation."
                         elif shop_mort_button is not None and shop_mort_button.collidepoint(mouse_pos):
-                            item_description = "Mort: Utilisez le clic gauche de la souris pour activer. Tue définitivement le fantôme le plus proche de vous, peu importe sa position. Le fantôme ne réapparaîtra plus. Cooldown de 1 minute entre chaque utilisation."
+                            item_description = "Mort: Utilisez le clic gauche de la souris pour activer. Tue définitivement le fantôme le plus proche de vous, peu importe sa position. Le fantôme ne réapparaîtra plus. Temps de recharge de 1 minute entre chaque utilisation."
                         elif shop_bombe_button is not None and shop_bombe_button.collidepoint(mouse_pos):
-                            item_description = "Bombe Téléguidée: Utilisez le clic gauche de la souris pour activer. Pacman s'arrête et vous contrôlez une bombe avec les flèches directionnelles. Après 10 secondes, la bombe explose : les fantômes touchés meurent et les murs se cassent. Cooldown de 1 minute entre chaque utilisation."
+                            item_description = "Bombe Téléguidée: Utilisez le clic gauche de la souris pour activer. Pacman s'arrête et vous contrôlez une bombe avec les flèches directionnelles. Après 10 secondes, la bombe explose : les fantômes touchés meurent et les murs se cassent. Temps de recharge de 1 minute entre chaque utilisation."
                         else:
                             # Si on clique ailleurs, ne pas changer la description (la laisser telle quelle)
                             pass
@@ -6900,7 +6900,7 @@ def main():
                         elif shop_coffre_tresor_button is not None and shop_coffre_tresor_button.collidepoint(mouse_pos):
                             item_description = "Coffre au trésor: Si équipé, vous donne des couronnes et des pacoins à chaque fois que vous gagnez un niveau."
                         elif shop_double_gadget_button is not None and shop_double_gadget_button.collidepoint(mouse_pos):
-                            item_description = "Double gadget: Permet d'utiliser un gadget deux fois avant que le cooldown commence."
+                            item_description = "Double gadget: Permet d'utiliser un gadget deux fois avant que le temps de recharge commence."
                         else:
                             # Si on clique ailleurs, ne pas changer la description (la laisser telle quelle)
                             pass
@@ -6976,9 +6976,9 @@ def main():
                     fire_tiles = {}  # Réinitialiser les cases de feu
                     fire_active = False  # Réinitialiser l'activation du feu
                     fire_timer = 0  # Réinitialiser le timer du feu
-                    gadget_cooldown = 0  # Réinitialiser le cooldown du gadget
-                    mort_cooldown = 0  # Réinitialiser le cooldown de "mort"
-                    bombe_cooldown = 0  # Réinitialiser le cooldown de "bombe téléguidée"
+                    gadget_cooldown = 0  # Réinitialiser le temps de recharge du gadget
+                    mort_cooldown = 0  # Réinitialiser le temps de recharge de "mort"
+                    bombe_cooldown = 0  # Réinitialiser le temps de recharge de "bombe téléguidée"
                     bombe_active = False  # Réinitialiser l'état de la bombe
                     pacman_frozen = False  # Réinitialiser l'état de gel de Pacman
                     bombe_timer = 0  # Réinitialiser le timer de la bombe
@@ -8117,9 +8117,9 @@ def main():
                     fire_tiles = {}  # Réinitialiser les cases de feu au nouveau niveau
                     fire_active = False  # Réinitialiser l'activation du feu
                     fire_timer = 0  # Réinitialiser le timer du feu
-                    gadget_cooldown = 0  # Réinitialiser le cooldown du gadget
-                    mort_cooldown = 0  # Réinitialiser le cooldown de "mort"
-                    bombe_cooldown = 0  # Réinitialiser le cooldown de "bombe téléguidée"
+                    gadget_cooldown = 0  # Réinitialiser le temps de recharge du gadget
+                    mort_cooldown = 0  # Réinitialiser le temps de recharge de "mort"
+                    bombe_cooldown = 0  # Réinitialiser le temps de recharge de "bombe téléguidée"
                     bombe_active = False  # Réinitialiser l'état de la bombe
                     pacman_frozen = False  # Réinitialiser l'état de gel de Pacman
                     bombe_timer = 0  # Réinitialiser le timer de la bombe
@@ -8618,7 +8618,7 @@ def main():
                 circle_y = WINDOW_HEIGHT - 30
                 circle_radius = 20
                 
-                # Déterminer le cooldown approprié selon le gadget équipé
+                # Déterminer le temps de recharge approprié selon le gadget équipé
                 gadget_type_cooldown = equipped_gadget_cooldown.get('type')
                 current_cooldown = 0
                 max_cooldown = GADGET_COOLDOWN_DURATION
