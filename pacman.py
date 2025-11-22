@@ -2665,7 +2665,7 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     
     # Bouton "Grosse armure" (aligné à droite)
     grosse_armure_button = pygame.Rect(button_x_right, item_y, button_width, item_height)
-    pygame.draw.rect(screen, (139, 69, 19), grosse_armure_button)  # Marron/Brun (couleur d'armure)
+    pygame.draw.rect(screen, (0, 0, 255), grosse_armure_button)  # Bleu
     pygame.draw.rect(screen, WHITE, grosse_armure_button, 2)
     
     grosse_armure_name = "Grosse armure"
@@ -2689,7 +2689,7 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     
     # Bouton "Armure de fer" (aligné à droite, en dessous de "Grosse armure")
     armure_fer_button = pygame.Rect(button_x_right, item_y + item_spacing, button_width, item_height)
-    pygame.draw.rect(screen, (105, 105, 105), armure_fer_button)  # Gris (couleur de fer)
+    pygame.draw.rect(screen, (0, 0, 255), armure_fer_button)  # Bleu
     pygame.draw.rect(screen, WHITE, armure_fer_button, 2)
     
     armure_fer_name = "Armure de fer"
@@ -2821,7 +2821,7 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     
     # Bouton "Bric" (aligné à droite)
     bric_button = pygame.Rect(button_x_right, bric_y, button_width, item_height)
-    pygame.draw.rect(screen, (139, 69, 19), bric_button)  # Marron (couleur de brique)
+    pygame.draw.rect(screen, (0, 0, 255), bric_button)  # Bleu
     pygame.draw.rect(screen, WHITE, bric_button, 2)
     
     bric_name = "Bric"
