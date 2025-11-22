@@ -7618,6 +7618,19 @@ def main():
                         crown_poche += crown_count
                         jeton_count = 0  # Réinitialiser le compteur de jetons
                         crown_count = 0  # Réinitialiser le compteur de couronnes
+                    
+                    # Mode difficile : bonus spécial à 4000 pacoins
+                    if difficulty == "difficile" and jeton_count >= 4000:
+                        # Transférer les pacoins et couronnes à la poche
+                        jeton_poche += jeton_count
+                        crown_poche += crown_count
+                        # Gagner 1 cœur
+                        if lives < current_max_lives:
+                            lives += 1
+                        # Réinitialiser les compteurs
+                        jeton_count = 0
+                        crown_count = 0
+                    
                     # Calculer la durée de vulnérabilité en fonction du niveau de "pacgum"
                     pacgum_level = capacite_items.count("pacgum") if capacite_items else 0
                     vulnerable_duration = VULNERABLE_DURATION + (pacgum_level * 10)  # +1 seconde (10 frames) par niveau
@@ -7738,6 +7751,19 @@ def main():
                                     crown_poche += crown_count
                                     jeton_count = 0
                                     crown_count = 0
+                                
+                                # Mode difficile : bonus spécial à 4000 pacoins
+                                if difficulty == "difficile" and jeton_count >= 4000:
+                                    # Transférer les pacoins et couronnes à la poche
+                                    jeton_poche += jeton_count
+                                    crown_poche += crown_count
+                                    # Gagner 1 cœur
+                                    if lives < MAX_LIVES:
+                                        lives += 1
+                                    # Réinitialiser les compteurs
+                                    jeton_count = 0
+                                    crown_count = 0
+                                
                                 if count_points(maze) == 0:
                                     level += 1
                                     # Récompense au niveau 17 en mode facile
