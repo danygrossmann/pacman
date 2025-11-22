@@ -1146,7 +1146,7 @@ def draw_menu(screen, super_vie_active=False, difficulty=None):
     difficulte_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 2, button_width, button_height)
     pygame.draw.rect(screen, (200, 0, 0), difficulte_button)  # Rouge foncé
     pygame.draw.rect(screen, WHITE, difficulte_button, 3)
-    difficulte_text = font_button.render("DIFFICULTE", True, WHITE)
+    difficulte_text = font_button.render("DIFFICULTÉ", True, WHITE)
     difficulte_text_rect = difficulte_text.get_rect(center=difficulte_button.center)
     screen.blit(difficulte_text, difficulte_text_rect)
     
@@ -1240,7 +1240,7 @@ def draw_shop(screen):
     capacite_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 3, button_width, button_height)
     pygame.draw.rect(screen, (255, 165, 0), capacite_button)  # Orange
     pygame.draw.rect(screen, WHITE, capacite_button, 2)
-    capacite_text = font_button.render("CAPACITE", True, WHITE)
+    capacite_text = font_button.render("CAPACITÉ", True, WHITE)
     capacite_text_rect = capacite_text.get_rect(center=capacite_button.center)
     screen.blit(capacite_text, capacite_text_rect)
     
@@ -2927,7 +2927,7 @@ def draw_difficulty(screen):
     screen.fill(BLACK)
     
     font_title = pygame.font.Font(None, 72)
-    title_text = font_title.render("DIFFICULTE", True, YELLOW)
+    title_text = font_title.render("DIFFICULTÉ", True, YELLOW)
     title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 100))
     screen.blit(title_text, title_rect)
     
@@ -3040,11 +3040,11 @@ def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, in
     pygame.draw.rect(screen, slot_border, gadget_slot_rect, 2)
     
     # Texte "CAPACITÉ" en dessous de la case gadget
-    capacite_label = font_label.render("CAPACITE", True, WHITE)
+    capacite_label = font_label.render("CAPACITÉ", True, WHITE)
     capacite_label_rect = capacite_label.get_rect(center=(gadget_slot_x + gadget_slot_size // 2, gadget_slot_y + gadget_slot_size + 15))
     screen.blit(capacite_label, capacite_label_rect)
     
-    # Deux cases en dessous du texte "CAPACITE" (qui se touchent)
+    # Deux cases en dessous du texte "CAPACITÉ" (qui se touchent)
     capacite_slot_size = 50
     capacite_slot_x = pouvoir_slot_x
     # En dessous de la case gadget
