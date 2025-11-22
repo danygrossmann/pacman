@@ -1794,7 +1794,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     
     # Bouton "Explosion" (aligné à gauche)
     explosion_button = pygame.Rect(button_x, item_y, button_width, item_height)
-    pygame.draw.rect(screen, (255, 0, 0), explosion_button)  # Rouge vif
+    pygame.draw.rect(screen, (128, 0, 128), explosion_button)  # Violet
     pygame.draw.rect(screen, WHITE, explosion_button, 2)
     
     explosion_count = gadget_items.count("explosion")
@@ -1819,7 +1819,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     
     # Bouton "Vision X" (aligné à gauche, en dessous de Explosion)
     vision_x_button = pygame.Rect(button_x, item_y + item_spacing, button_width, item_height)
-    pygame.draw.rect(screen, (138, 43, 226), vision_x_button)  # Violet
+    pygame.draw.rect(screen, (128, 0, 128), vision_x_button)  # Violet
     pygame.draw.rect(screen, WHITE, vision_x_button, 2)
     
     vision_x_count = gadget_items.count("vision x")
@@ -1851,7 +1851,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     
     # Bouton "Feu" (aligné à droite, même niveau que Explosion)
     feu_button = pygame.Rect(button_x_right, item_y, button_width, item_height)
-    pygame.draw.rect(screen, (255, 69, 0), feu_button)  # Rouge-orange
+    pygame.draw.rect(screen, (128, 0, 128), feu_button)  # Violet
     pygame.draw.rect(screen, WHITE, feu_button, 2)
     
     feu_count = gadget_items.count("feu")
