@@ -1144,7 +1144,7 @@ def draw_menu(screen, super_vie_active=False, difficulty=None):
     
     # Bouton Difficulté
     difficulte_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 2, button_width, button_height)
-    pygame.draw.rect(screen, (200, 0, 0), difficulte_button)  # Rouge foncé
+    pygame.draw.rect(screen, BLUE, difficulte_button)  # Bleu
     pygame.draw.rect(screen, WHITE, difficulte_button, 3)
     difficulte_text = font_button.render("DIFFICULTÉ", True, WHITE)
     difficulte_text_rect = difficulte_text.get_rect(center=difficulte_button.center)
