@@ -2740,7 +2740,7 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     
     # Bouton "Givre" (aligné à droite)
     givre_button = pygame.Rect(button_x_right, givre_y, button_width, item_height)
-    pygame.draw.rect(screen, (200, 220, 255), givre_button)  # Bleu clair/blanc (couleur de givre)
+    pygame.draw.rect(screen, (128, 0, 128), givre_button)  # Violet
     pygame.draw.rect(screen, WHITE, givre_button, 2)
     
     givre_name = "Givre"
