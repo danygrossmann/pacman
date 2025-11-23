@@ -9296,7 +9296,7 @@ def main():
         
         # Dessiner selon l'état actuel
         if current_state == START_MENU:
-            start_plus_button = draw_start_menu(screen)
+            start_plus_button = draw_start_menu(screen, player_name, selected_avatar, selected_font)
         elif current_state == CUSTOMIZATION_MENU:
             customization_retour_button, customization_font_button, customization_avatar_button, customization_nom_button = draw_customization_menu(screen)
         elif current_state == NAME_MENU:
