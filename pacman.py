@@ -1282,9 +1282,9 @@ def draw_shop_pouvoir(screen, jeton_poche=0, pouvoir_items=None, crown_poche=0, 
     
     # Afficher les pacoins et couronnes disponibles
     font_info = pygame.font.Font(None, 36)
-    pacoin_text = font_info.render(f"Pacoins: {jeton_poche}", True, BLACK)
+    pacoin_text = font_info.render(f"Pacoins: {jeton_poche}", True, WHITE)
     screen.blit(pacoin_text, (WINDOW_WIDTH//2 - 100, 150))
-    crown_text = font_info.render(f"Couronnes: {crown_poche}", True, BLACK)
+    crown_text = font_info.render(f"Couronnes: {crown_poche}", True, WHITE)
     screen.blit(crown_text, (WINDOW_WIDTH//2 - 100, 180))
     
     # Item "Longue vue"
@@ -2103,9 +2103,9 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
     
     # Afficher les pacoins et couronnes disponibles
     font_info = pygame.font.Font(None, 36)
-    pacoin_text = font_info.render(f"Pacoins: {jeton_poche}", True, BLACK)
+    pacoin_text = font_info.render(f"Pacoins: {jeton_poche}", True, WHITE)
     screen.blit(pacoin_text, (WINDOW_WIDTH//2 - 100, 150))
-    crown_text = font_info.render(f"Couronnes: {crown_poche}", True, BLACK)
+    crown_text = font_info.render(f"Couronnes: {crown_poche}", True, WHITE)
     screen.blit(crown_text, (WINDOW_WIDTH//2 - 100, 180))
     
     # Item "Bon marché"
