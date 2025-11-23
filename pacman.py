@@ -1207,25 +1207,37 @@ def draw_avatar_menu(screen):
     # Afficher les images si elles existent
     small_size = 80  # Taille fixe de 80x80 pixels
     
-    # Première image en haut à gauche
+    # Position verticale : en dessous du titre (80 + marge)
+    img_y = 120
+    spacing = 90  # Espacement entre les images
+    
+    # Calculer la position horizontale pour centrer les images
+    total_width = 0
+    image_count = sum([1 for img in [avatar_image1, avatar_image2, avatar_image3] if img is not None])
+    if image_count > 0:
+        total_width = (image_count * small_size) + ((image_count - 1) * (spacing - small_size))
+        start_x = (WINDOW_WIDTH - total_width) // 2
+    else:
+        start_x = 10
+    
+    # Première image
     if avatar_image1:
         avatar_image1 = pygame.transform.scale(avatar_image1, (small_size, small_size))
-        img_x = 10
-        img_y = 10
+        img_x = start_x
         screen.blit(avatar_image1, (img_x, img_y))
+        start_x += spacing
     
-    # Deuxième image à côté de la première
+    # Deuxième image
     if avatar_image2:
         avatar_image2 = pygame.transform.scale(avatar_image2, (small_size, small_size))
-        img_x = 100  # À côté de la première image
-        img_y = 10
+        img_x = start_x
         screen.blit(avatar_image2, (img_x, img_y))
+        start_x += spacing
     
-    # Troisième image à côté de la deuxième
+    # Troisième image
     if avatar_image3:
         avatar_image3 = pygame.transform.scale(avatar_image3, (small_size, small_size))
-        img_x = 190  # À côté de la deuxième image
-        img_y = 10
+        img_x = start_x
         screen.blit(avatar_image3, (img_x, img_y))
     # Afficher un message si aucune image n'est trouvée
     if not avatar_image1 and not avatar_image2 and not avatar_image3:
@@ -1239,8 +1251,8 @@ def draw_avatar_menu(screen):
         info_rect2 = info_text2.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2 + 40))
         screen.blit(info_text2, info_rect2)
     
-    # Bouton retour (décalé vers la droite pour ne pas chevaucher les images)
-    retour_button = pygame.Rect(280, 10, 100, 40)
+    # Bouton retour (en haut à gauche)
+    retour_button = pygame.Rect(10, 10, 100, 40)
     pygame.draw.rect(screen, RED, retour_button)
     pygame.draw.rect(screen, WHITE, retour_button, 2)
     font_retour = pygame.font.Font(None, 36)
@@ -5217,7 +5229,7 @@ def main():
                         elif avatar_button_rect.collidepoint(mouse_pos):
                             current_state = AVATAR_MENU
                     elif current_state == AVATAR_MENU:
-                        avatar_retour_button = pygame.Rect(280, 10, 100, 40)
+                        avatar_retour_button = pygame.Rect(10, 10, 100, 40)
                         if avatar_retour_button.collidepoint(mouse_pos):
                             current_state = CUSTOMIZATION_MENU
                     elif current_state == MENU:
