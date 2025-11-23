@@ -1242,8 +1242,10 @@ def draw_font_menu(screen, selected_font=None):
     # Essayer de charger les images de police
     font_image1 = None
     font_image2 = None
+    font_image3 = None
     font_paths1 = ["font tout bleu.png", "font_tout_bleu.png", "font.png"]
     font_paths2 = ["font arc en ciel.png", "font_arc_en_ciel.png"]
+    font_paths3 = ["tout pleins de couleur.png", "carré carré.png"]
     
     # Charger la première image
     for path in font_paths1:
@@ -1263,6 +1265,15 @@ def draw_font_menu(screen, selected_font=None):
             except:
                 continue
     
+    # Charger la troisième image
+    for path in font_paths3:
+        if os.path.exists(path):
+            try:
+                font_image3 = pygame.image.load(path)
+                break
+            except:
+                continue
+    
     # Afficher les images si elles existent
     small_size = 80  # Taille fixe de 80x80 pixels
     
@@ -1272,7 +1283,7 @@ def draw_font_menu(screen, selected_font=None):
     
     # Calculer la position horizontale pour centrer les images
     total_width = 0
-    image_count = sum([1 for img in [font_image1, font_image2] if img is not None])
+    image_count = sum([1 for img in [font_image1, font_image2, font_image3] if img is not None])
     if image_count > 0:
         total_width = (image_count * small_size) + ((image_count - 1) * (spacing - small_size))
         start_x = (WINDOW_WIDTH - total_width) // 2
@@ -1282,6 +1293,7 @@ def draw_font_menu(screen, selected_font=None):
     # Rectangles pour les clics
     font_rect1 = None
     font_rect2 = None
+    font_rect3 = None
     
     # Première image
     if font_image1:
@@ -1326,7 +1338,7 @@ def draw_font_menu(screen, selected_font=None):
     retour_text_rect = retour_text.get_rect(center=retour_button.center)
     screen.blit(retour_text, retour_text_rect)
     
-    return retour_button, font_rect1, font_rect2
+    return retour_button, font_rect1, font_rect2, font_rect3
 
 def draw_name_menu(screen, player_name="", input_active=False):
     """Dessine le menu de nom avec un champ de texte"""
@@ -9364,7 +9376,7 @@ def main():
         elif current_state == NAME_MENU:
             name_retour_button, name_input_rect = draw_name_menu(screen, player_name, name_input_active)
         elif current_state == FONT_MENU:
-            font_retour_button, font_rect1, font_rect2 = draw_font_menu(screen, selected_font)
+            font_retour_button, font_rect1, font_rect2, font_rect3 = draw_font_menu(screen, selected_font)
         elif current_state == AVATAR_MENU:
             avatar_retour_button, avatar_rect1, avatar_rect2, avatar_rect3 = draw_avatar_menu(screen, selected_avatar)
         elif current_state == MENU:
