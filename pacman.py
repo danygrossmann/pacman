@@ -1122,7 +1122,7 @@ def draw_menu(screen, super_vie_active=False, difficulty=None):
             "hardcore": (128, 0, 128)  # Violet
         }
         difficulty_text_str = difficulty_names.get(difficulty, difficulty.upper())
-        difficulty_text = font_difficulty.render(f"Difficulté: {difficulty_text_str}", True, difficulty_colors.get(difficulty, WHITE))
+        difficulty_text = font_difficulty.render(f"Difficulté: {difficulty_text_str}", True, WHITE)
         difficulty_text_rect = difficulty_text.get_rect(center=(WINDOW_WIDTH//2, start_y - 25))
         screen.blit(difficulty_text, difficulty_text_rect)
     
@@ -1180,7 +1180,7 @@ def draw_menu(screen, super_vie_active=False, difficulty=None):
     pygame.draw.rect(screen, WHITE, fabriqueur_button, 3)
     # Utiliser une police plus petite pour que le texte rentre
     font_fabriqueur = pygame.font.Font(None, 28)
-    fabriqueur_text = font_fabriqueur.render("FABRIQUEUR", True, BLACK)
+    fabriqueur_text = font_fabriqueur.render("FABRIQUEUR", True, WHITE)
     fabriqueur_text_rect = fabriqueur_text.get_rect(center=fabriqueur_button.center)
     screen.blit(fabriqueur_text, fabriqueur_text_rect)
     
@@ -1201,7 +1201,7 @@ def draw_shop(screen):
     screen.fill(BLACK)
     
     font_title = pygame.font.Font(None, 72)
-    title_text = font_title.render("MAGASIN", True, YELLOW)
+    title_text = font_title.render("MAGASIN", True, BLACK)
     title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 100))
     screen.blit(title_text, title_rect)
     
@@ -1216,7 +1216,7 @@ def draw_shop(screen):
     gadget_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y, button_width, button_height)
     pygame.draw.rect(screen, BLUE, gadget_button)
     pygame.draw.rect(screen, WHITE, gadget_button, 2)
-    gadget_text = font_button.render("GADGET", True, WHITE)
+    gadget_text = font_button.render("GADGET", True, BLACK)
     gadget_text_rect = gadget_text.get_rect(center=gadget_button.center)
     screen.blit(gadget_text, gadget_text_rect)
     
@@ -1224,7 +1224,7 @@ def draw_shop(screen):
     pouvoir_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing, button_width, button_height)
     pygame.draw.rect(screen, (255, 0, 255), pouvoir_button)  # Magenta
     pygame.draw.rect(screen, WHITE, pouvoir_button, 2)
-    pouvoir_text = font_button.render("POUVOIR", True, WHITE)
+    pouvoir_text = font_button.render("POUVOIR", True, BLACK)
     pouvoir_text_rect = pouvoir_text.get_rect(center=pouvoir_button.center)
     screen.blit(pouvoir_text, pouvoir_text_rect)
     
@@ -1232,7 +1232,7 @@ def draw_shop(screen):
     objet_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 2, button_width, button_height)
     pygame.draw.rect(screen, (0, 255, 0), objet_button)  # Vert
     pygame.draw.rect(screen, WHITE, objet_button, 2)
-    objet_text = font_button.render("OBJET", True, WHITE)
+    objet_text = font_button.render("OBJET", True, BLACK)
     objet_text_rect = objet_text.get_rect(center=objet_button.center)
     screen.blit(objet_text, objet_text_rect)
     
@@ -1240,7 +1240,7 @@ def draw_shop(screen):
     capacite_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 3, button_width, button_height)
     pygame.draw.rect(screen, (255, 165, 0), capacite_button)  # Orange
     pygame.draw.rect(screen, WHITE, capacite_button, 2)
-    capacite_text = font_button.render("CAPACITÉ", True, WHITE)
+    capacite_text = font_button.render("CAPACITÉ", True, BLACK)
     capacite_text_rect = capacite_text.get_rect(center=capacite_button.center)
     screen.blit(capacite_text, capacite_text_rect)
     
@@ -1249,7 +1249,7 @@ def draw_shop(screen):
     retour_button = pygame.Rect(10, 10, 100, 40)
     pygame.draw.rect(screen, RED, retour_button)
     pygame.draw.rect(screen, WHITE, retour_button, 2)
-    retour_text = font_retour.render("RETOUR", True, WHITE)
+    retour_text = font_retour.render("RETOUR", True, BLACK)
     retour_text_rect = retour_text.get_rect(center=retour_button.center)
     screen.blit(retour_text, retour_text_rect)
     
@@ -1276,15 +1276,15 @@ def draw_shop_pouvoir(screen, jeton_poche=0, pouvoir_items=None, crown_poche=0, 
     screen.fill(BLACK)
     
     font_title = pygame.font.Font(None, 72)
-    title_text = font_title.render("POUVOIR", True, (255, 0, 255))  # Magenta
+    title_text = font_title.render("POUVOIR", True, BLACK)
     title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 100))
     screen.blit(title_text, title_rect)
     
     # Afficher les pacoins et couronnes disponibles
     font_info = pygame.font.Font(None, 36)
-    pacoin_text = font_info.render(f"Pacoins: {jeton_poche}", True, YELLOW)
+    pacoin_text = font_info.render(f"Pacoins: {jeton_poche}", True, BLACK)
     screen.blit(pacoin_text, (WINDOW_WIDTH//2 - 100, 150))
-    crown_text = font_info.render(f"Couronnes: {crown_poche}", True, YELLOW)
+    crown_text = font_info.render(f"Couronnes: {crown_poche}", True, BLACK)
     screen.blit(crown_text, (WINDOW_WIDTH//2 - 100, 180))
     
     # Item "Longue vue"
@@ -1304,11 +1304,11 @@ def draw_shop_pouvoir(screen, jeton_poche=0, pouvoir_items=None, crown_poche=0, 
     font_item = pygame.font.Font(None, 28)  # Police réduite pour que le texte rentre
     longue_vue_count = pouvoir_items.count("longue vue")
     longue_vue_name = f"Longue vue x{longue_vue_count}" if longue_vue_count > 0 else "Longue vue"
-    longue_vue_text = font_item.render(longue_vue_name, True, WHITE)
+    longue_vue_text = font_item.render(longue_vue_name, True, BLACK)
     # Vérifier que le texte ne dépasse pas
     if longue_vue_text.get_width() > button_width - 10:
         longue_vue_name_short = f"L.vue x{longue_vue_count}" if longue_vue_count > 0 else "Longue vue"
-        longue_vue_text = font_item.render(longue_vue_name_short, True, WHITE)
+        longue_vue_text = font_item.render(longue_vue_name_short, True, BLACK)
     longue_vue_text_rect = longue_vue_text.get_rect(center=(longue_vue_button.centerx, longue_vue_button.centery - 10))
     screen.blit(longue_vue_text, longue_vue_text_rect)
     
@@ -1324,10 +1324,10 @@ def draw_shop_pouvoir(screen, jeton_poche=0, pouvoir_items=None, crown_poche=0, 
     # Vérifier si déjà acheté
     if "longue vue" in pouvoir_items:
         font_owned = pygame.font.Font(None, 18)  # Police réduite
-        owned_text = font_owned.render("(Déjà acheté)", True, (0, 255, 0))  # Vert
+        owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         # Vérifier que le texte ne dépasse pas
         if owned_text.get_width() > button_width - 10:
-            owned_text = font_owned.render("(Acheté)", True, (0, 255, 0))
+            owned_text = font_owned.render("(Acheté)", True, BLACK)
         owned_text_rect = owned_text.get_rect(center=(longue_vue_button.centerx, longue_vue_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
@@ -1341,11 +1341,11 @@ def draw_shop_pouvoir(screen, jeton_poche=0, pouvoir_items=None, crown_poche=0, 
     
     double_longue_vue_count = pouvoir_items.count("double longue vue")
     double_longue_vue_name = f"Double longue vue x{double_longue_vue_count}" if double_longue_vue_count > 0 else "Double longue vue"
-    double_longue_vue_text = font_item.render(double_longue_vue_name, True, WHITE)
+    double_longue_vue_text = font_item.render(double_longue_vue_name, True, BLACK)
     # Vérifier que le texte ne dépasse pas
     if double_longue_vue_text.get_width() > button_width - 10:
         double_longue_vue_name_short = f"D.l.vue x{double_longue_vue_count}" if double_longue_vue_count > 0 else "Double l.vue"
-        double_longue_vue_text = font_item.render(double_longue_vue_name_short, True, WHITE)
+        double_longue_vue_text = font_item.render(double_longue_vue_name_short, True, BLACK)
     double_longue_vue_text_rect = double_longue_vue_text.get_rect(center=(double_longue_vue_button.centerx, double_longue_vue_button.centery - 10))
     screen.blit(double_longue_vue_text, double_longue_vue_text_rect)
     
@@ -1360,10 +1360,10 @@ def draw_shop_pouvoir(screen, jeton_poche=0, pouvoir_items=None, crown_poche=0, 
     # Vérifier si déjà acheté
     if "double longue vue" in pouvoir_items:
         font_owned = pygame.font.Font(None, 18)  # Police réduite
-        owned_text = font_owned.render("(Déjà acheté)", True, (0, 255, 0))  # Vert
+        owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         # Vérifier que le texte ne dépasse pas
         if owned_text.get_width() > button_width - 10:
-            owned_text = font_owned.render("(Acheté)", True, (0, 255, 0))
+            owned_text = font_owned.render("(Acheté)", True, BLACK)
         owned_text_rect = owned_text.get_rect(center=(double_longue_vue_button.centerx, double_longue_vue_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
@@ -1377,7 +1377,7 @@ def draw_shop_pouvoir(screen, jeton_poche=0, pouvoir_items=None, crown_poche=0, 
     
     bon_repas_count = pouvoir_items.count("bon repas")
     bon_repas_name = f"Bon repas x{bon_repas_count}" if bon_repas_count > 0 else "Bon repas"
-    bon_repas_text = font_item.render(bon_repas_name, True, WHITE)
+    bon_repas_text = font_item.render(bon_repas_name, True, BLACK)
     bon_repas_text_rect = bon_repas_text.get_rect(center=(bon_repas_button.centerx, bon_repas_button.centery - 10))
     screen.blit(bon_repas_text, bon_repas_text_rect)
     
@@ -1392,10 +1392,10 @@ def draw_shop_pouvoir(screen, jeton_poche=0, pouvoir_items=None, crown_poche=0, 
     # Vérifier si déjà acheté
     if "bon repas" in pouvoir_items:
         font_owned = pygame.font.Font(None, 18)  # Police réduite
-        owned_text = font_owned.render("(Déjà acheté)", True, (0, 255, 0))  # Vert
+        owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         # Vérifier que le texte ne dépasse pas
         if owned_text.get_width() > button_width - 10:
-            owned_text = font_owned.render("(Acheté)", True, (0, 255, 0))
+            owned_text = font_owned.render("(Acheté)", True, BLACK)
         owned_text_rect = owned_text.get_rect(center=(bon_repas_button.centerx, bon_repas_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
@@ -1409,7 +1409,7 @@ def draw_shop_pouvoir(screen, jeton_poche=0, pouvoir_items=None, crown_poche=0, 
     
     bon_gout_count = pouvoir_items.count("bon goût")
     bon_gout_name = f"Bon goût x{bon_gout_count}" if bon_gout_count > 0 else "Bon goût"
-    bon_gout_text = font_item.render(bon_gout_name, True, WHITE)
+    bon_gout_text = font_item.render(bon_gout_name, True, BLACK)
     bon_gout_text_rect = bon_gout_text.get_rect(center=(bon_gout_button.centerx, bon_gout_button.centery - 10))
     screen.blit(bon_gout_text, bon_gout_text_rect)
     
@@ -1424,10 +1424,10 @@ def draw_shop_pouvoir(screen, jeton_poche=0, pouvoir_items=None, crown_poche=0, 
     # Vérifier si déjà acheté
     if "bon goût" in pouvoir_items:
         font_owned = pygame.font.Font(None, 18)  # Police réduite
-        owned_text = font_owned.render("(Déjà acheté)", True, (0, 255, 0))  # Vert
+        owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         # Vérifier que le texte ne dépasse pas
         if owned_text.get_width() > button_width - 10:
-            owned_text = font_owned.render("(Acheté)", True, (0, 255, 0))
+            owned_text = font_owned.render("(Acheté)", True, BLACK)
         owned_text_rect = owned_text.get_rect(center=(bon_gout_button.centerx, bon_gout_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
@@ -1441,11 +1441,11 @@ def draw_shop_pouvoir(screen, jeton_poche=0, pouvoir_items=None, crown_poche=0, 
     
     pas_indigestion_count = pouvoir_items.count("pas d'indigestion")
     pas_indigestion_name = f"Pas d'indigestion x{pas_indigestion_count}" if pas_indigestion_count > 0 else "Pas d'indigestion"
-    pas_indigestion_text = font_item.render(pas_indigestion_name, True, WHITE)
+    pas_indigestion_text = font_item.render(pas_indigestion_name, True, BLACK)
     # Vérifier que le texte ne dépasse pas
     if pas_indigestion_text.get_width() > button_width - 10:
         pas_indigestion_name_short = f"Pas indigestion x{pas_indigestion_count}" if pas_indigestion_count > 0 else "Pas indigestion"
-        pas_indigestion_text = font_item.render(pas_indigestion_name_short, True, WHITE)
+        pas_indigestion_text = font_item.render(pas_indigestion_name_short, True, BLACK)
     pas_indigestion_text_rect = pas_indigestion_text.get_rect(center=(pas_indigestion_button.centerx, pas_indigestion_button.centery - 10))
     screen.blit(pas_indigestion_text, pas_indigestion_text_rect)
     
@@ -1460,10 +1460,10 @@ def draw_shop_pouvoir(screen, jeton_poche=0, pouvoir_items=None, crown_poche=0, 
     # Vérifier si déjà acheté
     if "pas d'indigestion" in pouvoir_items:
         font_owned = pygame.font.Font(None, 18)  # Police réduite
-        owned_text = font_owned.render("(Déjà acheté)", True, (0, 255, 0))  # Vert
+        owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         # Vérifier que le texte ne dépasse pas
         if owned_text.get_width() > button_width - 10:
-            owned_text = font_owned.render("(Acheté)", True, (0, 255, 0))
+            owned_text = font_owned.render("(Acheté)", True, BLACK)
         owned_text_rect = owned_text.get_rect(center=(pas_indigestion_button.centerx, pas_indigestion_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
@@ -1472,7 +1472,7 @@ def draw_shop_pouvoir(screen, jeton_poche=0, pouvoir_items=None, crown_poche=0, 
     retour_button = pygame.Rect(10, 10, 100, 40)
     pygame.draw.rect(screen, RED, retour_button)
     pygame.draw.rect(screen, WHITE, retour_button, 2)
-    retour_text = font_retour.render("RETOUR", True, WHITE)
+    retour_text = font_retour.render("RETOUR", True, BLACK)
     retour_text_rect = retour_text.get_rect(center=retour_button.center)
     screen.blit(retour_text, retour_text_rect)
     
@@ -1508,10 +1508,10 @@ def draw_shop_pouvoir(screen, jeton_poche=0, pouvoir_items=None, crown_poche=0, 
     # Vérifier si déjà acheté
     if "scine bleu" in pouvoir_items:
         font_owned = pygame.font.Font(None, 18)  # Police réduite
-        owned_text = font_owned.render("(Déjà acheté)", True, (0, 255, 0))  # Vert
+        owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         # Vérifier que le texte ne dépasse pas
         if owned_text.get_width() > button_width - 10:
-            owned_text = font_owned.render("(Acheté)", True, (0, 255, 0))
+            owned_text = font_owned.render("(Acheté)", True, BLACK)
         owned_text_rect = owned_text.get_rect(center=(scine_bleu_button.centerx, scine_bleu_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
@@ -1547,10 +1547,10 @@ def draw_shop_pouvoir(screen, jeton_poche=0, pouvoir_items=None, crown_poche=0, 
     # Vérifier si déjà acheté
     if "scine orange" in pouvoir_items:
         font_owned = pygame.font.Font(None, 18)  # Police réduite
-        owned_text = font_owned.render("(Déjà acheté)", True, (0, 255, 0))  # Vert
+        owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         # Vérifier que le texte ne dépasse pas
         if owned_text.get_width() > button_width - 10:
-            owned_text = font_owned.render("(Acheté)", True, (0, 255, 0))
+            owned_text = font_owned.render("(Acheté)", True, BLACK)
         owned_text_rect = owned_text.get_rect(center=(scine_orange_button.centerx, scine_orange_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
@@ -1564,7 +1564,7 @@ def draw_shop_pouvoir(screen, jeton_poche=0, pouvoir_items=None, crown_poche=0, 
     
     glace_count = pouvoir_items.count("glace")
     glace_name = f"Glace x{glace_count}" if glace_count > 0 else "Glace"
-    glace_text = font_item.render(glace_name, True, WHITE)
+    glace_text = font_item.render(glace_name, True, BLACK)
     glace_text_rect = glace_text.get_rect(center=(glace_button.centerx, glace_button.centery - 10))
     screen.blit(glace_text, glace_text_rect)
     
@@ -1586,10 +1586,10 @@ def draw_shop_pouvoir(screen, jeton_poche=0, pouvoir_items=None, crown_poche=0, 
     # Vérifier si déjà acheté
     if "glace" in pouvoir_items:
         font_owned = pygame.font.Font(None, 18)  # Police réduite
-        owned_text = font_owned.render("(Déjà acheté)", True, (0, 255, 0))  # Vert
+        owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         # Vérifier que le texte ne dépasse pas
         if owned_text.get_width() > button_width - 10:
-            owned_text = font_owned.render("(Acheté)", True, (0, 255, 0))
+            owned_text = font_owned.render("(Acheté)", True, BLACK)
         owned_text_rect = owned_text.get_rect(center=(glace_button.centerx, glace_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
@@ -1625,10 +1625,10 @@ def draw_shop_pouvoir(screen, jeton_poche=0, pouvoir_items=None, crown_poche=0, 
     # Vérifier si déjà acheté
     if "scine rose" in pouvoir_items:
         font_owned = pygame.font.Font(None, 18)  # Police réduite
-        owned_text = font_owned.render("(Déjà acheté)", True, (0, 255, 0))  # Vert
+        owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         # Vérifier que le texte ne dépasse pas
         if owned_text.get_width() > button_width - 10:
-            owned_text = font_owned.render("(Acheté)", True, (0, 255, 0))
+            owned_text = font_owned.render("(Acheté)", True, BLACK)
         owned_text_rect = owned_text.get_rect(center=(scine_rose_button.centerx, scine_rose_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
@@ -1664,10 +1664,10 @@ def draw_shop_pouvoir(screen, jeton_poche=0, pouvoir_items=None, crown_poche=0, 
     # Vérifier si déjà acheté
     if "scine rouge" in pouvoir_items:
         font_owned = pygame.font.Font(None, 18)  # Police réduite
-        owned_text = font_owned.render("(Déjà acheté)", True, (0, 255, 0))  # Vert
+        owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         # Vérifier que le texte ne dépasse pas
         if owned_text.get_width() > button_width - 10:
-            owned_text = font_owned.render("(Acheté)", True, (0, 255, 0))
+            owned_text = font_owned.render("(Acheté)", True, BLACK)
         owned_text_rect = owned_text.get_rect(center=(scine_rouge_button.centerx, scine_rouge_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
@@ -1701,7 +1701,7 @@ def draw_shop_pouvoir(screen, jeton_poche=0, pouvoir_items=None, crown_poche=0, 
         # Afficher les lignes (limiter à 4 lignes maximum)
         max_lines = min(len(lines), 4)
         for i in range(max_lines):
-            desc_text = font_desc.render(lines[i], True, YELLOW)
+            desc_text = font_desc.render(lines[i], True, BLACK)
             screen.blit(desc_text, (20, desc_y + 10 + i * 25))
     
     return retour_button, longue_vue_button, double_longue_vue_button, bon_repas_button, bon_gout_button, pas_indigestion_button, glace_button, scine_bleu_button, scine_orange_button, scine_rose_button, scine_rouge_button
@@ -1727,15 +1727,15 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     screen.fill(BLACK)
     
     font_title = pygame.font.Font(None, 72)
-    title_text = font_title.render("GADGET", True, BLUE)  # Bleu
+    title_text = font_title.render("GADGET", True, BLACK)
     title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 100))
     screen.blit(title_text, title_rect)
     
     # Afficher les pacoins et couronnes disponibles
     font_info = pygame.font.Font(None, 36)
-    pacoin_text = font_info.render(f"Pacoins: {jeton_poche}", True, YELLOW)
+    pacoin_text = font_info.render(f"Pacoins: {jeton_poche}", True, BLACK)
     screen.blit(pacoin_text, (WINDOW_WIDTH//2 - 100, 150))
-    crown_text = font_info.render(f"Couronnes: {crown_poche}", True, YELLOW)
+    crown_text = font_info.render(f"Couronnes: {crown_poche}", True, BLACK)
     screen.blit(crown_text, (WINDOW_WIDTH//2 - 100, 180))
     
     # Bouton retour
@@ -1743,7 +1743,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     retour_button = pygame.Rect(10, 10, 100, 40)
     pygame.draw.rect(screen, RED, retour_button)
     pygame.draw.rect(screen, WHITE, retour_button, 2)
-    retour_text = font_retour.render("RETOUR", True, WHITE)
+    retour_text = font_retour.render("RETOUR", True, BLACK)
     retour_text_rect = retour_text.get_rect(center=retour_button.center)
     screen.blit(retour_text, retour_text_rect)
     
@@ -1777,7 +1777,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
         # Afficher les lignes (limiter à 4 lignes maximum)
         max_lines = min(len(lines), 4)
         for i in range(max_lines):
-            desc_text = font_desc.render(lines[i], True, YELLOW)
+            desc_text = font_desc.render(lines[i], True, BLACK)
             screen.blit(desc_text, (20, desc_y + 10 + i * 25))
     
     # Item "Explosion"
@@ -1799,7 +1799,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     
     explosion_count = gadget_items.count("explosion")
     explosion_name = f"Explosion x{explosion_count}" if explosion_count > 0 else "Explosion"
-    explosion_text = font_item.render(explosion_name, True, WHITE)
+    explosion_text = font_item.render(explosion_name, True, BLACK)
     explosion_text_rect = explosion_text.get_rect(center=(explosion_button.centerx, explosion_button.centery - 10))
     screen.blit(explosion_text, explosion_text_rect)
     
@@ -1811,9 +1811,9 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     # Vérifier si déjà acheté
     if "explosion" in gadget_items:
         font_owned = pygame.font.Font(None, 18)
-        owned_text = font_owned.render("(Déjà acheté)", True, (0, 255, 0))  # Vert
+        owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         if owned_text.get_width() > button_width - 10:
-            owned_text = font_owned.render("(Acheté)", True, (0, 255, 0))
+            owned_text = font_owned.render("(Acheté)", True, BLACK)
         owned_text_rect = owned_text.get_rect(center=(explosion_button.centerx, explosion_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
@@ -1824,7 +1824,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     
     vision_x_count = gadget_items.count("vision x")
     vision_x_name = f"Vision X x{vision_x_count}" if vision_x_count > 0 else "Vision X"
-    vision_x_text = font_item.render(vision_x_name, True, WHITE)
+    vision_x_text = font_item.render(vision_x_name, True, BLACK)
     vision_x_text_rect = vision_x_text.get_rect(center=(vision_x_button.centerx, vision_x_button.centery - 10))
     screen.blit(vision_x_text, vision_x_text_rect)
     
@@ -1836,9 +1836,9 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     # Vérifier si déjà acheté
     if "vision x" in gadget_items:
         font_owned = pygame.font.Font(None, 18)
-        owned_text = font_owned.render("(Déjà acheté)", True, (0, 255, 0))  # Vert
+        owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         if owned_text.get_width() > button_width - 10:
-            owned_text = font_owned.render("(Acheté)", True, (0, 255, 0))
+            owned_text = font_owned.render("(Acheté)", True, BLACK)
         owned_text_rect = owned_text.get_rect(center=(vision_x_button.centerx, vision_x_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
@@ -1856,7 +1856,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     
     feu_count = gadget_items.count("feu")
     feu_name = f"Feu x{feu_count}" if feu_count > 0 else "Feu"
-    feu_text = font_item.render(feu_name, True, WHITE)
+    feu_text = font_item.render(feu_name, True, BLACK)
     feu_text_rect = feu_text.get_rect(center=(feu_button.centerx, feu_button.centery - 10))
     screen.blit(feu_text, feu_text_rect)
     
@@ -1868,9 +1868,9 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     # Vérifier si déjà acheté
     if "feu" in gadget_items:
         font_owned = pygame.font.Font(None, 18)
-        owned_text = font_owned.render("(Déjà acheté)", True, (0, 255, 0))  # Vert
+        owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         if owned_text.get_width() > button_width - 10:
-            owned_text = font_owned.render("(Acheté)", True, (0, 255, 0))
+            owned_text = font_owned.render("(Acheté)", True, BLACK)
         owned_text_rect = owned_text.get_rect(center=(feu_button.centerx, feu_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
@@ -1885,7 +1885,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     
     tir_count = gadget_items.count("tir")
     tir_name = f"Tir x{tir_count}" if tir_count > 0 else "Tir"
-    tir_text = font_item.render(tir_name, True, WHITE)
+    tir_text = font_item.render(tir_name, True, BLACK)
     tir_text_rect = tir_text.get_rect(center=(tir_button.centerx, tir_button.centery - 10))
     screen.blit(tir_text, tir_text_rect)
     
@@ -1897,9 +1897,9 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     # Vérifier si déjà acheté
     if "tir" in gadget_items:
         font_owned = pygame.font.Font(None, 18)
-        owned_text = font_owned.render("(Déjà acheté)", True, (0, 255, 0))  # Vert
+        owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         if owned_text.get_width() > button_width - 10:
-            owned_text = font_owned.render("(Acheté)", True, (0, 255, 0))
+            owned_text = font_owned.render("(Acheté)", True, BLACK)
         owned_text_rect = owned_text.get_rect(center=(tir_button.centerx, tir_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
@@ -1914,7 +1914,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     
     mort_count = gadget_items.count("mort")
     mort_name = f"Mort x{mort_count}" if mort_count > 0 else "Mort"
-    mort_text = font_item.render(mort_name, True, WHITE)
+    mort_text = font_item.render(mort_name, True, BLACK)
     mort_text_rect = mort_text.get_rect(center=(mort_button.centerx, mort_button.centery - 10))
     screen.blit(mort_text, mort_text_rect)
     
@@ -1926,9 +1926,9 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     # Vérifier si déjà acheté
     if "mort" in gadget_items:
         font_owned = pygame.font.Font(None, 18)
-        owned_text = font_owned.render("(Déjà acheté)", True, (0, 255, 0))  # Vert
+        owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         if owned_text.get_width() > button_width - 10:
-            owned_text = font_owned.render("(Acheté)", True, (0, 255, 0))
+            owned_text = font_owned.render("(Acheté)", True, BLACK)
         owned_text_rect = owned_text.get_rect(center=(mort_button.centerx, mort_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
@@ -1943,7 +1943,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     
     bombe_count = gadget_items.count("bombe téléguidée")
     bombe_name = f"Bombe Téléguidée x{bombe_count}" if bombe_count > 0 else "Bombe Téléguidée"
-    bombe_text = font_item.render(bombe_name, True, WHITE)
+    bombe_text = font_item.render(bombe_name, True, BLACK)
     bombe_text_rect = bombe_text.get_rect(center=(bombe_button.centerx, bombe_button.centery - 10))
     screen.blit(bombe_text, bombe_text_rect)
     
@@ -1955,9 +1955,9 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     # Vérifier si déjà acheté
     if "bombe téléguidée" in gadget_items:
         font_owned = pygame.font.Font(None, 18)
-        owned_text = font_owned.render("(Déjà acheté)", True, (0, 255, 0))  # Vert
+        owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         if owned_text.get_width() > button_width - 10:
-            owned_text = font_owned.render("(Acheté)", True, (0, 255, 0))
+            owned_text = font_owned.render("(Acheté)", True, BLACK)
         owned_text_rect = owned_text.get_rect(center=(bombe_button.centerx, bombe_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
@@ -1972,7 +1972,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     
     piege_count = gadget_items.count("piège")
     piege_name = f"Piège x{piege_count}" if piege_count > 0 else "Piège"
-    piege_text = font_item.render(piege_name, True, WHITE)
+    piege_text = font_item.render(piege_name, True, BLACK)
     piege_text_rect = piege_text.get_rect(center=(piege_button.centerx, piege_button.centery - 10))
     screen.blit(piege_text, piege_text_rect)
     
@@ -1984,9 +1984,9 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     # Vérifier si déjà acheté
     if "piège" in gadget_items:
         font_owned = pygame.font.Font(None, 18)
-        owned_text = font_owned.render("(Déjà acheté)", True, (0, 255, 0))  # Vert
+        owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         if owned_text.get_width() > button_width - 10:
-            owned_text = font_owned.render("(Acheté)", True, (0, 255, 0))
+            owned_text = font_owned.render("(Acheté)", True, BLACK)
         owned_text_rect = owned_text.get_rect(center=(piege_button.centerx, piege_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
@@ -2001,7 +2001,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     
     tp_count = gadget_items.count("tp")
     tp_name = f"TP x{tp_count}" if tp_count > 0 else "TP"
-    tp_text = font_item.render(tp_name, True, WHITE)
+    tp_text = font_item.render(tp_name, True, BLACK)
     tp_text_rect = tp_text.get_rect(center=(tp_button.centerx, tp_button.centery - 10))
     screen.blit(tp_text, tp_text_rect)
     
@@ -2013,9 +2013,9 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     # Vérifier si déjà acheté
     if "tp" in gadget_items:
         font_owned = pygame.font.Font(None, 18)
-        owned_text = font_owned.render("(Déjà acheté)", True, (0, 255, 0))  # Vert
+        owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         if owned_text.get_width() > button_width - 10:
-            owned_text = font_owned.render("(Acheté)", True, (0, 255, 0))
+            owned_text = font_owned.render("(Acheté)", True, BLACK)
         owned_text_rect = owned_text.get_rect(center=(tp_button.centerx, tp_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
@@ -2030,7 +2030,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     
     portail_count = gadget_items.count("portail")
     portail_name = f"Portail x{portail_count}" if portail_count > 0 else "Portail"
-    portail_text = font_item.render(portail_name, True, WHITE)
+    portail_text = font_item.render(portail_name, True, BLACK)
     portail_text_rect = portail_text.get_rect(center=(portail_button.centerx, portail_button.centery - 10))
     screen.blit(portail_text, portail_text_rect)
     
@@ -2042,9 +2042,9 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     # Vérifier si déjà acheté
     if "portail" in gadget_items:
         font_owned = pygame.font.Font(None, 18)
-        owned_text = font_owned.render("(Déjà acheté)", True, (0, 255, 0))  # Vert
+        owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         if owned_text.get_width() > button_width - 10:
-            owned_text = font_owned.render("(Acheté)", True, (0, 255, 0))
+            owned_text = font_owned.render("(Acheté)", True, BLACK)
         owned_text_rect = owned_text.get_rect(center=(portail_button.centerx, portail_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
@@ -2059,7 +2059,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     
     mur_count = gadget_items.count("mur")
     mur_name = f"Mur x{mur_count}" if mur_count > 0 else "Mur"
-    mur_text = font_item.render(mur_name, True, WHITE)
+    mur_text = font_item.render(mur_name, True, BLACK)
     mur_text_rect = mur_text.get_rect(center=(mur_button.centerx, mur_button.centery - 10))
     screen.blit(mur_text, mur_text_rect)
     
@@ -2071,9 +2071,9 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     # Vérifier si déjà acheté
     if "mur" in gadget_items:
         font_owned = pygame.font.Font(None, 18)
-        owned_text = font_owned.render("(Déjà acheté)", True, (0, 255, 0))  # Vert
+        owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         if owned_text.get_width() > button_width - 10:
-            owned_text = font_owned.render("(Acheté)", True, (0, 255, 0))
+            owned_text = font_owned.render("(Acheté)", True, BLACK)
         owned_text_rect = owned_text.get_rect(center=(mur_button.centerx, mur_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
@@ -2097,15 +2097,15 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
     screen.fill(BLACK)
     
     font_title = pygame.font.Font(None, 72)
-    title_text = font_title.render("CAPACITÉ", True, (255, 165, 0))  # Orange
+    title_text = font_title.render("CAPACITÉ", True, BLACK)
     title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 100))
     screen.blit(title_text, title_rect)
     
     # Afficher les pacoins et couronnes disponibles
     font_info = pygame.font.Font(None, 36)
-    pacoin_text = font_info.render(f"Pacoins: {jeton_poche}", True, YELLOW)
+    pacoin_text = font_info.render(f"Pacoins: {jeton_poche}", True, BLACK)
     screen.blit(pacoin_text, (WINDOW_WIDTH//2 - 100, 150))
-    crown_text = font_info.render(f"Couronnes: {crown_poche}", True, YELLOW)
+    crown_text = font_info.render(f"Couronnes: {crown_poche}", True, BLACK)
     screen.blit(crown_text, (WINDOW_WIDTH//2 - 100, 180))
     
     # Item "Bon marché"
@@ -2124,7 +2124,7 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
     font_item = pygame.font.Font(None, 28)
     bon_marche_count = capacite_items.count("bon marché")
     bon_marche_name = f"Bon marché x{bon_marche_count}" if bon_marche_count > 0 else "Bon marché"
-    bon_marche_text = font_item.render(bon_marche_name, True, WHITE)
+    bon_marche_text = font_item.render(bon_marche_name, True, BLACK)
     bon_marche_text_rect = bon_marche_text.get_rect(center=(bon_marche_button.centerx, bon_marche_button.centery - 10))
     screen.blit(bon_marche_text, bon_marche_text_rect)
     
@@ -2138,16 +2138,16 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
     bon_marche_level = capacite_items.count("bon marché")
     if bon_marche_level > 0:
         font_owned = pygame.font.Font(None, 18)
-        level_text = font_owned.render(f"Niveau {bon_marche_level}", True, (0, 255, 0))  # Vert
+        level_text = font_owned.render(f"Niveau {bon_marche_level}", True, BLACK)
         if level_text.get_width() > button_width - 10:
-            level_text = font_owned.render(f"Nv.{bon_marche_level}", True, (0, 255, 0))
+            level_text = font_owned.render(f"Nv.{bon_marche_level}", True, BLACK)
         level_text_rect = level_text.get_rect(center=(bon_marche_button.centerx, bon_marche_button.centery + 22))
         screen.blit(level_text, level_text_rect)
     
     # Afficher "(Maximum atteint)" si la limite de 10 est atteinte
     if bon_marche_level >= 10:
         font_max = pygame.font.Font(None, 16)
-        max_text = font_max.render("(Maximum atteint)", True, (255, 0, 0))  # Rouge
+        max_text = font_max.render("(Maximum atteint)", True, BLACK)
         max_text_rect = max_text.get_rect(center=(bon_marche_button.centerx, bon_marche_button.centery + 40))
         screen.blit(max_text, max_text_rect)
     
@@ -2158,7 +2158,7 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
     
     gadget_count = capacite_items.count("gadget")
     gadget_name = f"Gadget x{gadget_count}" if gadget_count > 0 else "Gadget"
-    gadget_text = font_item.render(gadget_name, True, WHITE)
+    gadget_text = font_item.render(gadget_name, True, BLACK)
     gadget_text_rect = gadget_text.get_rect(center=(gadget_button.centerx, gadget_button.centery - 10))
     screen.blit(gadget_text, gadget_text_rect)
     
@@ -2181,16 +2181,16 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
     gadget_level = capacite_items.count("gadget")
     if gadget_level > 0:
         font_owned = pygame.font.Font(None, 18)
-        level_text = font_owned.render(f"Niveau {gadget_level}", True, (0, 255, 0))  # Vert
+        level_text = font_owned.render(f"Niveau {gadget_level}", True, BLACK)
         if level_text.get_width() > button_width - 10:
-            level_text = font_owned.render(f"Nv.{gadget_level}", True, (0, 255, 0))
+            level_text = font_owned.render(f"Nv.{gadget_level}", True, BLACK)
         level_text_rect = level_text.get_rect(center=(gadget_button.centerx, gadget_button.centery + 22))
         screen.blit(level_text, level_text_rect)
     
     # Afficher "(Maximum atteint)" si la limite de 10 est atteinte
     if gadget_level >= 10:
         font_max = pygame.font.Font(None, 16)
-        max_text = font_max.render("(Maximum atteint)", True, (255, 0, 0))  # Rouge
+        max_text = font_max.render("(Maximum atteint)", True, BLACK)
         max_text_rect = max_text.get_rect(center=(gadget_button.centerx, gadget_button.centery + 40))
         screen.blit(max_text, max_text_rect)
     
@@ -2201,7 +2201,7 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
     
     piquant_count = capacite_items.count("piquant")
     piquant_name = f"Piquant x{piquant_count}" if piquant_count > 0 else "Piquant"
-    piquant_text = font_item.render(piquant_name, True, WHITE)
+    piquant_text = font_item.render(piquant_name, True, BLACK)
     piquant_text_rect = piquant_text.get_rect(center=(piquant_button.centerx, piquant_button.centery - 10))
     screen.blit(piquant_text, piquant_text_rect)
     
@@ -2214,16 +2214,16 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
     piquant_level = capacite_items.count("piquant")
     if piquant_level > 0:
         font_owned = pygame.font.Font(None, 18)
-        level_text = font_owned.render(f"Niveau {piquant_level}", True, (0, 255, 0))  # Vert
+        level_text = font_owned.render(f"Niveau {piquant_level}", True, BLACK)
         if level_text.get_width() > button_width - 10:
-            level_text = font_owned.render(f"Nv.{piquant_level}", True, (0, 255, 0))
+            level_text = font_owned.render(f"Nv.{piquant_level}", True, BLACK)
         level_text_rect = level_text.get_rect(center=(piquant_button.centerx, piquant_button.centery + 22))
         screen.blit(level_text, level_text_rect)
     
     # Afficher "(Maximum atteint)" si la limite de 10 est atteinte
     if piquant_level >= 10:
         font_max = pygame.font.Font(None, 16)
-        max_text = font_max.render("(Maximum atteint)", True, (255, 0, 0))  # Rouge
+        max_text = font_max.render("(Maximum atteint)", True, BLACK)
         max_text_rect = max_text.get_rect(center=(piquant_button.centerx, piquant_button.centery + 40))
         screen.blit(max_text, max_text_rect)
     
@@ -2234,7 +2234,7 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
     
     pacgum_count = capacite_items.count("pacgum")
     pacgum_name = f"Pacgum x{pacgum_count}" if pacgum_count > 0 else "Pacgum"
-    pacgum_text = font_item.render(pacgum_name, True, WHITE)
+    pacgum_text = font_item.render(pacgum_name, True, BLACK)
     pacgum_text_rect = pacgum_text.get_rect(center=(pacgum_button.centerx, pacgum_button.centery - 10))
     screen.blit(pacgum_text, pacgum_text_rect)
     
@@ -2246,16 +2246,16 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
     pacgum_level = capacite_items.count("pacgum")
     if pacgum_level > 0:
         font_owned = pygame.font.Font(None, 18)
-        level_text = font_owned.render(f"Niveau {pacgum_level}", True, (0, 255, 0))  # Vert
+        level_text = font_owned.render(f"Niveau {pacgum_level}", True, BLACK)
         if level_text.get_width() > button_width - 10:
-            level_text = font_owned.render(f"Nv.{pacgum_level}", True, (0, 255, 0))
+            level_text = font_owned.render(f"Nv.{pacgum_level}", True, BLACK)
         level_text_rect = level_text.get_rect(center=(pacgum_button.centerx, pacgum_button.centery + 22))
         screen.blit(level_text, level_text_rect)
     
     # Afficher "(Maximum atteint)" si la limite de 10 est atteinte
     if pacgum_level >= 10:
         font_max = pygame.font.Font(None, 16)
-        max_text = font_max.render("(Maximum atteint)", True, (255, 0, 0))  # Rouge
+        max_text = font_max.render("(Maximum atteint)", True, BLACK)
         max_text_rect = max_text.get_rect(center=(pacgum_button.centerx, pacgum_button.centery + 40))
         screen.blit(max_text, max_text_rect)
     
@@ -2266,7 +2266,7 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
     
     bonbe_count = capacite_items.count("bonbe")
     bonbe_name = f"Bonbe x{bonbe_count}" if bonbe_count > 0 else "Bonbe"
-    bonbe_text = font_item.render(bonbe_name, True, WHITE)
+    bonbe_text = font_item.render(bonbe_name, True, BLACK)
     bonbe_text_rect = bonbe_text.get_rect(center=(bonbe_button.centerx, bonbe_button.centery - 10))
     screen.blit(bonbe_text, bonbe_text_rect)
     
@@ -2279,16 +2279,16 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
     bonbe_level = capacite_items.count("bonbe")
     if bonbe_level > 0:
         font_owned = pygame.font.Font(None, 18)
-        level_text = font_owned.render(f"Niveau {bonbe_level}", True, (0, 255, 0))  # Vert
+        level_text = font_owned.render(f"Niveau {bonbe_level}", True, BLACK)
         if level_text.get_width() > button_width - 10:
-            level_text = font_owned.render(f"Nv.{bonbe_level}", True, (0, 255, 0))
+            level_text = font_owned.render(f"Nv.{bonbe_level}", True, BLACK)
         level_text_rect = level_text.get_rect(center=(bonbe_button.centerx, bonbe_button.centery + 22))
         screen.blit(level_text, level_text_rect)
     
     # Afficher "(Maximum atteint)" si la limite de 3 est atteinte
     if bonbe_level >= 3:
         font_max = pygame.font.Font(None, 16)
-        max_text = font_max.render("(Maximum atteint)", True, (255, 0, 0))  # Rouge
+        max_text = font_max.render("(Maximum atteint)", True, BLACK)
         max_text_rect = max_text.get_rect(center=(bonbe_button.centerx, bonbe_button.centery + 40))
         screen.blit(max_text, max_text_rect)
     
@@ -2299,7 +2299,7 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
     
     indigestion_count = capacite_items.count("indigestion")
     indigestion_name = f"Indigestion x{indigestion_count}" if indigestion_count > 0 else "Indigestion"
-    indigestion_text = font_item.render(indigestion_name, True, WHITE)
+    indigestion_text = font_item.render(indigestion_name, True, BLACK)
     indigestion_text_rect = indigestion_text.get_rect(center=(indigestion_button.centerx, indigestion_button.centery - 10))
     screen.blit(indigestion_text, indigestion_text_rect)
     
@@ -2312,16 +2312,16 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
     indigestion_level = capacite_items.count("indigestion")
     if indigestion_level > 0:
         font_owned = pygame.font.Font(None, 18)
-        level_text = font_owned.render(f"Niveau {indigestion_level}", True, (0, 255, 0))  # Vert
+        level_text = font_owned.render(f"Niveau {indigestion_level}", True, BLACK)
         if level_text.get_width() > button_width - 10:
-            level_text = font_owned.render(f"Nv.{indigestion_level}", True, (0, 255, 0))
+            level_text = font_owned.render(f"Nv.{indigestion_level}", True, BLACK)
         level_text_rect = level_text.get_rect(center=(indigestion_button.centerx, indigestion_button.centery + 22))
         screen.blit(level_text, level_text_rect)
     
     # Afficher "(Maximum atteint)" si la limite de 10 est atteinte
     if indigestion_level >= 10:
         font_max = pygame.font.Font(None, 16)
-        max_text = font_max.render("(Maximum atteint)", True, (255, 0, 0))  # Rouge
+        max_text = font_max.render("(Maximum atteint)", True, BLACK)
         max_text_rect = max_text.get_rect(center=(indigestion_button.centerx, indigestion_button.centery + 40))
         screen.blit(max_text, max_text_rect)
     
@@ -2332,7 +2332,7 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
     
     bon_vue_count = capacite_items.count("bonne vue")
     bon_vue_name = f"Bonne vue x{bon_vue_count}" if bon_vue_count > 0 else "Bonne vue"
-    bon_vue_text = font_item.render(bon_vue_name, True, WHITE)
+    bon_vue_text = font_item.render(bon_vue_name, True, BLACK)
     bon_vue_text_rect = bon_vue_text.get_rect(center=(bon_vue_button.centerx, bon_vue_button.centery - 10))
     screen.blit(bon_vue_text, bon_vue_text_rect)
     
@@ -2345,16 +2345,16 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
     bon_vue_level = capacite_items.count("bonne vue")
     if bon_vue_level > 0:
         font_owned = pygame.font.Font(None, 18)
-        level_text = font_owned.render(f"Niveau {bon_vue_level}", True, (0, 255, 0))  # Vert
+        level_text = font_owned.render(f"Niveau {bon_vue_level}", True, BLACK)
         if level_text.get_width() > button_width - 10:
-            level_text = font_owned.render(f"Nv.{bon_vue_level}", True, (0, 255, 0))
+            level_text = font_owned.render(f"Nv.{bon_vue_level}", True, BLACK)
         level_text_rect = level_text.get_rect(center=(bon_vue_button.centerx, bon_vue_button.centery + 22))
         screen.blit(level_text, level_text_rect)
     
     # Afficher "(Maximum atteint)" si la limite de 10 est atteinte
     if bon_vue_level >= 10:
         font_max = pygame.font.Font(None, 16)
-        max_text = font_max.render("(Maximum atteint)", True, (255, 0, 0))  # Rouge
+        max_text = font_max.render("(Maximum atteint)", True, BLACK)
         max_text_rect = max_text.get_rect(center=(bon_vue_button.centerx, bon_vue_button.centery + 40))
         screen.blit(max_text, max_text_rect)
     
@@ -2365,7 +2365,7 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
     
     gel_count = capacite_items.count("gel")
     gel_name = f"Gel x{gel_count}" if gel_count > 0 else "Gel"
-    gel_text = font_item.render(gel_name, True, WHITE)
+    gel_text = font_item.render(gel_name, True, BLACK)
     gel_text_rect = gel_text.get_rect(center=(gel_button.centerx, gel_button.centery - 10))
     screen.blit(gel_text, gel_text_rect)
     
@@ -2378,16 +2378,16 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
     gel_level = capacite_items.count("gel")
     if gel_level > 0:
         font_owned = pygame.font.Font(None, 18)
-        level_text = font_owned.render(f"Niveau {gel_level}", True, (0, 255, 0))  # Vert
+        level_text = font_owned.render(f"Niveau {gel_level}", True, BLACK)
         if level_text.get_width() > button_width - 10:
-            level_text = font_owned.render(f"Nv.{gel_level}", True, (0, 255, 0))
+            level_text = font_owned.render(f"Nv.{gel_level}", True, BLACK)
         level_text_rect = level_text.get_rect(center=(gel_button.centerx, gel_button.centery + 22))
         screen.blit(level_text, level_text_rect)
     
     # Afficher "(Maximum atteint)" si la limite de 10 est atteinte
     if gel_level >= 10:
         font_max = pygame.font.Font(None, 16)
-        max_text = font_max.render("(Maximum atteint)", True, (255, 0, 0))  # Rouge
+        max_text = font_max.render("(Maximum atteint)", True, BLACK)
         max_text_rect = max_text.get_rect(center=(gel_button.centerx, gel_button.centery + 40))
         screen.blit(max_text, max_text_rect)
     
@@ -2398,7 +2398,7 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
     
     lunette_count = capacite_items.count("lunette")
     lunette_name = f"Lunette x{lunette_count}" if lunette_count > 0 else "Lunette"
-    lunette_text = font_item.render(lunette_name, True, WHITE)
+    lunette_text = font_item.render(lunette_name, True, BLACK)
     lunette_text_rect = lunette_text.get_rect(center=(lunette_button.centerx, lunette_button.centery - 10))
     screen.blit(lunette_text, lunette_text_rect)
     
@@ -2425,16 +2425,16 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
     lunette_level = capacite_items.count("lunette")
     if lunette_level > 0:
         font_owned = pygame.font.Font(None, 18)
-        level_text = font_owned.render(f"Niveau {lunette_level}", True, (0, 255, 0))  # Vert
+        level_text = font_owned.render(f"Niveau {lunette_level}", True, BLACK)
         if level_text.get_width() > button_width - 10:
-            level_text = font_owned.render(f"Nv.{lunette_level}", True, (0, 255, 0))
+            level_text = font_owned.render(f"Nv.{lunette_level}", True, BLACK)
         level_text_rect = level_text.get_rect(center=(lunette_button.centerx, lunette_button.centery + 22))
         screen.blit(level_text, level_text_rect)
     
     # Afficher "(Maximum atteint)" si la limite de 2 est atteinte
     if lunette_level >= 2:
         font_max = pygame.font.Font(None, 16)
-        max_text = font_max.render("(Maximum atteint)", True, (255, 0, 0))  # Rouge
+        max_text = font_max.render("(Maximum atteint)", True, BLACK)
         max_text_rect = max_text.get_rect(center=(lunette_button.centerx, lunette_button.centery + 40))
         screen.blit(max_text, max_text_rect)
     
@@ -2458,16 +2458,16 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
     invincibilite_level = capacite_items.count("invincibilité")
     if invincibilite_level > 0:
         font_owned = pygame.font.Font(None, 18)
-        level_text = font_owned.render(f"Niveau {invincibilite_level}", True, (0, 255, 0))  # Vert
+        level_text = font_owned.render(f"Niveau {invincibilite_level}", True, BLACK)
         if level_text.get_width() > button_width - 10:
-            level_text = font_owned.render(f"Nv.{invincibilite_level}", True, (0, 255, 0))
+            level_text = font_owned.render(f"Nv.{invincibilite_level}", True, BLACK)
         level_text_rect = level_text.get_rect(center=(invincibilite_button.centerx, invincibilite_button.centery + 22))
         screen.blit(level_text, level_text_rect)
     
     # Afficher "(Maximum atteint)" si la limite de 10 est atteinte
     if invincibilite_level >= 10:
         font_max = pygame.font.Font(None, 16)
-        max_text = font_max.render("(Maximum atteint)", True, (255, 0, 0))  # Rouge
+        max_text = font_max.render("(Maximum atteint)", True, BLACK)
         max_text_rect = max_text.get_rect(center=(invincibilite_button.centerx, invincibilite_button.centery + 40))
         screen.blit(max_text, max_text_rect)
     
@@ -2476,7 +2476,7 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
     retour_button = pygame.Rect(10, 10, 100, 40)
     pygame.draw.rect(screen, RED, retour_button)
     pygame.draw.rect(screen, WHITE, retour_button, 2)
-    retour_text = font_retour.render("RETOUR", True, WHITE)
+    retour_text = font_retour.render("RETOUR", True, BLACK)
     retour_text_rect = retour_text.get_rect(center=retour_button.center)
     screen.blit(retour_text, retour_text_rect)
     
@@ -2511,7 +2511,7 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
         max_lines = min(len(lines), 4)
         last_text_y = desc_y + 10
         for i in range(max_lines):
-            desc_text = font_desc.render(lines[i], True, YELLOW)
+            desc_text = font_desc.render(lines[i], True, BLACK)
             screen.blit(desc_text, (20, desc_y + 10 + i * 25))
             last_text_y = desc_y + 10 + i * 25 + 25
         
@@ -2520,7 +2520,7 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
         if "bon marché" in capacite_items and item_description and "Bon marché" in item_description:
             niveau_text_y = last_text_y
             bon_marche_level = capacite_items.count("bon marché")
-            niveau_text = font_desc.render(f"Niveau {bon_marche_level}", True, (0, 255, 0))  # Vert
+            niveau_text = font_desc.render(f"Niveau {bon_marche_level}", True, BLACK)
             screen.blit(niveau_text, (20, niveau_text_y))
             
             # Bouton "Améliorer" juste après le niveau si pas encore amélioré (système d'amélioration avec couronnes)
@@ -2533,10 +2533,10 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
                 pygame.draw.rect(screen, (0, 200, 0), ameliorer_button)  # Vert
                 pygame.draw.rect(screen, WHITE, ameliorer_button, 1)
                 font_ameliorer = pygame.font.Font(None, 16)  # Police très petite
-                ameliorer_text = font_ameliorer.render("Améliorer (-1)", True, WHITE)
+                ameliorer_text = font_ameliorer.render("Améliorer (-1)", True, BLACK)
                 # Vérifier si le texte dépasse et le raccourcir si nécessaire
                 if ameliorer_text.get_width() > ameliorer_button_width - 4:
-                    ameliorer_text = font_ameliorer.render("Améliorer", True, WHITE)
+                    ameliorer_text = font_ameliorer.render("Améliorer", True, BLACK)
                 ameliorer_text_rect = ameliorer_text.get_rect(center=ameliorer_button.center)
                 screen.blit(ameliorer_text, ameliorer_text_rect)
     else:
@@ -2565,15 +2565,15 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     screen.fill(BLACK)
     
     font_title = pygame.font.Font(None, 72)
-    title_text = font_title.render("OBJET", True, (255, 215, 0))  # Or/Doré
+    title_text = font_title.render("OBJET", True, BLACK)
     title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 100))
     screen.blit(title_text, title_rect)
     
     # Afficher les pacoins et couronnes disponibles
     font_info = pygame.font.Font(None, 36)
-    pacoin_text = font_info.render(f"Pacoins: {jeton_poche}", True, YELLOW)
+    pacoin_text = font_info.render(f"Pacoins: {jeton_poche}", True, BLACK)
     screen.blit(pacoin_text, (WINDOW_WIDTH//2 - 100, 150))
-    crown_text = font_info.render(f"Couronnes: {crown_poche}", True, YELLOW)
+    crown_text = font_info.render(f"Couronnes: {crown_poche}", True, BLACK)
     screen.blit(crown_text, (WINDOW_WIDTH//2 - 100, 180))
     
     # Bouton retour
@@ -2581,7 +2581,7 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     retour_button = pygame.Rect(10, 10, 100, 40)
     pygame.draw.rect(screen, RED, retour_button)
     pygame.draw.rect(screen, WHITE, retour_button, 2)
-    retour_text = font_retour.render("RETOUR", True, WHITE)
+    retour_text = font_retour.render("RETOUR", True, BLACK)
     retour_text_rect = retour_text.get_rect(center=retour_button.center)
     screen.blit(retour_text, retour_text_rect)
     
@@ -2615,7 +2615,7 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
         # Afficher les lignes (limiter à 4 lignes maximum)
         max_lines = min(len(lines), 4)
         for i in range(max_lines):
-            desc_text = font_desc.render(lines[i], True, YELLOW)
+            desc_text = font_desc.render(lines[i], True, BLACK)
             screen.blit(desc_text, (20, desc_y + 10 + i * 25))
     
     # Item "Pièce mythique"
@@ -2657,9 +2657,9 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     # Vérifier si déjà acheté
     if "pièce mythique" in objet_items:
         font_owned = pygame.font.Font(None, 18)
-        owned_text = font_owned.render("(Déjà acheté)", True, (0, 255, 0))  # Vert
+        owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         if owned_text.get_width() > button_width - 10:
-            owned_text = font_owned.render("(Acheté)", True, (0, 255, 0))
+            owned_text = font_owned.render("(Acheté)", True, BLACK)
         owned_text_rect = owned_text.get_rect(center=(piece_mythique_button.centerx, piece_mythique_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
@@ -2681,9 +2681,9 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     # Vérifier si déjà acheté
     if "grosse armure" in objet_items:
         font_owned = pygame.font.Font(None, 18)
-        owned_text = font_owned.render("(Déjà acheté)", True, (0, 255, 0))  # Vert
+        owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         if owned_text.get_width() > button_width - 10:
-            owned_text = font_owned.render("(Acheté)", True, (0, 255, 0))
+            owned_text = font_owned.render("(Acheté)", True, BLACK)
         owned_text_rect = owned_text.get_rect(center=(grosse_armure_button.centerx, grosse_armure_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
@@ -2705,9 +2705,9 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     # Vérifier si déjà acheté
     if "armure de fer" in objet_items:
         font_owned = pygame.font.Font(None, 18)
-        owned_text = font_owned.render("(Déjà acheté)", True, (0, 255, 0))  # Vert
+        owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         if owned_text.get_width() > button_width - 10:
-            owned_text = font_owned.render("(Acheté)", True, (0, 255, 0))
+            owned_text = font_owned.render("(Acheté)", True, BLACK)
         owned_text_rect = owned_text.get_rect(center=(armure_fer_button.centerx, armure_fer_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
@@ -2729,9 +2729,9 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     # Vérifier si déjà acheté
     if "flamme" in objet_items:
         font_owned = pygame.font.Font(None, 18)
-        owned_text = font_owned.render("(Déjà acheté)", True, (0, 255, 0))  # Vert
+        owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         if owned_text.get_width() > button_width - 10:
-            owned_text = font_owned.render("(Acheté)", True, (0, 255, 0))
+            owned_text = font_owned.render("(Acheté)", True, BLACK)
         owned_text_rect = owned_text.get_rect(center=(flamme_button.centerx, flamme_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
@@ -2756,9 +2756,9 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     # Vérifier si déjà acheté
     if "givre" in objet_items:
         font_owned = pygame.font.Font(None, 18)
-        owned_text = font_owned.render("(Déjà acheté)", True, (0, 255, 0))  # Vert
+        owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         if owned_text.get_width() > button_width - 10:
-            owned_text = font_owned.render("(Acheté)", True, (0, 255, 0))
+            owned_text = font_owned.render("(Acheté)", True, BLACK)
         owned_text_rect = owned_text.get_rect(center=(givre_button.centerx, givre_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
@@ -2783,9 +2783,9 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     # Vérifier si déjà acheté
     if "infra rouge" in objet_items:
         font_owned = pygame.font.Font(None, 18)
-        owned_text = font_owned.render("(Déjà acheté)", True, (0, 255, 0))  # Vert
+        owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         if owned_text.get_width() > button_width - 10:
-            owned_text = font_owned.render("(Acheté)", True, (0, 255, 0))
+            owned_text = font_owned.render("(Acheté)", True, BLACK)
         owned_text_rect = owned_text.get_rect(center=(infra_rouge_button.centerx, infra_rouge_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
@@ -2810,9 +2810,9 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     # Vérifier si déjà acheté
     if "coffre fort" in objet_items:
         font_owned = pygame.font.Font(None, 18)
-        owned_text = font_owned.render("(Déjà acheté)", True, (0, 255, 0))  # Vert
+        owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         if owned_text.get_width() > button_width - 10:
-            owned_text = font_owned.render("(Acheté)", True, (0, 255, 0))
+            owned_text = font_owned.render("(Acheté)", True, BLACK)
         owned_text_rect = owned_text.get_rect(center=(coffre_fort_button.centerx, coffre_fort_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
@@ -2837,9 +2837,9 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     # Vérifier si déjà acheté
     if "bric" in objet_items:
         font_owned = pygame.font.Font(None, 18)
-        owned_text = font_owned.render("(Déjà acheté)", True, (0, 255, 0))  # Vert
+        owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         if owned_text.get_width() > button_width - 10:
-            owned_text = font_owned.render("(Acheté)", True, (0, 255, 0))
+            owned_text = font_owned.render("(Acheté)", True, BLACK)
         owned_text_rect = owned_text.get_rect(center=(bric_button.centerx, bric_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
@@ -2864,9 +2864,9 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     # Vérifier si déjà acheté
     if "coffre au trésor" in objet_items:
         font_owned = pygame.font.Font(None, 18)
-        owned_text = font_owned.render("(Déjà acheté)", True, (0, 255, 0))  # Vert
+        owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         if owned_text.get_width() > button_width - 10:
-            owned_text = font_owned.render("(Acheté)", True, (0, 255, 0))
+            owned_text = font_owned.render("(Acheté)", True, BLACK)
         owned_text_rect = owned_text.get_rect(center=(coffre_tresor_button.centerx, coffre_tresor_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
@@ -2891,9 +2891,9 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     # Vérifier si déjà acheté
     if "double gadget" in objet_items:
         font_owned = pygame.font.Font(None, 18)
-        owned_text = font_owned.render("(Déjà acheté)", True, (0, 255, 0))  # Vert
+        owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         if owned_text.get_width() > button_width - 10:
-            owned_text = font_owned.render("(Acheté)", True, (0, 255, 0))
+            owned_text = font_owned.render("(Acheté)", True, BLACK)
         owned_text_rect = owned_text.get_rect(center=(double_gadget_button.centerx, double_gadget_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
@@ -2975,7 +2975,7 @@ def draw_difficulty(screen):
     retour_button = pygame.Rect(10, 10, 100, 40)
     pygame.draw.rect(screen, RED, retour_button)
     pygame.draw.rect(screen, WHITE, retour_button, 2)
-    retour_text = font_retour.render("RETOUR", True, WHITE)
+    retour_text = font_retour.render("RETOUR", True, BLACK)
     retour_text_rect = retour_text.get_rect(center=retour_button.center)
     screen.blit(retour_text, retour_text_rect)
     
@@ -4313,7 +4313,7 @@ def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, in
         # Afficher les lignes (limiter à 4 lignes maximum)
         max_lines = min(len(lines), 4)
         for i in range(max_lines):
-            desc_text = font_desc.render(lines[i], True, YELLOW)
+            desc_text = font_desc.render(lines[i], True, BLACK)
             screen.blit(desc_text, (20, desc_y + 10 + i * 25))
     
     return retour_button, slots, start_button_for_slots if show_start_button else None
@@ -4344,9 +4344,9 @@ def draw_vente(screen, inventaire_items=None, jeton_poche=0, crown_poche=0, scro
     
     # Afficher les pacoins et couronnes disponibles
     font_info = pygame.font.Font(None, 36)
-    pacoin_text = font_info.render(f"Pacoins: {jeton_poche}", True, YELLOW)
+    pacoin_text = font_info.render(f"Pacoins: {jeton_poche}", True, BLACK)
     screen.blit(pacoin_text, (WINDOW_WIDTH//2 - 100, 100))
-    crown_text = font_info.render(f"Couronnes: {crown_poche}", True, YELLOW)
+    crown_text = font_info.render(f"Couronnes: {crown_poche}", True, BLACK)
     screen.blit(crown_text, (WINDOW_WIDTH//2 - 100, 130))
     
     # Bouton retour
