@@ -2669,7 +2669,7 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     pygame.draw.rect(screen, WHITE, grosse_armure_button, 2)
     
     grosse_armure_name = "Grosse armure"
-    grosse_armure_text = font_item.render(grosse_armure_name, True, WHITE)
+    grosse_armure_text = font_item.render(grosse_armure_name, True, BLACK)
     grosse_armure_text_rect = grosse_armure_text.get_rect(center=(grosse_armure_button.centerx, grosse_armure_button.centery - 10))
     screen.blit(grosse_armure_text, grosse_armure_text_rect)
     
@@ -2693,7 +2693,7 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     pygame.draw.rect(screen, WHITE, armure_fer_button, 2)
     
     armure_fer_name = "Armure de fer"
-    armure_fer_text = font_item.render(armure_fer_name, True, WHITE)
+    armure_fer_text = font_item.render(armure_fer_name, True, BLACK)
     armure_fer_text_rect = armure_fer_text.get_rect(center=(armure_fer_button.centerx, armure_fer_button.centery - 10))
     screen.blit(armure_fer_text, armure_fer_text_rect)
     
@@ -2717,7 +2717,7 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     pygame.draw.rect(screen, WHITE, flamme_button, 2)
     
     flamme_name = "Flamme"
-    flamme_text = font_item.render(flamme_name, True, WHITE)
+    flamme_text = font_item.render(flamme_name, True, BLACK)
     flamme_text_rect = flamme_text.get_rect(center=(flamme_button.centerx, flamme_button.centery - 10))
     screen.blit(flamme_text, flamme_text_rect)
     
@@ -2771,7 +2771,7 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     pygame.draw.rect(screen, WHITE, infra_rouge_button, 2)
     
     infra_rouge_name = "Infra rouge"
-    infra_rouge_text = font_item.render(infra_rouge_name, True, WHITE)
+    infra_rouge_text = font_item.render(infra_rouge_name, True, BLACK)
     infra_rouge_text_rect = infra_rouge_text.get_rect(center=(infra_rouge_button.centerx, infra_rouge_button.centery - 10))
     screen.blit(infra_rouge_text, infra_rouge_text_rect)
     
@@ -2825,7 +2825,7 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     pygame.draw.rect(screen, WHITE, bric_button, 2)
     
     bric_name = "Bric"
-    bric_text = font_item.render(bric_name, True, WHITE)
+    bric_text = font_item.render(bric_name, True, BLACK)
     bric_text_rect = bric_text.get_rect(center=(bric_button.centerx, bric_button.centery - 10))
     screen.blit(bric_text, bric_text_rect)
     
