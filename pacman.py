@@ -3754,6 +3754,15 @@ def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, in
     retour_text_rect = retour_text.get_rect(center=retour_button.center)
     screen.blit(retour_text, retour_text_rect)
     
+    # Bouton "Supprimer" pour retirer tous les objets équipés
+    supprimer_button = pygame.Rect(WINDOW_WIDTH - 150, 10, 140, 40)
+    pygame.draw.rect(screen, (200, 0, 0), supprimer_button)  # Rouge foncé
+    pygame.draw.rect(screen, WHITE, supprimer_button, 2)
+    font_supprimer = pygame.font.Font(None, 28)
+    supprimer_text = font_supprimer.render("SUPPRIMER", True, WHITE)
+    supprimer_text_rect = supprimer_text.get_rect(center=supprimer_button.center)
+    screen.blit(supprimer_text, supprimer_text_rect)
+    
     # Afficher aussi le bouton "Commencer" si show_start_button est True
     if show_start_button:
         # Afficher un bouton "Commencer" à droite en bas
