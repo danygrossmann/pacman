@@ -7671,7 +7671,7 @@ def main():
                         # Ajouter le caractère saisi
                         player_name += event.unicode
                 elif current_state == GAME:
-                if bombe_active:
+                    if bombe_active:
                     # Contrôler la bombe au lieu de Pacman
                     bombe_direction = (0, 0)
                     if event.key == pygame.K_UP:
