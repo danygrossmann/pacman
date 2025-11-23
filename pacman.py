@@ -1203,8 +1203,8 @@ def draw_avatar_menu(screen):
         info_rect2 = info_text2.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2 + 40))
         screen.blit(info_text2, info_rect2)
     
-    # Bouton retour
-    retour_button = pygame.Rect(10, 10, 100, 40)
+    # Bouton retour (décalé vers la droite pour ne pas chevaucher l'image)
+    retour_button = pygame.Rect(100, 10, 100, 40)
     pygame.draw.rect(screen, RED, retour_button)
     pygame.draw.rect(screen, WHITE, retour_button, 2)
     font_retour = pygame.font.Font(None, 36)
