@@ -1701,7 +1701,7 @@ def draw_shop_pouvoir(screen, jeton_poche=0, pouvoir_items=None, crown_poche=0, 
         # Afficher les lignes (limiter à 4 lignes maximum)
         max_lines = min(len(lines), 4)
         for i in range(max_lines):
-            desc_text = font_desc.render(lines[i], True, BLACK)
+            desc_text = font_desc.render(lines[i], True, WHITE)
             screen.blit(desc_text, (20, desc_y + 10 + i * 25))
     
     return retour_button, longue_vue_button, double_longue_vue_button, bon_repas_button, bon_gout_button, pas_indigestion_button, glace_button, scine_bleu_button, scine_orange_button, scine_rose_button, scine_rouge_button
@@ -1777,7 +1777,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
         # Afficher les lignes (limiter à 4 lignes maximum)
         max_lines = min(len(lines), 4)
         for i in range(max_lines):
-            desc_text = font_desc.render(lines[i], True, BLACK)
+            desc_text = font_desc.render(lines[i], True, WHITE)
             screen.blit(desc_text, (20, desc_y + 10 + i * 25))
     
     # Item "Explosion"
@@ -2511,7 +2511,7 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
         max_lines = min(len(lines), 4)
         last_text_y = desc_y + 10
         for i in range(max_lines):
-            desc_text = font_desc.render(lines[i], True, BLACK)
+            desc_text = font_desc.render(lines[i], True, WHITE)
             screen.blit(desc_text, (20, desc_y + 10 + i * 25))
             last_text_y = desc_y + 10 + i * 25 + 25
         
@@ -2615,7 +2615,7 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
         # Afficher les lignes (limiter à 4 lignes maximum)
         max_lines = min(len(lines), 4)
         for i in range(max_lines):
-            desc_text = font_desc.render(lines[i], True, BLACK)
+            desc_text = font_desc.render(lines[i], True, WHITE)
             screen.blit(desc_text, (20, desc_y + 10 + i * 25))
     
     # Item "Pièce mythique"
@@ -4313,7 +4313,7 @@ def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, in
         # Afficher les lignes (limiter à 4 lignes maximum)
         max_lines = min(len(lines), 4)
         for i in range(max_lines):
-            desc_text = font_desc.render(lines[i], True, BLACK)
+            desc_text = font_desc.render(lines[i], True, WHITE)
             screen.blit(desc_text, (20, desc_y + 10 + i * 25))
     
     return retour_button, slots, start_button_for_slots if show_start_button else None
@@ -6383,9 +6383,10 @@ def main():
                                             target_ghost = None
                                             min_distance = float('inf')
                                             for ghost in ghosts:
-                                                # Ne tuer que les fantômes normaux (pas inoffensifs, pas déjà en mode yeux, pas orange)
+                                                # Ne tuer que les fantômes normaux (pas inoffensifs, pas déjà en mode yeux, pas orange, pas rose)
                                                 ORANGE = (255, 165, 0)
-                                                if not ghost.harmless and not ghost.eyes and ghost.color != ORANGE:
+                                                ROSE = (255, 192, 203)
+                                                if not ghost.harmless and not ghost.eyes and ghost.color != ORANGE and ghost.color != ROSE:
                                                     if (ghost.x, ghost.y) in target_positions:
                                                         # Calculer la distance de Manhattan
                                                         distance = abs(ghost.x - pacman.x) + abs(ghost.y - pacman.y)
@@ -7640,9 +7641,10 @@ def main():
                     pacgum_level = capacite_items.count("pacgum") if capacite_items else 0
                     vulnerable_duration = VULNERABLE_DURATION + (pacgum_level * 10)  # +1 seconde (10 frames) par niveau
                     vulnerable_timer = vulnerable_duration
-                    # Rendre tous les fantômes vulnérables
+                    # Rendre tous les fantômes vulnérables (sauf les fantômes roses qui ne sont pas affectés par le bonus de pacgomme)
+                    ROSE = (255, 192, 203)
                     for ghost in ghosts:
-                        if not ghost.returning:
+                        if not ghost.returning and ghost.color != ROSE:
                             ghost.vulnerable = True
                 
                 # Si longue vue est équipée, récupérer les objets dans les directions appropriées
@@ -7964,9 +7966,10 @@ def main():
                                 pacgum_level = capacite_items.count("pacgum") if capacite_items else 0
                                 vulnerable_duration = VULNERABLE_DURATION + (pacgum_level * 10)  # +1 seconde (10 frames) par niveau
                                 vulnerable_timer = vulnerable_duration
-                                # Rendre tous les fantômes vulnérables
+                                # Rendre tous les fantômes vulnérables (sauf les fantômes roses qui ne sont pas affectés par le bonus de pacgomme)
+                                ROSE = (255, 192, 203)
                                 for ghost in ghosts:
-                                    if not ghost.returning:
+                                    if not ghost.returning and ghost.color != ROSE:
                                         ghost.vulnerable = True
                 
                 # Vérifier si tous les points sont collectés
@@ -8167,7 +8170,8 @@ def main():
                     # Vérifier si le fantôme marche sur un piège
                     ghost_pos = (ghost.x, ghost.y)
                     ORANGE = (255, 165, 0)
-                    if ghost_pos in pieges and not ghost.eyes and not ghost.harmless and ghost.color != ORANGE:
+                    ROSE = (255, 192, 203)
+                    if ghost_pos in pieges and not ghost.eyes and not ghost.harmless and ghost.color != ORANGE and ghost.color != ROSE:
                         # Le fantôme marche sur un piège, l'immobiliser
                         if ghost.immobilized_timer == 0:  # Ne pas réinitialiser si déjà immobilisé
                             # Calculer le bonus de "piquant" si équipé
@@ -8256,9 +8260,11 @@ def main():
                     
                     # Si longue vue est équipée et le fantôme est dans une direction valide ET vulnérable, on peut le manger
                     # Pour manger un fantôme, il faut toujours qu'il soit vulnérable (après avoir mangé une pacgomme)
+                    # Les fantômes roses ne peuvent pas être mangés par la longue vue
+                    ROSE = (255, 192, 203)
                     if has_longue_vue and len(directions) > 0:
                         ghost_in_range = (ghost.x, ghost.y) in directions
-                        if ghost_in_range and not ghost.eyes and ghost.vulnerable:
+                        if ghost_in_range and not ghost.eyes and ghost.vulnerable and ghost.color != ROSE:
                             # Manger le fantôme vulnérable avec longue vue
                             score += 300
                             if difficulty == "facile":
