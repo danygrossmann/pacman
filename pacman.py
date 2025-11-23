@@ -7704,15 +7704,15 @@ def main():
                                     bombe_x = new_bombe_x
                                     bombe_y = new_bombe_y
                     else:
-                    # Contrôler Pacman normalement
-                    if event.key == pygame.K_UP:
-                        pacman.set_direction((0, -1))
-                    elif event.key == pygame.K_DOWN:
-                        pacman.set_direction((0, 1))
-                    elif event.key == pygame.K_LEFT:
-                        pacman.set_direction((-1, 0))
-                    elif event.key == pygame.K_RIGHT:
-                        pacman.set_direction((1, 0))
+                        # Contrôler Pacman normalement
+                        if event.key == pygame.K_UP:
+                            pacman.set_direction((0, -1))
+                        elif event.key == pygame.K_DOWN:
+                            pacman.set_direction((0, 1))
+                        elif event.key == pygame.K_LEFT:
+                            pacman.set_direction((-1, 0))
+                        elif event.key == pygame.K_RIGHT:
+                            pacman.set_direction((1, 0))
         
         # Gérer la logique du jeu seulement si on est dans l'état GAME
         if current_state == GAME:
