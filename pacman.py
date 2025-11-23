@@ -1406,8 +1406,8 @@ def draw_avatar_menu(screen, selected_avatar=None):
         avatar_rect2 = pygame.Rect(img_x, img_y, small_size, small_size)
         screen.blit(avatar_image2, (img_x, img_y))
         # Dessiner une bordure (jaune si sélectionné, blanche sinon)
-        border_color = YELLOW if selected_avatar == "avatar2" else WHITE
-        border_width = 4 if selected_avatar == "avatar2" else 2
+        border_color = YELLOW if (selected_avatar is not None and selected_avatar == "avatar2") else WHITE
+        border_width = 4 if (selected_avatar is not None and selected_avatar == "avatar2") else 2
         pygame.draw.rect(screen, border_color, avatar_rect2, border_width)
         start_x += spacing
     
@@ -1418,8 +1418,8 @@ def draw_avatar_menu(screen, selected_avatar=None):
         avatar_rect3 = pygame.Rect(img_x, img_y, small_size, small_size)
         screen.blit(avatar_image3, (img_x, img_y))
         # Dessiner une bordure (jaune si sélectionné, blanche sinon)
-        border_color = YELLOW if selected_avatar == "avatar3" else WHITE
-        border_width = 4 if selected_avatar == "avatar3" else 2
+        border_color = YELLOW if (selected_avatar is not None and selected_avatar == "avatar3") else WHITE
+        border_width = 4 if (selected_avatar is not None and selected_avatar == "avatar3") else 2
         pygame.draw.rect(screen, border_color, avatar_rect3, border_width)
     # Afficher un message si aucune image n'est trouvée
     if not avatar_image1 and not avatar_image2 and not avatar_image3:
