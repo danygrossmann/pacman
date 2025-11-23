@@ -1148,6 +1148,8 @@ def draw_start_menu(screen, player_name="", selected_avatar=None, selected_font=
                 font_paths = ["font tout bleu.png", "font_tout_bleu.png", "font.png"]
             elif selected_font == "font2":
                 font_paths = ["font arc en ciel.png", "font_arc_en_ciel.png"]
+            elif selected_font == "font3":
+                font_paths = ["tout pleins de couleur.png", "carré carré.png"]
             else:
                 font_paths = []
             
@@ -1317,8 +1319,20 @@ def draw_font_menu(screen, selected_font=None):
         border_color = YELLOW if (selected_font is not None and selected_font == "font2") else WHITE
         border_width = 4 if (selected_font is not None and selected_font == "font2") else 2
         pygame.draw.rect(screen, border_color, font_rect2, border_width)
+        start_x += spacing
+    
+    # Troisième image
+    if font_image3:
+        font_image3 = pygame.transform.scale(font_image3, (small_size, small_size))
+        img_x = start_x
+        font_rect3 = pygame.Rect(img_x, img_y, small_size, small_size)
+        screen.blit(font_image3, (img_x, img_y))
+        # Dessiner une bordure (jaune si sélectionné, blanche sinon)
+        border_color = YELLOW if (selected_font is not None and selected_font == "font3") else WHITE
+        border_width = 4 if (selected_font is not None and selected_font == "font3") else 2
+        pygame.draw.rect(screen, border_color, font_rect3, border_width)
     # Afficher un message si aucune image n'est trouvée
-    if not font_image1 and not font_image2:
+    if not font_image1 and not font_image2 and not font_image3:
         font_info = pygame.font.Font(None, 36)
         info_text = font_info.render("Images de police non trouvées", True, WHITE)
         info_rect = info_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2))
