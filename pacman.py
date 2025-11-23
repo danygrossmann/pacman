@@ -2,6 +2,14 @@ import pygame
 import random
 import sys
 import math
+import json
+import os
+try:
+    from tkinter import filedialog
+    import tkinter as tk
+    TKINTER_AVAILABLE = True
+except ImportError:
+    TKINTER_AVAILABLE = False
 
 # Initialisation de Pygame
 pygame.init()
@@ -310,7 +318,7 @@ class Pacman:
     def set_direction(self, direction):
         self.next_direction = direction
     
-    def draw(self, screen, invincible=False, has_crown=False, has_longue_vue=False, has_indigestion=False, is_double_longue_vue=False, is_rainbow_critique=False, has_scine_bleu=False, has_scine_orange=False, has_scine_rose=False, has_scine_rouge=False, super_vie_active=False):
+    def draw(self, screen, invincible=False, has_crown=False, has_longue_vue=False, has_indigestion=False, is_double_longue_vue=False, is_rainbow_critique=False, has_skin_bleu=False, has_skin_orange=False, has_skin_rose=False, has_skin_rouge=False, super_vie_active=False):
         center_x = self.x * CELL_SIZE + CELL_SIZE // 2
         center_y = self.y * CELL_SIZE + CELL_SIZE // 2
         radius = CELL_SIZE // 2 - 2
@@ -331,7 +339,7 @@ class Pacman:
             pacman_color = (r, g, b)
         elif has_indigestion:
             pacman_color = (0, 255, 0)  # Vert
-        elif has_scine_bleu or has_scine_orange or has_scine_rose or has_scine_rouge:
+        elif has_skin_bleu or has_skin_orange or has_skin_rose or has_skin_rouge:
             pacman_color = LIGHT_BLUE  # Bleu clair pour tous les skins
         else:
             pacman_color = YELLOW
@@ -1090,6 +1098,53 @@ def start_game_with_difficulty(difficulty, inventaire_items, capacite_items, inv
             bombe_active, pieges, portal1_pos, portal2_pos, portal_use_count, mur_pos, mur_use_count,
             gadget_use_count, has_indigestion, indigestion_timer)
 
+def draw_start_menu(screen, profile_image_path=None):
+    """Dessine l'écran de démarrage avec un bouton + et l'image de profil si elle existe"""
+    screen.fill(BLACK)
+    
+    # Titre
+    font_title = pygame.font.Font(None, 72)
+    title_text = font_title.render("PACMAN", True, YELLOW)
+    title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2 - 150))
+    screen.blit(title_text, title_rect)
+    
+    # Afficher l'image de profil si elle existe
+    profile_image = None
+    if profile_image_path and os.path.exists(profile_image_path):
+        try:
+            profile_image = pygame.image.load(profile_image_path)
+            # Redimensionner l'image pour qu'elle tienne dans un carré de 80x80
+            profile_image = pygame.transform.scale(profile_image, (80, 80))
+        except:
+            profile_image = None
+    
+    # Bouton "+" au centre (ou image de profil)
+    button_size = 100
+    plus_button = pygame.Rect(WINDOW_WIDTH//2 - button_size//2, WINDOW_HEIGHT//2, button_size, button_size)
+    
+    if profile_image:
+        # Afficher l'image de profil dans le bouton
+        image_rect = profile_image.get_rect(center=plus_button.center)
+        screen.blit(profile_image, image_rect)
+        pygame.draw.rect(screen, WHITE, plus_button, 3)
+    else:
+        # Afficher le bouton "+"
+        pygame.draw.rect(screen, YELLOW, plus_button)
+        pygame.draw.rect(screen, WHITE, plus_button, 3)
+        font_button = pygame.font.Font(None, 120)
+        plus_text = font_button.render("+", True, BLACK)
+        plus_text_rect = plus_text.get_rect(center=plus_button.center)
+        screen.blit(plus_text, plus_text_rect)
+    
+    # Texte d'instruction en bas
+    if profile_image:
+        font_instruction = pygame.font.Font(None, 24)
+        instruction_text = font_instruction.render("Cliquez pour changer votre image de profil", True, WHITE)
+        instruction_rect = instruction_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2 + 80))
+        screen.blit(instruction_text, instruction_rect)
+    
+    return plus_button
+
 def draw_menu(screen, super_vie_active=False, difficulty=None):
     """Dessine le menu principal"""
     screen.fill(BLACK)
@@ -1277,7 +1332,7 @@ def draw_shop_pouvoir(screen, jeton_poche=0, pouvoir_items=None, crown_poche=0, 
     screen.fill(BLACK)
     
     font_title = pygame.font.Font(None, 72)
-    title_text = font_title.render("POUVOIR", True, BLACK)
+    title_text = font_title.render("POUVOIR", True, YELLOW)
     title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 100))
     screen.blit(title_text, title_rect)
     
@@ -1299,7 +1354,7 @@ def draw_shop_pouvoir(screen, jeton_poche=0, pouvoir_items=None, crown_poche=0, 
     button_x_right = WINDOW_WIDTH - button_width - 20  # Aligné à droite avec marge de 20
     longue_vue_button = pygame.Rect(button_x, item_y, button_width, item_height)
     # Mettre la longue vue en vert dans le magasin
-    pygame.draw.rect(screen, (0, 200, 0), longue_vue_button)
+    pygame.draw.rect(screen, (0, 255, 0), longue_vue_button)  # Vert vif
     pygame.draw.rect(screen, WHITE, longue_vue_button, 2)
     
     font_item = pygame.font.Font(None, 28)  # Police réduite pour que le texte rentre
@@ -1478,85 +1533,85 @@ def draw_shop_pouvoir(screen, jeton_poche=0, pouvoir_items=None, crown_poche=0, 
     screen.blit(retour_text, retour_text_rect)
     
     # Item "Skin bleu" (en haut à droite)
-    scine_bleu_y = item_y  # Même niveau que "Longue vue"
+    skin_bleu_y = item_y  # Même niveau que "Longue vue"
     
     # Bouton "Skin bleu" (aligné à droite)
-    scine_bleu_button = pygame.Rect(button_x_right, scine_bleu_y, button_width, item_height)
-    pygame.draw.rect(screen, YELLOW, scine_bleu_button)  # Jaune
-    pygame.draw.rect(screen, WHITE, scine_bleu_button, 2)
+    skin_bleu_button = pygame.Rect(button_x_right, skin_bleu_y, button_width, item_height)
+    pygame.draw.rect(screen, YELLOW, skin_bleu_button)  # Jaune
+    pygame.draw.rect(screen, WHITE, skin_bleu_button, 2)
     
-    scine_bleu_count = pouvoir_items.count("scine bleu")
-    scine_bleu_name = f"Skin bleu x{scine_bleu_count}" if scine_bleu_count > 0 else "Skin bleu"
-    scine_bleu_text = font_item.render(scine_bleu_name, True, BLACK)
-    scine_bleu_text_rect = scine_bleu_text.get_rect(center=(scine_bleu_button.centerx, scine_bleu_button.centery - 10))
-    screen.blit(scine_bleu_text, scine_bleu_text_rect)
+    skin_bleu_count = pouvoir_items.count("skin bleu")
+    skin_bleu_name = f"Skin bleu x{skin_bleu_count}" if skin_bleu_count > 0 else "Skin bleu"
+    skin_bleu_text = font_item.render(skin_bleu_name, True, BLACK)
+    skin_bleu_text_rect = skin_bleu_text.get_rect(center=(skin_bleu_button.centerx, skin_bleu_button.centery - 10))
+    screen.blit(skin_bleu_text, skin_bleu_text_rect)
     
-    scine_bleu_price = max(0, 10000 - price_reduction)  # Prix réduit si "bon marché" est équipé (seulement pour les pacoins)
-    scine_bleu_price_text = font_price.render(f"{scine_bleu_price} pacoins et 1000 couronnes", True, BLACK)
+    skin_bleu_price = max(0, 10000 - price_reduction)  # Prix réduit si "bon marché" est équipé (seulement pour les pacoins)
+    skin_bleu_price_text = font_price.render(f"{skin_bleu_price} pacoins et 1000 couronnes", True, BLACK)
     # Vérifier que le texte ne dépasse pas et le diviser en deux lignes si nécessaire
-    if scine_bleu_price_text.get_width() > button_width - 10:
+    if skin_bleu_price_text.get_width() > button_width - 10:
         # Diviser en deux lignes
-        scine_bleu_price_text1 = font_price.render(f"{scine_bleu_price} pacoins", True, BLACK)
-        scine_bleu_price_text2 = font_price.render("1000 couronnes", True, BLACK)
-        scine_bleu_price_text_rect1 = scine_bleu_price_text1.get_rect(center=(scine_bleu_button.centerx, scine_bleu_button.centery + 5))
-        scine_bleu_price_text_rect2 = scine_bleu_price_text2.get_rect(center=(scine_bleu_button.centerx, scine_bleu_button.centery + 15))
-        screen.blit(scine_bleu_price_text1, scine_bleu_price_text_rect1)
-        screen.blit(scine_bleu_price_text2, scine_bleu_price_text_rect2)
+        skin_bleu_price_text1 = font_price.render(f"{skin_bleu_price} pacoins", True, BLACK)
+        skin_bleu_price_text2 = font_price.render("1000 couronnes", True, BLACK)
+        skin_bleu_price_text_rect1 = skin_bleu_price_text1.get_rect(center=(skin_bleu_button.centerx, skin_bleu_button.centery + 5))
+        skin_bleu_price_text_rect2 = skin_bleu_price_text2.get_rect(center=(skin_bleu_button.centerx, skin_bleu_button.centery + 15))
+        screen.blit(skin_bleu_price_text1, skin_bleu_price_text_rect1)
+        screen.blit(skin_bleu_price_text2, skin_bleu_price_text_rect2)
     else:
-        scine_bleu_price_text_rect = scine_bleu_price_text.get_rect(center=(scine_bleu_button.centerx, scine_bleu_button.centery + 10))
-        screen.blit(scine_bleu_price_text, scine_bleu_price_text_rect)
+        skin_bleu_price_text_rect = skin_bleu_price_text.get_rect(center=(skin_bleu_button.centerx, skin_bleu_button.centery + 10))
+        screen.blit(skin_bleu_price_text, skin_bleu_price_text_rect)
     
     # Vérifier si déjà acheté
-    if "scine bleu" in pouvoir_items:
+    if "skin bleu" in pouvoir_items:
         font_owned = pygame.font.Font(None, 18)  # Police réduite
         owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         # Vérifier que le texte ne dépasse pas
         if owned_text.get_width() > button_width - 10:
             owned_text = font_owned.render("(Acheté)", True, BLACK)
-        owned_text_rect = owned_text.get_rect(center=(scine_bleu_button.centerx, scine_bleu_button.centery + 22))
+        owned_text_rect = owned_text.get_rect(center=(skin_bleu_button.centerx, skin_bleu_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
     # Item "Skin orange" (juste en dessous de "Skin bleu")
-    scine_orange_y = scine_bleu_y + item_spacing
+    skin_orange_y = skin_bleu_y + item_spacing
     
     # Bouton "Skin orange" (aligné à droite)
-    scine_orange_button = pygame.Rect(button_x_right, scine_orange_y, button_width, item_height)
-    pygame.draw.rect(screen, YELLOW, scine_orange_button)  # Jaune
-    pygame.draw.rect(screen, WHITE, scine_orange_button, 2)
+    skin_orange_button = pygame.Rect(button_x_right, skin_orange_y, button_width, item_height)
+    pygame.draw.rect(screen, YELLOW, skin_orange_button)  # Jaune
+    pygame.draw.rect(screen, WHITE, skin_orange_button, 2)
     
-    scine_orange_count = pouvoir_items.count("scine orange")
-    scine_orange_name = f"Skin orange x{scine_orange_count}" if scine_orange_count > 0 else "Skin orange"
-    scine_orange_text = font_item.render(scine_orange_name, True, BLACK)
-    scine_orange_text_rect = scine_orange_text.get_rect(center=(scine_orange_button.centerx, scine_orange_button.centery - 10))
-    screen.blit(scine_orange_text, scine_orange_text_rect)
+    skin_orange_count = pouvoir_items.count("skin orange")
+    skin_orange_name = f"Skin orange x{skin_orange_count}" if skin_orange_count > 0 else "Skin orange"
+    skin_orange_text = font_item.render(skin_orange_name, True, BLACK)
+    skin_orange_text_rect = skin_orange_text.get_rect(center=(skin_orange_button.centerx, skin_orange_button.centery - 10))
+    screen.blit(skin_orange_text, skin_orange_text_rect)
     
-    scine_orange_price = max(0, 10000 - price_reduction)  # Prix réduit si "bon marché" est équipé (seulement pour les pacoins)
-    scine_orange_price_text = font_price.render(f"{scine_orange_price} pacoins et 1000 couronnes", True, BLACK)
+    skin_orange_price = max(0, 10000 - price_reduction)  # Prix réduit si "bon marché" est équipé (seulement pour les pacoins)
+    skin_orange_price_text = font_price.render(f"{skin_orange_price} pacoins et 1000 couronnes", True, BLACK)
     # Vérifier que le texte ne dépasse pas et le diviser en deux lignes si nécessaire
-    if scine_orange_price_text.get_width() > button_width - 10:
+    if skin_orange_price_text.get_width() > button_width - 10:
         # Diviser en deux lignes
-        scine_orange_price_text1 = font_price.render(f"{scine_orange_price} pacoins", True, BLACK)
-        scine_orange_price_text2 = font_price.render("1000 couronnes", True, BLACK)
-        scine_orange_price_text_rect1 = scine_orange_price_text1.get_rect(center=(scine_orange_button.centerx, scine_orange_button.centery + 5))
-        scine_orange_price_text_rect2 = scine_orange_price_text2.get_rect(center=(scine_orange_button.centerx, scine_orange_button.centery + 15))
-        screen.blit(scine_orange_price_text1, scine_orange_price_text_rect1)
-        screen.blit(scine_orange_price_text2, scine_orange_price_text_rect2)
+        skin_orange_price_text1 = font_price.render(f"{skin_orange_price} pacoins", True, BLACK)
+        skin_orange_price_text2 = font_price.render("1000 couronnes", True, BLACK)
+        skin_orange_price_text_rect1 = skin_orange_price_text1.get_rect(center=(skin_orange_button.centerx, skin_orange_button.centery + 5))
+        skin_orange_price_text_rect2 = skin_orange_price_text2.get_rect(center=(skin_orange_button.centerx, skin_orange_button.centery + 15))
+        screen.blit(skin_orange_price_text1, skin_orange_price_text_rect1)
+        screen.blit(skin_orange_price_text2, skin_orange_price_text_rect2)
     else:
-        scine_orange_price_text_rect = scine_orange_price_text.get_rect(center=(scine_orange_button.centerx, scine_orange_button.centery + 10))
-        screen.blit(scine_orange_price_text, scine_orange_price_text_rect)
+        skin_orange_price_text_rect = skin_orange_price_text.get_rect(center=(skin_orange_button.centerx, skin_orange_button.centery + 10))
+        screen.blit(skin_orange_price_text, skin_orange_price_text_rect)
     
     # Vérifier si déjà acheté
-    if "scine orange" in pouvoir_items:
+    if "skin orange" in pouvoir_items:
         font_owned = pygame.font.Font(None, 18)  # Police réduite
         owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         # Vérifier que le texte ne dépasse pas
         if owned_text.get_width() > button_width - 10:
             owned_text = font_owned.render("(Acheté)", True, BLACK)
-        owned_text_rect = owned_text.get_rect(center=(scine_orange_button.centerx, scine_orange_button.centery + 22))
+        owned_text_rect = owned_text.get_rect(center=(skin_orange_button.centerx, skin_orange_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
     # Item "Glace" (en dessous de "Skin orange")
-    glace_y = scine_orange_y + item_spacing
+    glace_y = skin_orange_y + item_spacing
     
     # Bouton "Glace" (aligné à droite)
     glace_button = pygame.Rect(button_x_right, glace_y, button_width, item_height)
@@ -1594,86 +1649,110 @@ def draw_shop_pouvoir(screen, jeton_poche=0, pouvoir_items=None, crown_poche=0, 
         owned_text_rect = owned_text.get_rect(center=(glace_button.centerx, glace_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
-    # Item "Scine rose" (en dessous de "Glace")
-    scine_rose_y = glace_y + item_spacing
+    # Item "Skin rose" (en dessous de "Glace")
+    skin_rose_y = glace_y + item_spacing
     
-    # Bouton "Scine rose" (aligné à droite)
-    scine_rose_button = pygame.Rect(button_x_right, scine_rose_y, button_width, item_height)
-    pygame.draw.rect(screen, YELLOW, scine_rose_button)  # Jaune
-    pygame.draw.rect(screen, WHITE, scine_rose_button, 2)
+    # Bouton "Skin rose" (aligné à droite)
+    skin_rose_button = pygame.Rect(button_x_right, skin_rose_y, button_width, item_height)
+    pygame.draw.rect(screen, YELLOW, skin_rose_button)  # Jaune
+    pygame.draw.rect(screen, WHITE, skin_rose_button, 2)
     
-    scine_rose_count = pouvoir_items.count("scine rose")
-    scine_rose_name = f"Scine rose x{scine_rose_count}" if scine_rose_count > 0 else "Scine rose"
-    scine_rose_text = font_item.render(scine_rose_name, True, BLACK)
-    scine_rose_text_rect = scine_rose_text.get_rect(center=(scine_rose_button.centerx, scine_rose_button.centery - 10))
-    screen.blit(scine_rose_text, scine_rose_text_rect)
+    skin_rose_count = pouvoir_items.count("skin rose")
+    skin_rose_name = f"Skin rose x{skin_rose_count}" if skin_rose_count > 0 else "Skin rose"
+    skin_rose_text = font_item.render(skin_rose_name, True, BLACK)
+    skin_rose_text_rect = skin_rose_text.get_rect(center=(skin_rose_button.centerx, skin_rose_button.centery - 10))
+    screen.blit(skin_rose_text, skin_rose_text_rect)
     
-    scine_rose_price = max(0, 10000 - price_reduction)  # Prix réduit si "bon marché" est équipé (seulement pour les pacoins)
-    scine_rose_price_text = font_price.render(f"{scine_rose_price} pacoins et 1000 couronnes", True, BLACK)
+    skin_rose_price = max(0, 10000 - price_reduction)  # Prix réduit si "bon marché" est équipé (seulement pour les pacoins)
+    skin_rose_price_text = font_price.render(f"{skin_rose_price} pacoins et 1000 couronnes", True, BLACK)
     # Vérifier que le texte ne dépasse pas et le diviser en deux lignes si nécessaire
-    if scine_rose_price_text.get_width() > button_width - 10:
+    if skin_rose_price_text.get_width() > button_width - 10:
         # Diviser en deux lignes
-        scine_rose_price_text1 = font_price.render(f"{scine_rose_price} pacoins", True, BLACK)
-        scine_rose_price_text2 = font_price.render("1000 couronnes", True, BLACK)
-        scine_rose_price_text_rect1 = scine_rose_price_text1.get_rect(center=(scine_rose_button.centerx, scine_rose_button.centery + 5))
-        scine_rose_price_text_rect2 = scine_rose_price_text2.get_rect(center=(scine_rose_button.centerx, scine_rose_button.centery + 15))
-        screen.blit(scine_rose_price_text1, scine_rose_price_text_rect1)
-        screen.blit(scine_rose_price_text2, scine_rose_price_text_rect2)
+        skin_rose_price_text1 = font_price.render(f"{skin_rose_price} pacoins", True, BLACK)
+        skin_rose_price_text2 = font_price.render("1000 couronnes", True, BLACK)
+        skin_rose_price_text_rect1 = skin_rose_price_text1.get_rect(center=(skin_rose_button.centerx, skin_rose_button.centery + 5))
+        skin_rose_price_text_rect2 = skin_rose_price_text2.get_rect(center=(skin_rose_button.centerx, skin_rose_button.centery + 15))
+        screen.blit(skin_rose_price_text1, skin_rose_price_text_rect1)
+        screen.blit(skin_rose_price_text2, skin_rose_price_text_rect2)
     else:
-        scine_rose_price_text_rect = scine_rose_price_text.get_rect(center=(scine_rose_button.centerx, scine_rose_button.centery + 10))
-        screen.blit(scine_rose_price_text, scine_rose_price_text_rect)
+        skin_rose_price_text_rect = skin_rose_price_text.get_rect(center=(skin_rose_button.centerx, skin_rose_button.centery + 10))
+        screen.blit(skin_rose_price_text, skin_rose_price_text_rect)
     
     # Vérifier si déjà acheté
-    if "scine rose" in pouvoir_items:
+    if "skin rose" in pouvoir_items:
         font_owned = pygame.font.Font(None, 18)  # Police réduite
         owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         # Vérifier que le texte ne dépasse pas
         if owned_text.get_width() > button_width - 10:
             owned_text = font_owned.render("(Acheté)", True, BLACK)
-        owned_text_rect = owned_text.get_rect(center=(scine_rose_button.centerx, scine_rose_button.centery + 22))
+        owned_text_rect = owned_text.get_rect(center=(skin_rose_button.centerx, skin_rose_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
-    # Item "Scine rouge" (en dessous de "Scine rose")
-    scine_rouge_y = scine_rose_y + item_spacing
+    # Item "Skin rouge" (en dessous de "Skin rose")
+    skin_rouge_y = skin_rose_y + item_spacing
     
-    # Bouton "Scine rouge" (aligné à droite)
-    scine_rouge_button = pygame.Rect(button_x_right, scine_rouge_y, button_width, item_height)
-    pygame.draw.rect(screen, YELLOW, scine_rouge_button)  # Jaune
-    pygame.draw.rect(screen, WHITE, scine_rouge_button, 2)
+    # Bouton "Skin rouge" (aligné à droite)
+    skin_rouge_button = pygame.Rect(button_x_right, skin_rouge_y, button_width, item_height)
+    pygame.draw.rect(screen, YELLOW, skin_rouge_button)  # Jaune
+    pygame.draw.rect(screen, WHITE, skin_rouge_button, 2)
     
-    scine_rouge_count = pouvoir_items.count("scine rouge")
-    scine_rouge_name = f"Scine rouge x{scine_rouge_count}" if scine_rouge_count > 0 else "Scine rouge"
-    scine_rouge_text = font_item.render(scine_rouge_name, True, BLACK)
-    scine_rouge_text_rect = scine_rouge_text.get_rect(center=(scine_rouge_button.centerx, scine_rouge_button.centery - 10))
-    screen.blit(scine_rouge_text, scine_rouge_text_rect)
+    skin_rouge_count = pouvoir_items.count("skin rouge")
+    skin_rouge_name = f"Skin rouge x{skin_rouge_count}" if skin_rouge_count > 0 else "Skin rouge"
+    skin_rouge_text = font_item.render(skin_rouge_name, True, BLACK)
+    skin_rouge_text_rect = skin_rouge_text.get_rect(center=(skin_rouge_button.centerx, skin_rouge_button.centery - 10))
+    screen.blit(skin_rouge_text, skin_rouge_text_rect)
     
-    scine_rouge_price = max(0, 10000 - price_reduction)  # Prix réduit si "bon marché" est équipé (seulement pour les pacoins)
-    scine_rouge_price_text = font_price.render(f"{scine_rouge_price} pacoins et 1000 couronnes", True, BLACK)
+    skin_rouge_price = max(0, 10000 - price_reduction)  # Prix réduit si "bon marché" est équipé (seulement pour les pacoins)
+    skin_rouge_price_text = font_price.render(f"{skin_rouge_price} pacoins et 1000 couronnes", True, BLACK)
     # Vérifier que le texte ne dépasse pas et le diviser en deux lignes si nécessaire
-    if scine_rouge_price_text.get_width() > button_width - 10:
+    if skin_rouge_price_text.get_width() > button_width - 10:
         # Diviser en deux lignes
-        scine_rouge_price_text1 = font_price.render(f"{scine_rouge_price} pacoins", True, BLACK)
-        scine_rouge_price_text2 = font_price.render("1000 couronnes", True, BLACK)
-        scine_rouge_price_text_rect1 = scine_rouge_price_text1.get_rect(center=(scine_rouge_button.centerx, scine_rouge_button.centery + 5))
-        scine_rouge_price_text_rect2 = scine_rouge_price_text2.get_rect(center=(scine_rouge_button.centerx, scine_rouge_button.centery + 15))
-        screen.blit(scine_rouge_price_text1, scine_rouge_price_text_rect1)
-        screen.blit(scine_rouge_price_text2, scine_rouge_price_text_rect2)
+        skin_rouge_price_text1 = font_price.render(f"{skin_rouge_price} pacoins", True, BLACK)
+        skin_rouge_price_text2 = font_price.render("1000 couronnes", True, BLACK)
+        skin_rouge_price_text_rect1 = skin_rouge_price_text1.get_rect(center=(skin_rouge_button.centerx, skin_rouge_button.centery + 5))
+        skin_rouge_price_text_rect2 = skin_rouge_price_text2.get_rect(center=(skin_rouge_button.centerx, skin_rouge_button.centery + 15))
+        screen.blit(skin_rouge_price_text1, skin_rouge_price_text_rect1)
+        screen.blit(skin_rouge_price_text2, skin_rouge_price_text_rect2)
     else:
-        scine_rouge_price_text_rect = scine_rouge_price_text.get_rect(center=(scine_rouge_button.centerx, scine_rouge_button.centery + 10))
-        screen.blit(scine_rouge_price_text, scine_rouge_price_text_rect)
+        skin_rouge_price_text_rect = skin_rouge_price_text.get_rect(center=(skin_rouge_button.centerx, skin_rouge_button.centery + 10))
+        screen.blit(skin_rouge_price_text, skin_rouge_price_text_rect)
     
     # Vérifier si déjà acheté
-    if "scine rouge" in pouvoir_items:
+    if "skin rouge" in pouvoir_items:
         font_owned = pygame.font.Font(None, 18)  # Police réduite
         owned_text = font_owned.render("(Déjà acheté)", True, BLACK)
         # Vérifier que le texte ne dépasse pas
         if owned_text.get_width() > button_width - 10:
             owned_text = font_owned.render("(Acheté)", True, BLACK)
-        owned_text_rect = owned_text.get_rect(center=(scine_rouge_button.centerx, scine_rouge_button.centery + 22))
+        owned_text_rect = owned_text.get_rect(center=(skin_rouge_button.centerx, skin_rouge_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
-    # Afficher la description de l'item si elle existe
-    if item_description:
+    # Détecter quel item est survolé pour afficher sa rareté
+    mouse_pos = pygame.mouse.get_pos()
+    hovered_item_type = None
+    if longue_vue_button.collidepoint(mouse_pos):
+        hovered_item_type = 'longue vue'
+    elif double_longue_vue_button.collidepoint(mouse_pos):
+        hovered_item_type = 'double longue vue'
+    elif bon_repas_button.collidepoint(mouse_pos):
+        hovered_item_type = 'bon repas'
+    elif bon_gout_button.collidepoint(mouse_pos):
+        hovered_item_type = 'bon goût'
+    elif pas_indigestion_button.collidepoint(mouse_pos):
+        hovered_item_type = 'pas d\'indigestion'
+    elif glace_button.collidepoint(mouse_pos):
+        hovered_item_type = 'glace'
+    elif skin_bleu_button.collidepoint(mouse_pos):
+        hovered_item_type = 'skin bleu'
+    elif skin_orange_button.collidepoint(mouse_pos):
+        hovered_item_type = 'skin orange'
+    elif skin_rose_button.collidepoint(mouse_pos):
+        hovered_item_type = 'skin rose'
+    elif skin_rouge_button.collidepoint(mouse_pos):
+        hovered_item_type = 'skin rouge'
+    
+    # Afficher la description de l'item si elle existe ou si on survole un objet
+    if item_description or hovered_item_type:
         # Zone de description en bas de l'écran
         desc_y = WINDOW_HEIGHT - 120
         desc_height = 100
@@ -1681,31 +1760,41 @@ def draw_shop_pouvoir(screen, jeton_poche=0, pouvoir_items=None, crown_poche=0, 
         pygame.draw.rect(screen, (50, 50, 50), desc_rect)
         pygame.draw.rect(screen, WHITE, desc_rect, 2)
         
-        # Afficher le texte de description
-        font_desc = pygame.font.Font(None, 24)
-        # Diviser le texte en lignes si nécessaire
-        words = item_description.split(' ')
-        lines = []
-        current_line = ""
-        for word in words:
-            test_line = current_line + word + " " if current_line else word + " "
-            text_width = font_desc.size(test_line)[0]
-            if text_width > WINDOW_WIDTH - 40:
-                if current_line:
-                    lines.append(current_line)
-                current_line = word + " "
-            else:
-                current_line = test_line
-        if current_line:
-            lines.append(current_line)
+        # Afficher la rareté si on survole un objet
+        if hovered_item_type:
+            rarity_name, rarity_color = get_item_rarity(hovered_item_type)
+            font_rarity = pygame.font.Font(None, 28)
+            rarity_text = font_rarity.render(f"Rareté: {rarity_name}", True, rarity_color)
+            rarity_text_rect = rarity_text.get_rect(x=20, y=desc_y + 10)
+            screen.blit(rarity_text, rarity_text_rect)
         
-        # Afficher les lignes (limiter à 4 lignes maximum)
-        max_lines = min(len(lines), 4)
-        for i in range(max_lines):
-            desc_text = font_desc.render(lines[i], True, WHITE)
-            screen.blit(desc_text, (20, desc_y + 10 + i * 25))
+        # Afficher le texte de description si elle existe
+        if item_description:
+            font_desc = pygame.font.Font(None, 24)
+            # Diviser le texte en lignes si nécessaire
+            words = item_description.split(' ')
+            lines = []
+            current_line = ""
+            for word in words:
+                test_line = current_line + word + " " if current_line else word + " "
+                text_width = font_desc.size(test_line)[0]
+                if text_width > WINDOW_WIDTH - 40:
+                    if current_line:
+                        lines.append(current_line)
+                    current_line = word + " "
+                else:
+                    current_line = test_line
+            if current_line:
+                lines.append(current_line)
+            
+            # Afficher les lignes (limiter à 3 lignes maximum si rareté affichée, sinon 4)
+            max_lines = min(len(lines), 3 if hovered_item_type else 4)
+            start_y = desc_y + 40 if hovered_item_type else desc_y + 10
+            for i in range(max_lines):
+                desc_text = font_desc.render(lines[i], True, WHITE)
+                screen.blit(desc_text, (20, start_y + i * 25))
     
-    return retour_button, longue_vue_button, double_longue_vue_button, bon_repas_button, bon_gout_button, pas_indigestion_button, glace_button, scine_bleu_button, scine_orange_button, scine_rose_button, scine_rouge_button
+    return retour_button, longue_vue_button, double_longue_vue_button, bon_repas_button, bon_gout_button, pas_indigestion_button, glace_button, skin_bleu_button, skin_orange_button, skin_rose_button, skin_rouge_button
 
 def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, item_description=None, level=1, inventaire_items=None, bon_marche_ameliore=False, capacite_items=None):
     """Dessine l'écran des items de gadget"""
@@ -1728,7 +1817,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     screen.fill(BLACK)
     
     font_title = pygame.font.Font(None, 72)
-    title_text = font_title.render("GADGET", True, BLACK)
+    title_text = font_title.render("GADGET", True, YELLOW)
     title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 100))
     screen.blit(title_text, title_rect)
     
@@ -1845,10 +1934,13 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     
     # Gestion du survol pour afficher la description
     mouse_pos = pygame.mouse.get_pos()
+    hovered_item_type = None
     if explosion_button.collidepoint(mouse_pos):
         item_description = "Explosion: Utilisez le clic gauche de la souris pour activer. Tue tous les fantômes sur le terrain. Vous ne récupérez pas de couronnes. Temps de recharge de 1 minute entre chaque utilisation."
+        hovered_item_type = 'explosion'
     elif vision_x_button.collidepoint(mouse_pos):
         item_description = "Vision X: Utilisez le clic gauche de la souris pour activer. Fait disparaître tous les fantômes d'indigestion sur le terrain. Temps de recharge de 1 minute entre chaque utilisation."
+        hovered_item_type = 'vision x'
     
     # Bouton "Feu" (aligné à droite, même niveau que Explosion)
     feu_button = pygame.Rect(button_x_right, item_y, button_width, item_height)
@@ -1878,6 +1970,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     # Mettre à jour la description pour "feu"
     if feu_button.collidepoint(mouse_pos):
         item_description = "Feu: Utilisez le clic gauche de la souris pour activer. Place du feu derrière Pacman lorsqu'il se déplace. Si un fantôme marche dessus, il vous fuit pendant 10 secondes. Temps de recharge de 1 minute entre chaque utilisation."
+        hovered_item_type = 'feu'
     
     # Bouton "Tir" (aligné à droite, en dessous de Feu)
     tir_button = pygame.Rect(button_x_right, item_y + item_spacing, button_width, item_height)
@@ -1907,6 +2000,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     # Mettre à jour la description pour "tir"
     if tir_button.collidepoint(mouse_pos):
         item_description = "Tir: Utilisez le clic gauche de la souris pour activer. Tue un fantôme dans votre champ de vision (direction où vous regardez). Vous ne récupérez pas de couronnes. Temps de recharge de 1 minute entre chaque utilisation."
+        hovered_item_type = 'tir'
     
     # Bouton "Mort" (aligné à droite, en dessous de Tir)
     mort_button = pygame.Rect(button_x_right, item_y + item_spacing * 2, button_width, item_height)
@@ -1936,6 +2030,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     # Mettre à jour la description pour "mort"
     if mort_button.collidepoint(mouse_pos):
         item_description = "Mort: Utilisez le clic gauche de la souris pour activer. Tue définitivement le fantôme le plus proche de vous, peu importe sa position. Le fantôme ne réapparaîtra plus. Temps de recharge de 1 minute entre chaque utilisation."
+        hovered_item_type = 'mort'
     
     # Bouton "Bombe Téléguidée" (aligné à gauche, en dessous de Vision X)
     bombe_button = pygame.Rect(button_x, item_y + item_spacing * 2, button_width, item_height)
@@ -1965,6 +2060,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     # Mettre à jour la description pour "bombe téléguidée"
     if bombe_button.collidepoint(mouse_pos):
         item_description = "Bombe Téléguidée: Utilisez le clic gauche de la souris pour activer. Pacman s'arrête et vous contrôlez une bombe avec les flèches directionnelles. Après 10 secondes, la bombe explose : les fantômes touchés meurent et les murs se cassent. Temps de recharge de 1 minute entre chaque utilisation."
+        hovered_item_type = 'bombe téléguidée'
     
     # Bouton "Piège" (aligné à droite, en dessous de Mort)
     piege_button = pygame.Rect(button_x_right, item_y + item_spacing * 3, button_width, item_height)
@@ -1994,6 +2090,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     # Mettre à jour la description pour "piège"
     if piege_button.collidepoint(mouse_pos):
         item_description = "Piège: Utilisez le clic gauche de la souris pour activer. Pose un piège à votre position. Si un fantôme marche sur le piège, il est immobilisé pendant 10 secondes. Temps de recharge de 1 minute entre chaque utilisation."
+        hovered_item_type = 'piège'
     
     # Bouton "TP" (aligné à gauche, en dessous de Bombe Téléguidée)
     tp_button = pygame.Rect(button_x, item_y + item_spacing * 3, button_width, item_height)
@@ -2023,6 +2120,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     # Mettre à jour la description pour "tp"
     if tp_button.collidepoint(mouse_pos):
         item_description = "TP: Utilisez le clic gauche de la souris pour activer. Téléporte Pacman à la position de la souris, sauf si c'est un mur. Temps de recharge de 25 secondes entre chaque utilisation."
+        hovered_item_type = 'tp'
     
     # Bouton "Portail" (aligné à droite, en dessous de Piège)
     portail_button = pygame.Rect(button_x_right, item_y + item_spacing * 4, button_width, item_height)
@@ -2081,6 +2179,50 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     # Mettre à jour la description pour "mur"
     if mur_button.collidepoint(mouse_pos):
         item_description = "Mur: Utilisez le clic gauche de la souris pour activer. 1ère utilisation : crée un mur à votre position (si ce n'est pas déjà un mur). 2ème utilisation : enlève le mur créé. Temps de recharge de 25 secondes entre chaque utilisation."
+        hovered_item_type = 'mur'
+    
+    # Afficher la description de l'item si elle existe ou si on survole un objet
+    if item_description or hovered_item_type:
+        # Zone de description en bas de l'écran
+        desc_y = WINDOW_HEIGHT - 120
+        desc_height = 100
+        desc_rect = pygame.Rect(10, desc_y, WINDOW_WIDTH - 20, desc_height)
+        pygame.draw.rect(screen, (50, 50, 50), desc_rect)
+        pygame.draw.rect(screen, WHITE, desc_rect, 2)
+        
+        # Afficher la rareté si on survole un objet
+        if hovered_item_type:
+            rarity_name, rarity_color = get_item_rarity(hovered_item_type)
+            font_rarity = pygame.font.Font(None, 28)
+            rarity_text = font_rarity.render(f"Rareté: {rarity_name}", True, rarity_color)
+            rarity_text_rect = rarity_text.get_rect(x=20, y=desc_y + 10)
+            screen.blit(rarity_text, rarity_text_rect)
+        
+        # Afficher le texte de description si elle existe
+        if item_description:
+            font_desc = pygame.font.Font(None, 24)
+            # Diviser le texte en lignes si nécessaire
+            words = item_description.split(' ')
+            lines = []
+            current_line = ""
+            for word in words:
+                test_line = current_line + word + " " if current_line else word + " "
+                text_width = font_desc.size(test_line)[0]
+                if text_width > WINDOW_WIDTH - 40:
+                    if current_line:
+                        lines.append(current_line)
+                    current_line = word + " "
+                else:
+                    current_line = test_line
+            if current_line:
+                lines.append(current_line)
+            
+            # Afficher les lignes (limiter à 3 lignes maximum si rareté affichée, sinon 4)
+            max_lines = min(len(lines), 3 if hovered_item_type else 4)
+            start_y = desc_y + 40 if hovered_item_type else desc_y + 10
+            for i in range(max_lines):
+                desc_text = font_desc.render(lines[i], True, WHITE)
+                screen.blit(desc_text, (20, start_y + i * 25))
     
     return retour_button, explosion_button, vision_x_button, feu_button, tir_button, mort_button, bombe_button, piege_button, tp_button, portail_button, mur_button
 
@@ -2098,7 +2240,7 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
     screen.fill(BLACK)
     
     font_title = pygame.font.Font(None, 72)
-    title_text = font_title.render("CAPACITÉ", True, BLACK)
+    title_text = font_title.render("CAPACITÉ", True, YELLOW)
     title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 100))
     screen.blit(title_text, title_rect)
     
@@ -2543,6 +2685,73 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
     else:
         ameliorer_button = None
     
+    # Détecter quel item est survolé pour afficher sa rareté
+    mouse_pos = pygame.mouse.get_pos()
+    hovered_item_type = None
+    if bon_marche_button.collidepoint(mouse_pos):
+        hovered_item_type = 'bon marché'
+    elif gadget_button.collidepoint(mouse_pos):
+        hovered_item_type = 'gadget'
+    elif piquant_button.collidepoint(mouse_pos):
+        hovered_item_type = 'piquant'
+    elif pacgum_button.collidepoint(mouse_pos):
+        hovered_item_type = 'pacgum'
+    elif bonbe_button.collidepoint(mouse_pos):
+        hovered_item_type = 'bonbe'
+    elif indigestion_button.collidepoint(mouse_pos):
+        hovered_item_type = 'indigestion'
+    elif bon_vue_button.collidepoint(mouse_pos):
+        hovered_item_type = 'bonne vue'
+    elif gel_button.collidepoint(mouse_pos):
+        hovered_item_type = 'gel'
+    elif lunette_button.collidepoint(mouse_pos):
+        hovered_item_type = 'lunette'
+    elif invincibilite_button.collidepoint(mouse_pos):
+        hovered_item_type = 'invincibilité'
+    
+    # Afficher la description de l'item si elle existe ou si on survole un objet
+    if item_description or hovered_item_type:
+        # Zone de description en bas de l'écran
+        desc_y = WINDOW_HEIGHT - 120
+        desc_height = 100
+        desc_rect = pygame.Rect(10, desc_y, WINDOW_WIDTH - 20, desc_height)
+        pygame.draw.rect(screen, (50, 50, 50), desc_rect)
+        pygame.draw.rect(screen, WHITE, desc_rect, 2)
+        
+        # Afficher la rareté si on survole un objet
+        if hovered_item_type:
+            rarity_name, rarity_color = get_item_rarity(hovered_item_type)
+            font_rarity = pygame.font.Font(None, 28)
+            rarity_text = font_rarity.render(f"Rareté: {rarity_name}", True, rarity_color)
+            rarity_text_rect = rarity_text.get_rect(x=20, y=desc_y + 10)
+            screen.blit(rarity_text, rarity_text_rect)
+        
+        # Afficher le texte de description si elle existe
+        if item_description:
+            font_desc = pygame.font.Font(None, 24)
+            # Diviser le texte en lignes si nécessaire
+            words = item_description.split(' ')
+            lines = []
+            current_line = ""
+            for word in words:
+                test_line = current_line + word + " " if current_line else word + " "
+                text_width = font_desc.size(test_line)[0]
+                if text_width > WINDOW_WIDTH - 40:
+                    if current_line:
+                        lines.append(current_line)
+                    current_line = word + " "
+                else:
+                    current_line = test_line
+            if current_line:
+                lines.append(current_line)
+            
+            # Afficher les lignes (limiter à 3 lignes maximum si rareté affichée, sinon 4)
+            max_lines = min(len(lines), 3 if hovered_item_type else 4)
+            start_y = desc_y + 40 if hovered_item_type else desc_y + 10
+            for i in range(max_lines):
+                desc_text = font_desc.render(lines[i], True, WHITE)
+                screen.blit(desc_text, (20, start_y + i * 25))
+    
     return retour_button, bon_marche_button, gadget_button, piquant_button, pacgum_button, bonbe_button, indigestion_button, bon_vue_button, gel_button, lunette_button, invincibilite_button, ameliorer_button
 
 def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item_description=None, level=1, inventaire_items=None, bon_marche_ameliore=False, capacite_items=None):
@@ -2566,7 +2775,7 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     screen.fill(BLACK)
     
     font_title = pygame.font.Font(None, 72)
-    title_text = font_title.render("OBJET", True, BLACK)
+    title_text = font_title.render("OBJET", True, YELLOW)
     title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 100))
     screen.blit(title_text, title_rect)
     
@@ -2898,28 +3107,82 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
         owned_text_rect = owned_text.get_rect(center=(double_gadget_button.centerx, double_gadget_button.centery + 22))
         screen.blit(owned_text, owned_text_rect)
     
-    # Gestion du survol pour afficher la description
+    # Gestion du survol pour afficher la description et la rareté
     mouse_pos = pygame.mouse.get_pos()
+    hovered_item_type = None
     if piece_mythique_button.collidepoint(mouse_pos):
         item_description = "Pièce mythique: Une pièce légendaire aux pouvoirs mystiques. Double les pièces gagnées quand équipée."
+        hovered_item_type = 'pièce mythique'
     elif grosse_armure_button.collidepoint(mouse_pos):
         item_description = "Grosse armure: Une armure robuste qui vous protège. +1 vie quand équipée (et +2 vies si équipée avec l'armure de fer)."
+        hovered_item_type = 'grosse armure'
     elif armure_fer_button.collidepoint(mouse_pos):
         item_description = "Armure de fer: Une armure robuste qui vous protège. +1 vie quand équipée (et +2 vies si équipée avec la grosse armure)."
+        hovered_item_type = 'armure de fer'
     elif flamme_button.collidepoint(mouse_pos):
         item_description = "Flamme: Augmente la durée d'activation du feu de 50% quand équipé."
+        hovered_item_type = 'flamme'
     elif givre_button.collidepoint(mouse_pos):
         item_description = "Givre: Diminue encore plus la vitesse de déplacement des fantômes sur la glace si équipé avec le pouvoir 'glace'."
+        hovered_item_type = 'givre'
     elif infra_rouge_button.collidepoint(mouse_pos):
         item_description = "Infra rouge: Diminue le temps de rechargement de Vision X si équipé."
+        hovered_item_type = 'infra rouge'
     elif bric_button.collidepoint(mouse_pos):
         item_description = "Bric: Si équipé avec le gadget 'mur', permet de poser 2 murs (1ère et 2ème utilisation) puis de les enlever (3ème utilisation)."
+        hovered_item_type = 'bric'
     elif coffre_fort_button.collidepoint(mouse_pos):
         item_description = "Coffre fort: Si équipé, vous donne des couronnes et des pacoins à chaque fois que vous gagnez un niveau."
+        hovered_item_type = 'coffre fort'
     elif coffre_tresor_button.collidepoint(mouse_pos):
         item_description = "Coffre au trésor: Si équipé, vous donne des couronnes et des pacoins à chaque fois que vous gagnez un niveau."
+        hovered_item_type = 'coffre au trésor'
     elif double_gadget_button.collidepoint(mouse_pos):
         item_description = "Double gadget: Permet d'utiliser un gadget deux fois avant que le temps de recharge commence."
+        hovered_item_type = 'double gadget'
+    
+    # Afficher la description de l'item si elle existe ou si on survole un objet
+    if item_description or hovered_item_type:
+        # Zone de description en bas de l'écran
+        desc_y = WINDOW_HEIGHT - 120
+        desc_height = 100
+        desc_rect = pygame.Rect(10, desc_y, WINDOW_WIDTH - 20, desc_height)
+        pygame.draw.rect(screen, (50, 50, 50), desc_rect)
+        pygame.draw.rect(screen, WHITE, desc_rect, 2)
+        
+        # Afficher la rareté si on survole un objet
+        if hovered_item_type:
+            rarity_name, rarity_color = get_item_rarity(hovered_item_type)
+            font_rarity = pygame.font.Font(None, 28)
+            rarity_text = font_rarity.render(f"Rareté: {rarity_name}", True, rarity_color)
+            rarity_text_rect = rarity_text.get_rect(x=20, y=desc_y + 10)
+            screen.blit(rarity_text, rarity_text_rect)
+        
+        # Afficher le texte de description si elle existe
+        if item_description:
+            font_desc = pygame.font.Font(None, 24)
+            # Diviser le texte en lignes si nécessaire
+            words = item_description.split(' ')
+            lines = []
+            current_line = ""
+            for word in words:
+                test_line = current_line + word + " " if current_line else word + " "
+                text_width = font_desc.size(test_line)[0]
+                if text_width > WINDOW_WIDTH - 40:
+                    if current_line:
+                        lines.append(current_line)
+                    current_line = word + " "
+                else:
+                    current_line = test_line
+            if current_line:
+                lines.append(current_line)
+            
+            # Afficher les lignes (limiter à 3 lignes maximum si rareté affichée, sinon 4)
+            max_lines = min(len(lines), 3 if hovered_item_type else 4)
+            start_y = desc_y + 40 if hovered_item_type else desc_y + 10
+            for i in range(max_lines):
+                desc_text = font_desc.render(lines[i], True, WHITE)
+                screen.blit(desc_text, (20, start_y + i * 25))
     
     return retour_button, piece_mythique_button, grosse_armure_button, armure_fer_button, flamme_button, givre_button, infra_rouge_button, bric_button, coffre_fort_button, coffre_tresor_button, double_gadget_button
 
@@ -2981,6 +3244,65 @@ def draw_difficulty(screen):
     screen.blit(retour_text, retour_text_rect)
     
     return retour_button, button1, button2, button3, button4
+
+def get_item_rarity(item_type):
+    """Retourne la rareté d'un objet et sa couleur
+    Retourne: (rareté_nom, couleur) où couleur est (R, G, B)
+    Vert = Rare, Bleu = Super rare, Violet = Épique, Jaune = Légendaire
+    """
+    # Définir la rareté de chaque objet
+    rarity_map = {
+        # Légendaire (Jaune) - Tous les objets avec bouton jaune
+        'skin bleu': ('Légendaire', YELLOW),
+        'skin orange': ('Légendaire', YELLOW),
+        'skin rose': ('Légendaire', YELLOW),
+        'skin rouge': ('Légendaire', YELLOW),
+        'double longue vue': ('Légendaire', YELLOW),
+        'mort': ('Légendaire', YELLOW),
+        'pièce mythique': ('Légendaire', YELLOW),
+        'coffre au trésor': ('Légendaire', YELLOW),
+        'gadget': ('Légendaire', YELLOW),
+        'lunette': ('Légendaire', YELLOW),
+        
+        # Épique (Violet) - Tous les objets avec bouton violet
+        'bombe téléguidée': ('Épique', (148, 0, 211)),
+        'glace': ('Épique', (148, 0, 211)),
+        'bon goût': ('Épique', (148, 0, 211)),
+        'pas d\'indigestion': ('Épique', (148, 0, 211)),
+        'coffre fort': ('Épique', (148, 0, 211)),
+        'bon repas': ('Épique', (148, 0, 211)),
+        'explosion': ('Épique', (128, 0, 128)),
+        'vision x': ('Épique', (128, 0, 128)),
+        'feu': ('Épique', (128, 0, 128)),
+        'tp': ('Épique', (128, 0, 128)),
+        'pacgum': ('Épique', (128, 0, 128)),
+        'invincibilité': ('Épique', (128, 0, 128)),
+        'givre': ('Épique', (128, 0, 128)),
+        'double gadget': ('Épique', (128, 0, 128)),
+        
+        # Super rare (Bleu) - Tous les objets avec bouton bleu
+        'grosse armure': ('Super rare', BLUE),
+        'armure de fer': ('Super rare', BLUE),
+        'indigestion': ('Super rare', BLUE),
+        'portail': ('Super rare', BLUE),
+        'mur': ('Super rare', BLUE),
+        'lave': ('Super rare', BLUE),
+        'flamme': ('Super rare', BLUE),
+        'bric': ('Super rare', BLUE),
+        
+        # Rare (Vert) - Tous les objets avec bouton vert
+        'longue vue': ('Rare', (0, 255, 0)),
+        'tir': ('Rare', (0, 255, 0)),
+        'piège': ('Rare', (0, 255, 0)),
+        'bon marché': ('Rare', (0, 255, 0)),
+        'piquant': ('Rare', (0, 255, 0)),
+        'bonbe': ('Rare', (0, 255, 0)),
+        'bonne vue': ('Rare', (0, 255, 0)),
+        'gel': ('Rare', (0, 255, 0)),
+        'infra rouge': ('Rare', (0, 255, 0)),
+    }
+    
+    return rarity_map.get(item_type, ('Commun', WHITE))
 
 def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, inventaire_items=None, item_description=None, mouse_pos=None, show_start_button=False):
     """Dessine l'écran de l'inventaire (style Minecraft)"""
@@ -3352,12 +3674,12 @@ def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, in
                 ]
                 pygame.draw.polygon(screen, (255, 255, 200), inner_flame_points)
             elif item_data.get('type') == 'glace':
-                # Dessiner une case de glace (violet avec motif gelé)
+                # Dessiner une case de glace (bleu avec motif gelé)
                 center_x = slot_rect.centerx
                 center_y = slot_rect.centery
                 
-                # Dessiner le fond de glace (violet)
-                ice_color = (148, 0, 211)  # Violet
+                # Dessiner le fond de glace (bleu)
+                ice_color = BLUE  # Bleu
                 pygame.draw.rect(screen, ice_color, slot_rect)
                 
                 # Dessiner des lignes blanches pour l'effet de glace
@@ -3374,7 +3696,7 @@ def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, in
                         crystal_x = slot_rect.left + (i + 1) * slot_rect.width // 3
                         crystal_y = slot_rect.top + (j + 1) * slot_rect.height // 3
                         pygame.draw.circle(screen, (255, 255, 255), (crystal_x, crystal_y), 2)
-            elif item_data.get('type') == 'scine bleu':
+            elif item_data.get('type') == 'skin bleu':
                 # Dessiner un Pacman bleu miniature
                 center_x = slot_rect.centerx
                 center_y = slot_rect.centery
@@ -3394,7 +3716,7 @@ def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, in
                     (pacman_x + pacman_radius, pacman_y + pacman_radius // 2)
                 ]
                 pygame.draw.polygon(screen, BLACK, mouth_points)
-            elif item_data.get('type') == 'scine orange':
+            elif item_data.get('type') == 'skin orange':
                 # Dessiner un Pacman orange miniature
                 center_x = slot_rect.centerx
                 center_y = slot_rect.centery
@@ -3404,8 +3726,8 @@ def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, in
                 pacman_x = center_x
                 pacman_y = center_y
                 
-                # Dessiner le cercle de Pacman en bleu clair
-                pygame.draw.circle(screen, (173, 216, 230), (pacman_x, pacman_y), pacman_radius)
+                # Dessiner le cercle de Pacman en orange
+                pygame.draw.circle(screen, (255, 165, 0), (pacman_x, pacman_y), pacman_radius)
                 
                 # Dessiner la bouche de Pacman (triangle noir)
                 mouth_points = [
@@ -3414,7 +3736,7 @@ def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, in
                     (pacman_x + pacman_radius, pacman_y + pacman_radius // 2)
                 ]
                 pygame.draw.polygon(screen, BLACK, mouth_points)
-            elif item_data.get('type') == 'scine rose':
+            elif item_data.get('type') == 'skin rose':
                 # Dessiner un Pacman rose miniature
                 center_x = slot_rect.centerx
                 center_y = slot_rect.centery
@@ -3424,8 +3746,8 @@ def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, in
                 pacman_x = center_x
                 pacman_y = center_y
                 
-                # Dessiner le cercle de Pacman en bleu clair
-                pygame.draw.circle(screen, (173, 216, 230), (pacman_x, pacman_y), pacman_radius)
+                # Dessiner le cercle de Pacman en rose
+                pygame.draw.circle(screen, (255, 192, 203), (pacman_x, pacman_y), pacman_radius)
                 
                 # Dessiner la bouche de Pacman (triangle noir)
                 mouth_points = [
@@ -3434,7 +3756,7 @@ def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, in
                     (pacman_x + pacman_radius, pacman_y + pacman_radius // 2)
                 ]
                 pygame.draw.polygon(screen, BLACK, mouth_points)
-            elif item_data.get('type') == 'scine rouge':
+            elif item_data.get('type') == 'skin rouge':
                 # Dessiner un Pacman rouge miniature
                 center_x = slot_rect.centerx
                 center_y = slot_rect.centery
@@ -3444,8 +3766,8 @@ def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, in
                 pacman_x = center_x
                 pacman_y = center_y
                 
-                # Dessiner le cercle de Pacman en bleu clair
-                pygame.draw.circle(screen, (173, 216, 230), (pacman_x, pacman_y), pacman_radius)
+                # Dessiner le cercle de Pacman en rouge
+                pygame.draw.circle(screen, RED, (pacman_x, pacman_y), pacman_radius)
                 
                 # Dessiner la bouche de Pacman (triangle noir)
                 mouth_points = [
@@ -4220,6 +4542,7 @@ def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, in
     
     # Afficher le nom de l'objet au-dessus de l'objet si la souris passe dessus
     hovered_item_name = None
+    hovered_item_type = None
     if mouse_pos is not None:
         mouse_x, mouse_y = mouse_pos
         # Vérifier si la souris est sur un objet
@@ -4229,6 +4552,7 @@ def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, in
                 if slot_rect.collidepoint(mouse_x, mouse_y):
                     # Obtenir le nom de l'objet
                     item_type = item_data.get('type', '')
+                    hovered_item_type = item_type
                     # Mapper les types aux noms affichés
                     item_names = {
                         'longue vue': 'Longue vue',
@@ -4237,10 +4561,10 @@ def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, in
                         'bon goût': 'Bon goût',
                         'pas d\'indigestion': 'Pas d\'indigestion',
                         'glace': 'Glace',
-                        'scine bleu': 'Skin bleu',
-                        'scine orange': 'Skin orange',
-                        'scine rose': 'Scine rose',
-                        'scine rouge': 'Scine rouge',
+                        'skin bleu': 'Skin bleu',
+                        'skin orange': 'Skin orange',
+                        'skin rose': 'Skin rose',
+                        'skin rouge': 'Skin rouge',
                         'bon marché': 'Bon marché',
                         'gadget': 'Gadget',
                         'pacgum': 'Pacgum',
@@ -4284,8 +4608,8 @@ def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, in
                     screen.blit(name_text, name_text_rect)
                     break
     
-    # Afficher la description de l'item si elle existe
-    if item_description:
+    # Afficher la description de l'item si elle existe ou si on survole un objet
+    if item_description or (hovered_item_type and mouse_pos):
         # Zone de description en bas de l'écran
         desc_y = WINDOW_HEIGHT - 120
         desc_height = 100
@@ -4293,29 +4617,39 @@ def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, in
         pygame.draw.rect(screen, (50, 50, 50), desc_rect)
         pygame.draw.rect(screen, WHITE, desc_rect, 2)
         
-        # Afficher le texte de description
-        font_desc = pygame.font.Font(None, 24)
-        # Diviser le texte en lignes si nécessaire
-        words = item_description.split(' ')
-        lines = []
-        current_line = ""
-        for word in words:
-            test_line = current_line + word + " " if current_line else word + " "
-            text_width = font_desc.size(test_line)[0]
-            if text_width > WINDOW_WIDTH - 40:
-                if current_line:
-                    lines.append(current_line)
-                current_line = word + " "
-            else:
-                current_line = test_line
-        if current_line:
-            lines.append(current_line)
+        # Afficher la rareté si on survole un objet (même si item_description existe)
+        if hovered_item_type:
+            rarity_name, rarity_color = get_item_rarity(hovered_item_type)
+            font_rarity = pygame.font.Font(None, 28)
+            rarity_text = font_rarity.render(f"Rareté: {rarity_name}", True, rarity_color)
+            rarity_text_rect = rarity_text.get_rect(x=20, y=desc_y + 10)
+            screen.blit(rarity_text, rarity_text_rect)
         
-        # Afficher les lignes (limiter à 4 lignes maximum)
-        max_lines = min(len(lines), 4)
-        for i in range(max_lines):
-            desc_text = font_desc.render(lines[i], True, WHITE)
-            screen.blit(desc_text, (20, desc_y + 10 + i * 25))
+        # Afficher le texte de description si elle existe
+        if item_description:
+            font_desc = pygame.font.Font(None, 24)
+            # Diviser le texte en lignes si nécessaire
+            words = item_description.split(' ')
+            lines = []
+            current_line = ""
+            for word in words:
+                test_line = current_line + word + " " if current_line else word + " "
+                text_width = font_desc.size(test_line)[0]
+                if text_width > WINDOW_WIDTH - 40:
+                    if current_line:
+                        lines.append(current_line)
+                    current_line = word + " "
+                else:
+                    current_line = test_line
+            if current_line:
+                lines.append(current_line)
+            
+            # Afficher les lignes (limiter à 3 lignes maximum si rareté affichée, sinon 4)
+            max_lines = min(len(lines), 3 if hovered_item_type else 4)
+            start_y = desc_y + 40 if hovered_item_type else desc_y + 10
+            for i in range(max_lines):
+                desc_text = font_desc.render(lines[i], True, WHITE)
+                screen.blit(desc_text, (20, start_y + i * 25))
     
     return retour_button, slots, start_button_for_slots if show_start_button else None
 
@@ -4373,10 +4707,10 @@ def draw_vente(screen, inventaire_items=None, jeton_poche=0, crown_poche=0, scro
         'bon goût': (1500, 0),  # 50% de 3000
         'pas d\'indigestion': (2500, 0),  # 50% de 5000
         'glace': (1500, 50),  # 50% de 3000 pacoins et 100 couronnes
-        'scine bleu': (5000, 500),  # 50% de 10000 pacoins et 1000 couronnes
-        'scine orange': (5000, 500),  # 50% de 10000 pacoins et 1000 couronnes
-        'scine rose': (5000, 500),  # 50% de 10000 pacoins et 1000 couronnes
-        'scine rouge': (5000, 500),  # 50% de 10000 pacoins et 1000 couronnes
+        'skin bleu': (5000, 500),  # 50% de 10000 pacoins et 1000 couronnes
+        'skin orange': (5000, 500),  # 50% de 10000 pacoins et 1000 couronnes
+        'skin rose': (5000, 500),  # 50% de 10000 pacoins et 1000 couronnes
+        'skin rouge': (5000, 500),  # 50% de 10000 pacoins et 1000 couronnes
         'bon marché': (2500, 0),  # 50% de 5000
         'lave': (2500, 0),  # 50% de 5000
         'feu': (2500, 0),  # 50% de 5000
@@ -4514,12 +4848,85 @@ def draw_poche(screen, crown_poche=0, jeton_poche=0):
     
     return retour_button
 
+def save_game_data(pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, profile_image_path=None):
+    """Sauvegarde toutes les données du jeu dans un fichier JSON"""
+    save_data = {
+        'pouvoir_items': pouvoir_items,
+        'gadget_items': gadget_items,
+        'objet_items': objet_items,
+        'capacite_items': capacite_items,
+        'inventaire_items': inventaire_items,
+        'jeton_poche': jeton_poche,
+        'crown_poche': crown_poche,
+        'bon_marche_ameliore': bon_marche_ameliore,
+        'profile_image_path': profile_image_path
+    }
+    try:
+        with open('pacman_save.json', 'w', encoding='utf-8') as f:
+            json.dump(save_data, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"Erreur lors de la sauvegarde: {e}")
+
+def load_game_data():
+    """Charge les données du jeu depuis un fichier JSON"""
+    save_file = 'pacman_save.json'
+    if os.path.exists(save_file):
+        try:
+            with open(save_file, 'r', encoding='utf-8') as f:
+                save_data = json.load(f)
+                return (
+                    save_data.get('pouvoir_items', []),
+                    save_data.get('gadget_items', []),
+                    save_data.get('objet_items', []),
+                    save_data.get('capacite_items', []),
+                    save_data.get('inventaire_items', {}),
+                    save_data.get('jeton_poche', 0),
+                    save_data.get('crown_poche', 0),
+                    save_data.get('bon_marche_ameliore', False),
+                    save_data.get('profile_image_path', None)
+                )
+        except Exception as e:
+            print(f"Erreur lors du chargement: {e}")
+            return [], [], [], [], {}, 0, 0, False, None
+    return [], [], [], [], {}, 0, 0, False, None
+
+def select_profile_image():
+    """Ouvre un dialogue pour sélectionner une image de profil"""
+    if not TKINTER_AVAILABLE:
+        print("tkinter n'est pas disponible, impossible de sélectionner une image")
+        return None
+    
+    try:
+        # Créer une fenêtre tkinter invisible
+        root = tk.Tk()
+        root.withdraw()  # Cacher la fenêtre principale
+        root.attributes('-topmost', True)  # Mettre la fenêtre au premier plan
+        
+        # Ouvrir le dialogue de sélection de fichier
+        file_path = filedialog.askopenfilename(
+            title="Sélectionner une image de profil",
+            filetypes=[
+                ("Images", "*.png *.jpg *.jpeg *.gif *.bmp"),
+                ("Tous les fichiers", "*.*")
+            ]
+        )
+        
+        root.destroy()
+        
+        if file_path:
+            return file_path
+        return None
+    except Exception as e:
+        print(f"Erreur lors de la sélection de l'image: {e}")
+        return None
+
 def main():
     screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
     pygame.display.set_caption("Pacman")
     clock = pygame.time.Clock()
     
     # États du jeu
+    START_MENU = "start_menu"
     MENU = "menu"
     GAME = "game"
     SHOP = "shop"
@@ -4532,7 +4939,7 @@ def main():
     INVENTAIRE = "inventaire"
     VENTE = "vente"
     
-    current_state = MENU  # Commencer par le menu
+    current_state = START_MENU  # Commencer par le menu de démarrage
     
     # Créer une copie du labyrinthe pour pouvoir modifier les points (niveau 1 = MAZE_1)
     maze = [row[:] for row in MAZES[0]]
@@ -4562,18 +4969,27 @@ def main():
     respawn_timer = 0  # Timer pour la réapparition après perte de vie
     crown_timer = 0  # Timer pour la couronne après avoir mangé un fantôme (3 secondes)
     crown_count = 0  # Compteur de couronnes gagnées pendant le jeu (temporaires)
-    crown_poche = 0  # Compteur de couronnes dans la poche (persistants)
-    jeton_count = 0  # Compteur de jetons gagnés pendant le jeu (temporaires)
-    jeton_poche = 0  # Compteur de jetons dans la poche (persistants)
     grande_couronne_count = 0  # Compteur de grandes couronnes
     last_ghost_time = 0  # Timer depuis le dernier fantôme mangé (en frames)
     difficulty = None  # Difficulté choisie ("facile", "moyen", "difficile")
-    pouvoir_items = []  # Liste des items de pouvoir achetés
-    gadget_items = []  # Liste des items de gadget achetés
-    capacite_items = []  # Liste des items de capacité achetés
-    objet_items = []  # Liste des items d'objet achetés
-    bon_marche_ameliore = False  # Variable pour suivre si "bon marché" est amélioré
-    inventaire_items = {}  # Dictionnaire des items dans l'inventaire {slot_name: item_data}
+    
+    # Charger les données sauvegardées
+    pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items_loaded, jeton_poche, crown_poche, bon_marche_ameliore, profile_image_path = load_game_data()
+    
+    # Si pas de sauvegarde, initialiser avec des valeurs par défaut
+    if not pouvoir_items and not gadget_items and not objet_items and not capacite_items and jeton_poche == 0 and crown_poche == 0:
+        pouvoir_items = []  # Liste des items de pouvoir achetés
+        gadget_items = []  # Liste des items de gadget achetés
+        capacite_items = []  # Liste des items de capacité achetés
+        objet_items = []  # Liste des items d'objet achetés
+        inventaire_items_loaded = {}  # Dictionnaire des items dans l'inventaire {slot_name: item_data}
+        jeton_poche = 0
+        crown_poche = 0
+        bon_marche_ameliore = False
+        profile_image_path = None
+    
+    inventaire_items = inventaire_items_loaded.copy() if inventaire_items_loaded else {}  # Dictionnaire des items dans l'inventaire {slot_name: item_data}
+    jeton_count = 0  # Compteur de jetons gagnés pendant le jeu (temporaires)
     # Calculer le bonus d'invincibilité selon le niveau de la capacité équipée
     invincibilite_bonus = calculate_invincibilite_bonus(capacite_items, inventaire_items)
     invincibility_timer = 30 + invincibilite_bonus  # 3 secondes d'invincibilité au spawn (30 frames à 10 FPS) + bonus
@@ -4644,9 +5060,9 @@ def main():
     shop_bon_repas_button = None
     shop_bon_gout_button = None
     shop_pas_indigestion_button = None
-    shop_scine_orange_button = None
-    shop_scine_rose_button = None
-    shop_scine_rouge_button = None
+    shop_skin_orange_button = None
+    shop_skin_rose_button = None
+    shop_skin_rouge_button = None
     # Variable pour le bouton retour dans le jeu
     game_retour_button = None
     
@@ -4703,7 +5119,20 @@ def main():
                 if event.button == 1:  # Clic gauche
                     mouse_pos = event.pos
                     
-                    if current_state == MENU:
+                    if current_state == START_MENU:
+                        # Calculer la position du bouton +
+                        button_size = 100
+                        start_plus_button = pygame.Rect(WINDOW_WIDTH//2 - button_size//2, WINDOW_HEIGHT//2, button_size, button_size)
+                        if start_plus_button.collidepoint(mouse_pos):
+                            # Ouvrir le dialogue de sélection d'image
+                            selected_image = select_profile_image()
+                            if selected_image:
+                                profile_image_path = selected_image
+                                # Sauvegarder immédiatement
+                                save_game_data(pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, profile_image_path)
+                            # Passer au menu principal après la sélection (ou même si aucune image n'a été sélectionnée)
+                            current_state = MENU
+                    elif current_state == MENU:
                         # Calculer les positions des boutons (même logique que dans draw_menu)
                         button_width = 150
                         button_height = 45
@@ -5135,78 +5564,78 @@ def main():
                                             break
                                     if grid_slot_found:
                                         break
-                        elif shop_scine_bleu_button is not None and shop_scine_bleu_button.collidepoint(mouse_pos):
+                        elif shop_skin_bleu_button is not None and shop_skin_bleu_button.collidepoint(mouse_pos):
                             # Acheter "Skin bleu" pour 10000 pacoins et 1000 couronnes (réduit si "bon marché" équipé au niveau 1)
-                            scine_bleu_price = max(0, 10000 - price_reduction)
-                            if "scine bleu" not in pouvoir_items and jeton_poche >= scine_bleu_price and crown_poche >= 1000:
-                                pouvoir_items.append("scine bleu")
-                                jeton_poche -= scine_bleu_price
+                            skin_bleu_price = max(0, 10000 - price_reduction)
+                            if "skin bleu" not in pouvoir_items and jeton_poche >= skin_bleu_price and crown_poche >= 1000:
+                                pouvoir_items.append("skin bleu")
+                                jeton_poche -= skin_bleu_price
                                 crown_poche -= 1000
-                                # Ajouter "scine bleu" dans le cadrillage (grille d'inventaire)
+                                # Ajouter "skin bleu" dans le cadrillage (grille d'inventaire)
                                 # Trouver le premier slot disponible dans la grille
                                 grid_slot_found = False
                                 for row in range(10):
                                     for col in range(4):
                                         slot_name = f'grid_{row}_{col}'
                                         if slot_name not in inventaire_items:
-                                            inventaire_items[slot_name] = {'type': 'scine bleu', 'name': 'Skin bleu'}
+                                            inventaire_items[slot_name] = {'type': 'skin bleu', 'name': 'Skin bleu'}
                                             grid_slot_found = True
                                             break
                                     if grid_slot_found:
                                         break
-                        elif shop_scine_orange_button is not None and shop_scine_orange_button.collidepoint(mouse_pos):
+                        elif shop_skin_orange_button is not None and shop_skin_orange_button.collidepoint(mouse_pos):
                             # Acheter "Skin orange" pour 10000 pacoins et 1000 couronnes (réduit si "bon marché" équipé au niveau 1)
-                            scine_orange_price = max(0, 10000 - price_reduction)
-                            if "scine orange" not in pouvoir_items and jeton_poche >= scine_orange_price and crown_poche >= 1000:
-                                pouvoir_items.append("scine orange")
-                                jeton_poche -= scine_orange_price
+                            skin_orange_price = max(0, 10000 - price_reduction)
+                            if "skin orange" not in pouvoir_items and jeton_poche >= skin_orange_price and crown_poche >= 1000:
+                                pouvoir_items.append("skin orange")
+                                jeton_poche -= skin_orange_price
                                 crown_poche -= 1000
-                                # Ajouter "scine orange" dans le cadrillage (grille d'inventaire)
+                                # Ajouter "skin orange" dans le cadrillage (grille d'inventaire)
                                 # Trouver le premier slot disponible dans la grille
                                 grid_slot_found = False
                                 for row in range(10):
                                     for col in range(4):
                                         slot_name = f'grid_{row}_{col}'
                                         if slot_name not in inventaire_items:
-                                            inventaire_items[slot_name] = {'type': 'scine orange', 'name': 'Skin orange'}
+                                            inventaire_items[slot_name] = {'type': 'skin orange', 'name': 'Skin orange'}
                                             grid_slot_found = True
                                             break
                                     if grid_slot_found:
                                         break
-                        elif shop_scine_rose_button is not None and shop_scine_rose_button.collidepoint(mouse_pos):
-                            # Acheter "Scine rose" pour 10000 pacoins et 1000 couronnes (réduit si "bon marché" équipé au niveau 1)
-                            scine_rose_price = max(0, 10000 - price_reduction)
-                            if "scine rose" not in pouvoir_items and jeton_poche >= scine_rose_price and crown_poche >= 1000:
-                                pouvoir_items.append("scine rose")
-                                jeton_poche -= scine_rose_price
+                        elif shop_skin_rose_button is not None and shop_skin_rose_button.collidepoint(mouse_pos):
+                            # Acheter "Skin rose" pour 10000 pacoins et 1000 couronnes (réduit si "bon marché" équipé au niveau 1)
+                            skin_rose_price = max(0, 10000 - price_reduction)
+                            if "skin rose" not in pouvoir_items and jeton_poche >= skin_rose_price and crown_poche >= 1000:
+                                pouvoir_items.append("skin rose")
+                                jeton_poche -= skin_rose_price
                                 crown_poche -= 1000
-                                # Ajouter "scine rose" dans le cadrillage (grille d'inventaire)
+                                # Ajouter "skin rose" dans le cadrillage (grille d'inventaire)
                                 # Trouver le premier slot disponible dans la grille
                                 grid_slot_found = False
                                 for row in range(10):
                                     for col in range(4):
                                         slot_name = f'grid_{row}_{col}'
                                         if slot_name not in inventaire_items:
-                                            inventaire_items[slot_name] = {'type': 'scine rose', 'name': 'Scine rose'}
+                                            inventaire_items[slot_name] = {'type': 'skin rose', 'name': 'Skin rose'}
                                             grid_slot_found = True
                                             break
                                     if grid_slot_found:
                                         break
-                        elif shop_scine_rouge_button is not None and shop_scine_rouge_button.collidepoint(mouse_pos):
-                            # Acheter "Scine rouge" pour 10000 pacoins et 1000 couronnes (réduit si "bon marché" équipé au niveau 1)
-                            scine_rouge_price = max(0, 10000 - price_reduction)
-                            if "scine rouge" not in pouvoir_items and jeton_poche >= scine_rouge_price and crown_poche >= 1000:
-                                pouvoir_items.append("scine rouge")
-                                jeton_poche -= scine_rouge_price
+                        elif shop_skin_rouge_button is not None and shop_skin_rouge_button.collidepoint(mouse_pos):
+                            # Acheter "Skin rouge" pour 10000 pacoins et 1000 couronnes (réduit si "bon marché" équipé au niveau 1)
+                            skin_rouge_price = max(0, 10000 - price_reduction)
+                            if "skin rouge" not in pouvoir_items and jeton_poche >= skin_rouge_price and crown_poche >= 1000:
+                                pouvoir_items.append("skin rouge")
+                                jeton_poche -= skin_rouge_price
                                 crown_poche -= 1000
-                                # Ajouter "scine rouge" dans le cadrillage (grille d'inventaire)
+                                # Ajouter "skin rouge" dans le cadrillage (grille d'inventaire)
                                 # Trouver le premier slot disponible dans la grille
                                 grid_slot_found = False
                                 for row in range(10):
                                     for col in range(4):
                                         slot_name = f'grid_{row}_{col}'
                                         if slot_name not in inventaire_items:
-                                            inventaire_items[slot_name] = {'type': 'scine rouge', 'name': 'Scine rouge'}
+                                            inventaire_items[slot_name] = {'type': 'skin rouge', 'name': 'Skin rouge'}
                                             grid_slot_found = True
                                             break
                                     if grid_slot_found:
@@ -6000,10 +6429,10 @@ def main():
                             'bon goût': (1500, 0),  # 50% de 3000
                             'pas d\'indigestion': (2500, 0),  # 50% de 5000
                             'glace': (1500, 50),  # 50% de 3000 pacoins et 100 couronnes
-                            'scine bleu': (5000, 500),  # 50% de 10000 pacoins et 1000 couronnes
-                            'scine orange': (5000, 500),  # 50% de 10000 pacoins et 1000 couronnes
-                            'scine rose': (5000, 500),  # 50% de 10000 pacoins et 1000 couronnes
-                            'scine rouge': (5000, 500),  # 50% de 10000 pacoins et 1000 couronnes
+                            'skin bleu': (5000, 500),  # 50% de 10000 pacoins et 1000 couronnes
+                            'skin orange': (5000, 500),  # 50% de 10000 pacoins et 1000 couronnes
+                            'skin rose': (5000, 500),  # 50% de 10000 pacoins et 1000 couronnes
+                            'skin rouge': (5000, 500),  # 50% de 10000 pacoins et 1000 couronnes
                             'bon marché': (2500, 0),  # 50% de 5000
                             'lave': (2500, 0),  # 50% de 5000
                             'feu': (2500, 0),  # 50% de 5000
@@ -6182,8 +6611,8 @@ def main():
                                     # Si on a un item sélectionné et qu'on clique sur un slot vide, le déplacer
                                     elif selected_item is not None:
                                         old_slot, item_data = selected_item
-                                        # Vérifier si c'est la longue vue, double longue vue, bon repas, bon goût, pas d'indigestion, scine bleu, scine orange, scine rose ou scine rouge et si le slot de destination est valide
-                                        if item_data.get('type') == 'longue vue' or item_data.get('type') == 'double longue vue' or item_data.get('type') == 'bon repas' or item_data.get('type') == 'bon goût' or item_data.get('type') == 'pas d\'indigestion' or item_data.get('type') == 'scine bleu' or item_data.get('type') == 'scine orange' or item_data.get('type') == 'scine rose' or item_data.get('type') == 'scine rouge':
+                                        # Vérifier si c'est la longue vue, double longue vue, bon repas, bon goût, pas d'indigestion, skin bleu, skin orange, skin rose ou skin rouge et si le slot de destination est valide
+                                        if item_data.get('type') == 'longue vue' or item_data.get('type') == 'double longue vue' or item_data.get('type') == 'bon repas' or item_data.get('type') == 'bon goût' or item_data.get('type') == 'pas d\'indigestion' or item_data.get('type') == 'skin bleu' or item_data.get('type') == 'skin orange' or item_data.get('type') == 'skin rose' or item_data.get('type') == 'skin rouge':
                                             # La longue vue, double longue vue, bon repas, bon goût, pas d'indigestion ne peuvent aller que dans le cadrillage (grid_*) ou le slot pouvoir
                                             if slot_name.startswith('grid_') or slot_name == 'pouvoir':
                                                 inventaire_items[slot_name] = item_data
@@ -6727,14 +7156,14 @@ def main():
                                             item_description = "Pas d'indigestion: Divise la chance d'avoir une indigestion par 2."
                                         elif item_type == 'glace':
                                             item_description = "Glace: Crée de la glace derrière vous quand vous vous déplacez. Ralentit les fantômes et disparaît après 3 secondes."
-                                        elif item_type == 'scine bleu':
+                                        elif item_type == 'skin bleu':
                                             item_description = "Skin bleu: Vous traversez les fantômes bleus sans mourir. Vous ne pouvez pas être tué par les fantômes bleus."
-                                        elif item_type == 'scine orange':
+                                        elif item_type == 'skin orange':
                                             item_description = "Skin orange: Vous avez 85% de chance de ne pas mourir si vous touchez un fantôme orange."
-                                        elif item_type == 'scine rose':
-                                            item_description = "Scine rose: Vous avez 75% de chance de ne pas mourir si vous touchez un fantôme rose."
-                                        elif item_type == 'scine rouge':
-                                            item_description = "Scine rouge: Vous avez 50% de chance de ne pas mourir si vous touchez un fantôme rouge."
+                                        elif item_type == 'skin rose':
+                                            item_description = "Skin rose: Vous avez 75% de chance de ne pas mourir si vous touchez un fantôme rose."
+                                        elif item_type == 'skin rouge':
+                                            item_description = "Skin rouge: Vous avez 50% de chance de ne pas mourir si vous touchez un fantôme rouge."
                                         elif item_type == 'bon marché':
                                             bon_marche_level = capacite_items.count("bon marché") if capacite_items else 0
                                             item_description = f"Bon marché: Réduit le prix des items dans le magasin. Niveau actuel: {bon_marche_level}"
@@ -6833,14 +7262,14 @@ def main():
                             item_description = "Pas d'indigestion: Divise la chance d'avoir une indigestion par 2."
                         elif shop_glace_button is not None and shop_glace_button.collidepoint(mouse_pos):
                             item_description = "Glace: Crée de la glace derrière vous quand vous vous déplacez. Ralentit les fantômes et disparaît après 3 secondes."
-                        elif shop_scine_bleu_button is not None and shop_scine_bleu_button.collidepoint(mouse_pos):
+                        elif shop_skin_bleu_button is not None and shop_skin_bleu_button.collidepoint(mouse_pos):
                             item_description = "Skin bleu: Permet de ne pas mourir si on touche un fantome bleu."
-                        elif shop_scine_orange_button is not None and shop_scine_orange_button.collidepoint(mouse_pos):
+                        elif shop_skin_orange_button is not None and shop_skin_orange_button.collidepoint(mouse_pos):
                             item_description = "Skin orange: Quand tu l'équipes, tu as 85 pour cent de chance de ne pas mourir quand tu touches un fantome orange."
-                        elif shop_scine_rose_button is not None and shop_scine_rose_button.collidepoint(mouse_pos):
-                            item_description = "Scine rose: Quand tu l'équipes, tu as 75 pour cent de chance de ne pas mourir quand tu touches un fantome rose."
-                        elif shop_scine_rouge_button is not None and shop_scine_rouge_button.collidepoint(mouse_pos):
-                            item_description = "Scine rouge: Quand tu l'équipes, tu as 50 pour cent de chance de ne pas mourir quand tu touches un fantome rouge."
+                        elif shop_skin_rose_button is not None and shop_skin_rose_button.collidepoint(mouse_pos):
+                            item_description = "Skin rose: Quand tu l'équipes, tu as 75 pour cent de chance de ne pas mourir quand tu touches un fantome rose."
+                        elif shop_skin_rouge_button is not None and shop_skin_rouge_button.collidepoint(mouse_pos):
+                            item_description = "Skin rouge: Quand tu l'équipes, tu as 50 pour cent de chance de ne pas mourir quand tu touches un fantome rouge."
                         elif shop_bombe_button is not None and shop_bombe_button.collidepoint(mouse_pos):
                             item_description = "Bombe Téléguidée: Utilisez le clic gauche de la souris pour activer. Pacman s'arrête et vous contrôlez une bombe avec les flèches directionnelles. Après 10 secondes, la bombe explose : les fantômes touchés meurent et les murs se cassent. Temps de recharge de 1 minute entre chaque utilisation."
                         elif shop_piege_button is not None and shop_piege_button.collidepoint(mouse_pos):
@@ -7175,21 +7604,21 @@ def main():
                 current_max_lives = MAX_LIVES + armor_lives_bonus
                 # Le bonus de vie ne s'applique qu'une seule fois au début du jeu, pas à chaque retour dans le jeu
                 # On ne fait rien ici, le bonus est appliqué lors de l'initialisation des vies
-                # Vérifier si "scine bleu" est équipé dans le slot "pouvoir"
-                has_scine_bleu = ('pouvoir' in inventaire_items and 
-                                 inventaire_items['pouvoir'].get('type') == 'scine bleu')
+                # Vérifier si "skin bleu" est équipé dans le slot "pouvoir"
+                has_skin_bleu = ('pouvoir' in inventaire_items and 
+                                 inventaire_items['pouvoir'].get('type') == 'skin bleu')
                 
-                # Vérifier si "scine orange" est équipé dans le slot "pouvoir"
-                has_scine_orange = ('pouvoir' in inventaire_items and 
-                                   inventaire_items['pouvoir'].get('type') == 'scine orange')
+                # Vérifier si "skin orange" est équipé dans le slot "pouvoir"
+                has_skin_orange = ('pouvoir' in inventaire_items and 
+                                   inventaire_items['pouvoir'].get('type') == 'skin orange')
                 
-                # Vérifier si "scine rose" est équipé dans le slot "pouvoir"
-                has_scine_rose = ('pouvoir' in inventaire_items and 
-                                 inventaire_items['pouvoir'].get('type') == 'scine rose')
+                # Vérifier si "skin rose" est équipé dans le slot "pouvoir"
+                has_skin_rose = ('pouvoir' in inventaire_items and 
+                                 inventaire_items['pouvoir'].get('type') == 'skin rose')
                 
-                # Vérifier si "scine rouge" est équipé dans le slot "pouvoir"
-                has_scine_rouge = ('pouvoir' in inventaire_items and 
-                                  inventaire_items['pouvoir'].get('type') == 'scine rouge')
+                # Vérifier si "skin rouge" est équipé dans le slot "pouvoir"
+                has_skin_rouge = ('pouvoir' in inventaire_items and 
+                                  inventaire_items['pouvoir'].get('type') == 'skin rouge')
                 
                 # Créer une case de glace derrière Pacman si "glace" est équipé et que Pacman s'est déplacé
                 if has_glace:
@@ -8412,27 +8841,27 @@ def main():
                             # Si le fantôme est inoffensif (fantôme d'indigestion), ne pas tuer Pacman
                             if ghost.harmless:
                                 continue  # Passer au fantôme suivant sans perdre de vie
-                            # Vérifier si "scine bleu" est équipé et si le fantôme est bleu
-                            if has_scine_bleu and ghost.color == BLUE:
-                                # Avec "scine bleu" équipé, Pacman traverse les fantômes bleus sans mourir
+                            # Vérifier si "skin bleu" est équipé et si le fantôme est bleu
+                            if has_skin_bleu and ghost.color == BLUE:
+                                # Avec "skin bleu" équipé, Pacman traverse les fantômes bleus sans mourir
                                 continue  # Passer au fantôme suivant sans perdre de vie
-                            # Vérifier si "scine orange" est équipé et si le fantôme est orange
-                            if has_scine_orange and ghost.color == (255, 165, 0):  # ORANGE
-                                # Avec "scine orange" équipé, Pacman a 85% de chance de ne pas mourir
+                            # Vérifier si "skin orange" est équipé et si le fantôme est orange
+                            if has_skin_orange and ghost.color == (255, 165, 0):  # ORANGE
+                                # Avec "skin orange" équipé, Pacman a 85% de chance de ne pas mourir
                                 if random.random() < 0.85:
                                     # Pacman survit (85% de chance)
                                     continue  # Passer au fantôme suivant sans perdre de vie
                                 # Sinon, Pacman meurt (15% de chance)
-                            # Vérifier si "scine rose" est équipé et si le fantôme est rose
-                            if has_scine_rose and ghost.color == (255, 192, 203):  # ROSE
-                                # Avec "scine rose" équipé, Pacman a 75% de chance de ne pas mourir
+                            # Vérifier si "skin rose" est équipé et si le fantôme est rose
+                            if has_skin_rose and ghost.color == (255, 192, 203):  # ROSE
+                                # Avec "skin rose" équipé, Pacman a 75% de chance de ne pas mourir
                                 if random.random() < 0.75:
                                     # Pacman survit (75% de chance)
                                     continue  # Passer au fantôme suivant sans perdre de vie
                                 # Sinon, Pacman meurt (25% de chance)
-                            # Vérifier si "scine rouge" est équipé et si le fantôme est rouge
-                            if has_scine_rouge and ghost.color == RED:  # ROUGE
-                                # Avec "scine rouge" équipé, Pacman a 50% de chance de ne pas mourir
+                            # Vérifier si "skin rouge" est équipé et si le fantôme est rouge
+                            if has_skin_rouge and ghost.color == RED:  # ROUGE
+                                # Avec "skin rouge" équipé, Pacman a 50% de chance de ne pas mourir
                                 if random.random() < 0.50:
                                     # Pacman survit (50% de chance)
                                     continue  # Passer au fantôme suivant sans perdre de vie
@@ -8458,14 +8887,16 @@ def main():
                             break
         
         # Dessiner selon l'état actuel
-        if current_state == MENU:
+        if current_state == START_MENU:
+            start_plus_button = draw_start_menu(screen, profile_image_path)
+        elif current_state == MENU:
             jeu_button, magasin_button, difficulte_button, poche_button, inventaire_button, vente_button, fabriqueur_button, super_vie_button = draw_menu(screen, super_vie_active=super_vie_active, difficulty=difficulty)
         elif current_state == SHOP:
             shop_retour_button, shop_gadget_button, shop_pouvoir_button, shop_objet_button, shop_capacite_button = draw_shop(screen)
         elif current_state == SHOP_GADGET:
             shop_gadget_retour_button, shop_explosion_button, shop_vision_x_button, shop_feu_button, shop_tir_button, shop_mort_button, shop_bombe_button, shop_piege_button, shop_tp_button, shop_portail_button, shop_mur_button = draw_shop_gadget(screen, jeton_poche, gadget_items, crown_poche, item_description, level, inventaire_items, bon_marche_ameliore, capacite_items)
         elif current_state == SHOP_POUVOIR:
-            shop_pouvoir_retour_button, shop_longue_vue_button, shop_double_longue_vue_button, shop_bon_repas_button, shop_bon_gout_button, shop_pas_indigestion_button, shop_glace_button, shop_scine_bleu_button, shop_scine_orange_button, shop_scine_rose_button, shop_scine_rouge_button = draw_shop_pouvoir(screen, jeton_poche, pouvoir_items, crown_poche, item_description, level, inventaire_items, bon_marche_ameliore, capacite_items)
+            shop_pouvoir_retour_button, shop_longue_vue_button, shop_double_longue_vue_button, shop_bon_repas_button, shop_bon_gout_button, shop_pas_indigestion_button, shop_glace_button, shop_skin_bleu_button, shop_skin_orange_button, shop_skin_rose_button, shop_skin_rouge_button = draw_shop_pouvoir(screen, jeton_poche, pouvoir_items, crown_poche, item_description, level, inventaire_items, bon_marche_ameliore, capacite_items)
         elif current_state == SHOP_CAPACITE:
             shop_capacite_retour_button, shop_bon_marche_button, shop_gadget_button, shop_piquant_button, shop_pacgum_button, shop_bonbe_button, shop_indigestion_button, shop_bon_vue_button, shop_gel_button, shop_lunette_button, shop_invincibilite_button, shop_ameliorer_button = draw_shop_capacite(screen, jeton_poche, capacite_items, crown_poche, item_description, bon_marche_ameliore)
         elif current_state == SHOP_OBJET:
@@ -8621,20 +9052,20 @@ def main():
                 is_double_longue_vue = ('pouvoir' in inventaire_items and 
                                        inventaire_items['pouvoir'].get('type') == 'double longue vue')
                 # Vérifier si les skins sont équipés dans le slot "pouvoir"
-                has_scine_bleu_draw = ('pouvoir' in inventaire_items and 
-                                      inventaire_items['pouvoir'].get('type') == 'scine bleu')
-                has_scine_orange_draw = ('pouvoir' in inventaire_items and 
-                                        inventaire_items['pouvoir'].get('type') == 'scine orange')
-                has_scine_rose_draw = ('pouvoir' in inventaire_items and 
-                                      inventaire_items['pouvoir'].get('type') == 'scine rose')
-                has_scine_rouge_draw = ('pouvoir' in inventaire_items and 
-                                       inventaire_items['pouvoir'].get('type') == 'scine rouge')
+                has_skin_bleu_draw = ('pouvoir' in inventaire_items and 
+                                      inventaire_items['pouvoir'].get('type') == 'skin bleu')
+                has_skin_orange_draw = ('pouvoir' in inventaire_items and 
+                                        inventaire_items['pouvoir'].get('type') == 'skin orange')
+                has_skin_rose_draw = ('pouvoir' in inventaire_items and 
+                                      inventaire_items['pouvoir'].get('type') == 'skin rose')
+                has_skin_rouge_draw = ('pouvoir' in inventaire_items and 
+                                       inventaire_items['pouvoir'].get('type') == 'skin rouge')
                 # Dessiner Pacman seulement si la bombe n'est pas active (ou toujours le dessiner mais peut-être grisé)
                 if not bombe_active:
-                    pacman.draw(screen, invincible=(invincibility_timer > 0 or super_vie_active), has_crown=(crown_timer > 0), has_longue_vue=has_longue_vue, has_indigestion=has_indigestion, is_double_longue_vue=is_double_longue_vue, is_rainbow_critique=is_rainbow_critique, has_scine_bleu=has_scine_bleu_draw, has_scine_orange=has_scine_orange_draw, has_scine_rose=has_scine_rose_draw, has_scine_rouge=has_scine_rouge_draw, super_vie_active=super_vie_active)
+                    pacman.draw(screen, invincible=(invincibility_timer > 0 or super_vie_active), has_crown=(crown_timer > 0), has_longue_vue=has_longue_vue, has_indigestion=has_indigestion, is_double_longue_vue=is_double_longue_vue, is_rainbow_critique=is_rainbow_critique, has_skin_bleu=has_skin_bleu_draw, has_skin_orange=has_skin_orange_draw, has_skin_rose=has_skin_rose_draw, has_skin_rouge=has_skin_rouge_draw, super_vie_active=super_vie_active)
                 else:
                     # Dessiner Pacman mais grisé/frozen quand la bombe est active
-                    pacman.draw(screen, invincible=(invincibility_timer > 0 or super_vie_active), has_crown=(crown_timer > 0), has_longue_vue=has_longue_vue, has_indigestion=has_indigestion, is_double_longue_vue=is_double_longue_vue, is_rainbow_critique=is_rainbow_critique, has_scine_bleu=has_scine_bleu_draw, has_scine_orange=has_scine_orange_draw, has_scine_rose=has_scine_rose_draw, has_scine_rouge=has_scine_rouge_draw, super_vie_active=super_vie_active)
+                    pacman.draw(screen, invincible=(invincibility_timer > 0 or super_vie_active), has_crown=(crown_timer > 0), has_longue_vue=has_longue_vue, has_indigestion=has_indigestion, is_double_longue_vue=is_double_longue_vue, is_rainbow_critique=is_rainbow_critique, has_skin_bleu=has_skin_bleu_draw, has_skin_orange=has_skin_orange_draw, has_skin_rose=has_skin_rose_draw, has_skin_rouge=has_skin_rouge_draw, super_vie_active=super_vie_active)
                 for ghost in ghosts:
                     ghost.draw(screen)
             
@@ -8756,6 +9187,9 @@ def main():
             clock.tick(min(current_fps, 15))  # Max 15 FPS au lieu de 20
         else:
             clock.tick(30)  # FPS constant pour le menu
+    
+    # Sauvegarder toutes les données avant de quitter
+    save_game_data(pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, profile_image_path)
     
     pygame.quit()
     sys.exit()
