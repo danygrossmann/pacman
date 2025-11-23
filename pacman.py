@@ -4,12 +4,6 @@ import sys
 import math
 import json
 import os
-try:
-    from tkinter import filedialog
-    import tkinter as tk
-    TKINTER_AVAILABLE = True
-except ImportError:
-    TKINTER_AVAILABLE = False
 
 # Initialisation de Pygame
 pygame.init()
@@ -1098,52 +1092,72 @@ def start_game_with_difficulty(difficulty, inventaire_items, capacite_items, inv
             bombe_active, pieges, portal1_pos, portal2_pos, portal_use_count, mur_pos, mur_use_count,
             gadget_use_count, has_indigestion, indigestion_timer)
 
-def draw_start_menu(screen, profile_image_path=None):
-    """Dessine l'écran de démarrage avec un bouton + et l'image de profil si elle existe"""
+def draw_start_menu(screen):
+    """Dessine l'écran de démarrage avec un bouton +"""
     screen.fill(BLACK)
     
     # Titre
     font_title = pygame.font.Font(None, 72)
     title_text = font_title.render("PACMAN", True, YELLOW)
-    title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2 - 150))
+    title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2 - 100))
     screen.blit(title_text, title_rect)
     
-    # Afficher l'image de profil si elle existe
-    profile_image = None
-    if profile_image_path and os.path.exists(profile_image_path):
-        try:
-            profile_image = pygame.image.load(profile_image_path)
-            # Redimensionner l'image pour qu'elle tienne dans un carré de 80x80
-            profile_image = pygame.transform.scale(profile_image, (80, 80))
-        except:
-            profile_image = None
-    
-    # Bouton "+" au centre (ou image de profil)
+    # Bouton "+" au centre
+    font_button = pygame.font.Font(None, 120)
     button_size = 100
     plus_button = pygame.Rect(WINDOW_WIDTH//2 - button_size//2, WINDOW_HEIGHT//2, button_size, button_size)
+    pygame.draw.rect(screen, YELLOW, plus_button)
+    pygame.draw.rect(screen, WHITE, plus_button, 3)
     
-    if profile_image:
-        # Afficher l'image de profil dans le bouton
-        image_rect = profile_image.get_rect(center=plus_button.center)
-        screen.blit(profile_image, image_rect)
-        pygame.draw.rect(screen, WHITE, plus_button, 3)
-    else:
-        # Afficher le bouton "+"
-        pygame.draw.rect(screen, YELLOW, plus_button)
-        pygame.draw.rect(screen, WHITE, plus_button, 3)
-        font_button = pygame.font.Font(None, 120)
-        plus_text = font_button.render("+", True, BLACK)
-        plus_text_rect = plus_text.get_rect(center=plus_button.center)
-        screen.blit(plus_text, plus_text_rect)
-    
-    # Texte d'instruction en bas
-    if profile_image:
-        font_instruction = pygame.font.Font(None, 24)
-        instruction_text = font_instruction.render("Cliquez pour changer votre image de profil", True, WHITE)
-        instruction_rect = instruction_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2 + 80))
-        screen.blit(instruction_text, instruction_rect)
+    plus_text = font_button.render("+", True, BLACK)
+    plus_text_rect = plus_text.get_rect(center=plus_button.center)
+    screen.blit(plus_text, plus_text_rect)
     
     return plus_button
+
+def draw_customization_menu(screen):
+    """Dessine le menu de personnalisation avec les boutons Font et Avatar"""
+    screen.fill(BLACK)
+    
+    # Titre
+    font_title = pygame.font.Font(None, 72)
+    title_text = font_title.render("PERSONNALISATION", True, YELLOW)
+    title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 100))
+    screen.blit(title_text, title_rect)
+    
+    # Boutons
+    font_button = pygame.font.Font(None, 48)
+    button_width = 200
+    button_height = 60
+    button_spacing = 80
+    start_y = WINDOW_HEIGHT//2 - button_height
+    
+    # Bouton "Font"
+    font_button_rect = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y, button_width, button_height)
+    pygame.draw.rect(screen, BLUE, font_button_rect)
+    pygame.draw.rect(screen, WHITE, font_button_rect, 3)
+    font_text = font_button.render("Font", True, WHITE)
+    font_text_rect = font_text.get_rect(center=font_button_rect.center)
+    screen.blit(font_text, font_text_rect)
+    
+    # Bouton "Avatar"
+    avatar_button_rect = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing, button_width, button_height)
+    pygame.draw.rect(screen, BLUE, avatar_button_rect)
+    pygame.draw.rect(screen, WHITE, avatar_button_rect, 3)
+    avatar_text = font_button.render("Avatar", True, WHITE)
+    avatar_text_rect = avatar_text.get_rect(center=avatar_button_rect.center)
+    screen.blit(avatar_text, avatar_text_rect)
+    
+    # Bouton retour
+    retour_button = pygame.Rect(10, 10, 100, 40)
+    pygame.draw.rect(screen, RED, retour_button)
+    pygame.draw.rect(screen, WHITE, retour_button, 2)
+    font_retour = pygame.font.Font(None, 36)
+    retour_text = font_retour.render("RETOUR", True, WHITE)
+    retour_text_rect = retour_text.get_rect(center=retour_button.center)
+    screen.blit(retour_text, retour_text_rect)
+    
+    return retour_button, font_button_rect, avatar_button_rect
 
 def draw_menu(screen, super_vie_active=False, difficulty=None):
     """Dessine le menu principal"""
@@ -4848,7 +4862,7 @@ def draw_poche(screen, crown_poche=0, jeton_poche=0):
     
     return retour_button
 
-def save_game_data(pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, profile_image_path=None):
+def save_game_data(pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore):
     """Sauvegarde toutes les données du jeu dans un fichier JSON"""
     save_data = {
         'pouvoir_items': pouvoir_items,
@@ -4858,8 +4872,7 @@ def save_game_data(pouvoir_items, gadget_items, objet_items, capacite_items, inv
         'inventaire_items': inventaire_items,
         'jeton_poche': jeton_poche,
         'crown_poche': crown_poche,
-        'bon_marche_ameliore': bon_marche_ameliore,
-        'profile_image_path': profile_image_path
+        'bon_marche_ameliore': bon_marche_ameliore
     }
     try:
         with open('pacman_save.json', 'w', encoding='utf-8') as f:
@@ -4882,43 +4895,12 @@ def load_game_data():
                     save_data.get('inventaire_items', {}),
                     save_data.get('jeton_poche', 0),
                     save_data.get('crown_poche', 0),
-                    save_data.get('bon_marche_ameliore', False),
-                    save_data.get('profile_image_path', None)
+                    save_data.get('bon_marche_ameliore', False)
                 )
         except Exception as e:
             print(f"Erreur lors du chargement: {e}")
-            return [], [], [], [], {}, 0, 0, False, None
-    return [], [], [], [], {}, 0, 0, False, None
-
-def select_profile_image():
-    """Ouvre un dialogue pour sélectionner une image de profil"""
-    if not TKINTER_AVAILABLE:
-        print("tkinter n'est pas disponible, impossible de sélectionner une image")
-        return None
-    
-    try:
-        # Créer une fenêtre tkinter invisible
-        root = tk.Tk()
-        root.withdraw()  # Cacher la fenêtre principale
-        root.attributes('-topmost', True)  # Mettre la fenêtre au premier plan
-        
-        # Ouvrir le dialogue de sélection de fichier
-        file_path = filedialog.askopenfilename(
-            title="Sélectionner une image de profil",
-            filetypes=[
-                ("Images", "*.png *.jpg *.jpeg *.gif *.bmp"),
-                ("Tous les fichiers", "*.*")
-            ]
-        )
-        
-        root.destroy()
-        
-        if file_path:
-            return file_path
-        return None
-    except Exception as e:
-        print(f"Erreur lors de la sélection de l'image: {e}")
-        return None
+            return [], [], [], [], {}, 0, 0, False
+    return [], [], [], [], {}, 0, 0, False
 
 def main():
     screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
@@ -4927,6 +4909,7 @@ def main():
     
     # États du jeu
     START_MENU = "start_menu"
+    CUSTOMIZATION_MENU = "customization_menu"
     MENU = "menu"
     GAME = "game"
     SHOP = "shop"
@@ -4974,7 +4957,7 @@ def main():
     difficulty = None  # Difficulté choisie ("facile", "moyen", "difficile")
     
     # Charger les données sauvegardées
-    pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items_loaded, jeton_poche, crown_poche, bon_marche_ameliore, profile_image_path = load_game_data()
+    pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items_loaded, jeton_poche, crown_poche, bon_marche_ameliore = load_game_data()
     
     # Si pas de sauvegarde, initialiser avec des valeurs par défaut
     if not pouvoir_items and not gadget_items and not objet_items and not capacite_items and jeton_poche == 0 and crown_poche == 0:
@@ -4986,7 +4969,6 @@ def main():
         jeton_poche = 0
         crown_poche = 0
         bon_marche_ameliore = False
-        profile_image_path = None
     
     inventaire_items = inventaire_items_loaded.copy() if inventaire_items_loaded else {}  # Dictionnaire des items dans l'inventaire {slot_name: item_data}
     jeton_count = 0  # Compteur de jetons gagnés pendant le jeu (temporaires)
@@ -5124,14 +5106,25 @@ def main():
                         button_size = 100
                         start_plus_button = pygame.Rect(WINDOW_WIDTH//2 - button_size//2, WINDOW_HEIGHT//2, button_size, button_size)
                         if start_plus_button.collidepoint(mouse_pos):
-                            # Ouvrir le dialogue de sélection d'image
-                            selected_image = select_profile_image()
-                            if selected_image:
-                                profile_image_path = selected_image
-                                # Sauvegarder immédiatement
-                                save_game_data(pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, profile_image_path)
-                            # Passer au menu principal après la sélection (ou même si aucune image n'a été sélectionnée)
-                            current_state = MENU
+                            current_state = CUSTOMIZATION_MENU
+                    elif current_state == CUSTOMIZATION_MENU:
+                        # Calculer les positions des boutons (même logique que dans draw_customization_menu)
+                        button_width = 200
+                        button_height = 60
+                        button_spacing = 80
+                        start_y = WINDOW_HEIGHT//2 - button_height
+                        font_button_rect = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y, button_width, button_height)
+                        avatar_button_rect = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing, button_width, button_height)
+                        retour_button = pygame.Rect(10, 10, 100, 40)
+                        
+                        if retour_button.collidepoint(mouse_pos):
+                            current_state = START_MENU
+                        elif font_button_rect.collidepoint(mouse_pos):
+                            # TODO: Ouvrir le menu de sélection de police
+                            pass
+                        elif avatar_button_rect.collidepoint(mouse_pos):
+                            # TODO: Ouvrir le menu de sélection d'avatar
+                            pass
                     elif current_state == MENU:
                         # Calculer les positions des boutons (même logique que dans draw_menu)
                         button_width = 150
@@ -8888,7 +8881,9 @@ def main():
         
         # Dessiner selon l'état actuel
         if current_state == START_MENU:
-            start_plus_button = draw_start_menu(screen, profile_image_path)
+            start_plus_button = draw_start_menu(screen)
+        elif current_state == CUSTOMIZATION_MENU:
+            customization_retour_button, customization_font_button, customization_avatar_button = draw_customization_menu(screen)
         elif current_state == MENU:
             jeu_button, magasin_button, difficulte_button, poche_button, inventaire_button, vente_button, fabriqueur_button, super_vie_button = draw_menu(screen, super_vie_active=super_vie_active, difficulty=difficulty)
         elif current_state == SHOP:
@@ -9189,7 +9184,7 @@ def main():
             clock.tick(30)  # FPS constant pour le menu
     
     # Sauvegarder toutes les données avant de quitter
-    save_game_data(pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, profile_image_path)
+    save_game_data(pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore)
     
     pygame.quit()
     sys.exit()
