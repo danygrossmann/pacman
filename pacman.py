@@ -5572,13 +5572,6 @@ def main():
                             current_state = INVENTAIRE
                         elif vente_button.collidepoint(mouse_pos):
                             current_state = VENTE
-                        elif fabriqueur_button.collidepoint(mouse_pos):
-                            # Donner une infinité de jetons et couronnes
-                            jeton_poche = 999999
-                            crown_poche = 999999
-                        elif super_vie_button.collidepoint(mouse_pos):
-                            # Toggle la super vie (invincibilité permanente sans clignotement)
-                            super_vie_active = not super_vie_active
                     elif current_state == SHOP:
                         # Les boutons sont retournés par draw_shop (appelé dans la partie dessin)
                         # Vérifier que les boutons sont définis avant de les utiliser
