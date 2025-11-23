@@ -3734,15 +3734,6 @@ def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, in
     retour_text_rect = retour_text.get_rect(center=retour_button.center)
     screen.blit(retour_text, retour_text_rect)
     
-    # Bouton "Supprimer" pour retirer tous les objets équipés
-    supprimer_button = pygame.Rect(WINDOW_WIDTH - 150, 10, 140, 40)
-    pygame.draw.rect(screen, (200, 0, 0), supprimer_button)  # Rouge foncé
-    pygame.draw.rect(screen, WHITE, supprimer_button, 2)
-    font_supprimer = pygame.font.Font(None, 28)
-    supprimer_text = font_supprimer.render("SUPPRIMER", True, WHITE)
-    supprimer_text_rect = supprimer_text.get_rect(center=supprimer_button.center)
-    screen.blit(supprimer_text, supprimer_text_rect)
-    
     # Afficher aussi le bouton "Commencer" si show_start_button est True
     if show_start_button:
         # Afficher un bouton "Commencer" à droite en bas
@@ -4947,7 +4938,7 @@ def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, in
                 desc_text = font_desc.render(lines[i], True, WHITE)
                 screen.blit(desc_text, (20, start_y + i * 25))
     
-    return retour_button, slots, start_button_for_slots if show_start_button else None, supprimer_button
+    return retour_button, slots, start_button_for_slots if show_start_button else None
 
 def draw_vente(screen, inventaire_items=None, jeton_poche=0, crown_poche=0, scroll_offset=0, capacite_items=None, bon_marche_ameliore=False):
     """Dessine l'écran de vente"""
@@ -9310,7 +9301,7 @@ def main():
         elif current_state == INVENTAIRE:
             # Obtenir la position de la souris pour le tooltip
             mouse_pos = pygame.mouse.get_pos()
-            inventaire_retour_button, inventaire_slots, inventaire_start_button, inventaire_supprimer_button = draw_inventaire(screen, crown_poche, jeton_poche, pouvoir_items, inventaire_items, item_description, mouse_pos, show_start_button=inventaire_before_game)
+            inventaire_retour_button, inventaire_slots, inventaire_start_button = draw_inventaire(screen, crown_poche, jeton_poche, pouvoir_items, inventaire_items, item_description, mouse_pos, show_start_button=inventaire_before_game)
             # Afficher l'item sélectionné qui suit la souris
             if selected_item is not None:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
