@@ -1272,7 +1272,7 @@ def draw_font_menu(screen, selected_font=None):
     retour_text_rect = retour_text.get_rect(center=retour_button.center)
     screen.blit(retour_text, retour_text_rect)
     
-    return retour_button
+    return retour_button, font_rect1, font_rect2
 
 def draw_name_menu(screen, player_name="", input_active=False):
     """Dessine le menu de nom avec un champ de texte"""
