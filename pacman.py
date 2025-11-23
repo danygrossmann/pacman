@@ -6383,8 +6383,9 @@ def main():
                                             target_ghost = None
                                             min_distance = float('inf')
                                             for ghost in ghosts:
-                                                # Ne tuer que les fantômes normaux (pas inoffensifs, pas déjà en mode yeux)
-                                                if not ghost.harmless and not ghost.eyes:
+                                                # Ne tuer que les fantômes normaux (pas inoffensifs, pas déjà en mode yeux, pas orange)
+                                                ORANGE = (255, 165, 0)
+                                                if not ghost.harmless and not ghost.eyes and ghost.color != ORANGE:
                                                     if (ghost.x, ghost.y) in target_positions:
                                                         # Calculer la distance de Manhattan
                                                         distance = abs(ghost.x - pacman.x) + abs(ghost.y - pacman.y)
@@ -8165,7 +8166,8 @@ def main():
                 for ghost in ghosts:
                     # Vérifier si le fantôme marche sur un piège
                     ghost_pos = (ghost.x, ghost.y)
-                    if ghost_pos in pieges and not ghost.eyes and not ghost.harmless:
+                    ORANGE = (255, 165, 0)
+                    if ghost_pos in pieges and not ghost.eyes and not ghost.harmless and ghost.color != ORANGE:
                         # Le fantôme marche sur un piège, l'immobiliser
                         if ghost.immobilized_timer == 0:  # Ne pas réinitialiser si déjà immobilisé
                             # Calculer le bonus de "piquant" si équipé
