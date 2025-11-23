@@ -6946,25 +6946,6 @@ def main():
                             if music_playing:
                                 pygame.mixer.music.stop()
                                 music_playing = False
-                        elif inventaire_supprimer_button is not None and inventaire_supprimer_button.collidepoint(mouse_pos):
-                            # Supprimer tous les objets équipés et de la grille
-                            slots_to_remove = ['pouvoir', 'gadget', 'capacite1', 'capacite2', 'objet0', 'objet1', 'objet2']
-                            for slot in slots_to_remove:
-                                if slot in inventaire_items:
-                                    del inventaire_items[slot]
-                            
-                            # Supprimer tous les objets de la grille d'inventaire (grid_*)
-                            grid_slots_to_remove = [key for key in inventaire_items.keys() if key.startswith('grid_')]
-                            for slot in grid_slots_to_remove:
-                                del inventaire_items[slot]
-                            
-                            # Réinitialiser l'argent (jeton_poche et crown_poche)
-                            jeton_poche = 0
-                            crown_poche = 0
-                            
-                            item_description = None  # Effacer la description
-                            # Sauvegarder après suppression
-                            save_game_data(pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore)
                         # Vérifier si on clique sur un slot pour sélectionner un item
                         elif inventaire_slots is not None:
                             # Si on clique gauche ailleurs (pas sur un slot), effacer la description
