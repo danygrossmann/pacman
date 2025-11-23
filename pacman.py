@@ -5432,20 +5432,9 @@ def main():
                             current_state = NAME_MENU
                             name_input_active = True
                         elif jouer_button_rect.collidepoint(mouse_pos):
-                            # Lancer le jeu
-                            game_needs_reset = False
-                            if not game_initialized:
-                                game_initialized = True
-                            current_state = GAME
-                            inventaire_before_game = False
-                            item_description = None
-                            # Démarrer la musique de fond si elle n'est pas déjà en cours
-                            if not pygame.mixer.music.get_busy():
-                                try:
-                                    pygame.mixer.music.load("pacman_theme.mp3")
-                                    pygame.mixer.music.play(-1)  # -1 pour jouer en boucle
-                                except:
-                                    pass
+                            # Ouvrir l'inventaire pour permettre de changer l'équipement avant de commencer
+                            current_state = INVENTAIRE
+                            inventaire_before_game = True  # Variable pour indiquer qu'on est dans l'inventaire avant de commencer la partie
                     elif current_state == NAME_MENU:
                         name_retour_button = pygame.Rect(10, 10, 100, 40)
                         input_width = 400
