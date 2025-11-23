@@ -1452,7 +1452,7 @@ def draw_avatar_menu(screen, selected_avatar=None):
     
     return retour_button
 
-def draw_menu(screen, super_vie_active=False, difficulty=None):
+def draw_menu(screen, difficulty=None):
     """Dessine le menu principal"""
     screen.fill(BLACK)
     
