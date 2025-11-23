@@ -1172,8 +1172,10 @@ def draw_avatar_menu(screen):
     # Essayer de charger les images d'avatar
     avatar_image1 = None
     avatar_image2 = None
+    avatar_image3 = None
     avatar_paths1 = ["avatar.png", "image-t26edcoUjiXQ72uQKAB3R(2).png", "avatar.jpg", "avatar.jpeg", "cat_ghost.png", "cat_ghost.jpg"]
     avatar_paths2 = ["image-j7dL7RMkwuA252pmY6W50(2).png"]
+    avatar_paths3 = ["image-1uA5ykn6ZPDhIyRHwCxym.webp"]
     
     # Charger la première image
     for path in avatar_paths1:
@@ -1189,6 +1191,15 @@ def draw_avatar_menu(screen):
         if os.path.exists(path):
             try:
                 avatar_image2 = pygame.image.load(path)
+                break
+            except:
+                continue
+    
+    # Charger la troisième image
+    for path in avatar_paths3:
+        if os.path.exists(path):
+            try:
+                avatar_image3 = pygame.image.load(path)
                 break
             except:
                 continue
@@ -1209,8 +1220,15 @@ def draw_avatar_menu(screen):
         img_x = 100  # À côté de la première image
         img_y = 10
         screen.blit(avatar_image2, (img_x, img_y))
+    
+    # Troisième image à côté de la deuxième
+    if avatar_image3:
+        avatar_image3 = pygame.transform.scale(avatar_image3, (small_size, small_size))
+        img_x = 190  # À côté de la deuxième image
+        img_y = 10
+        screen.blit(avatar_image3, (img_x, img_y))
     # Afficher un message si aucune image n'est trouvée
-    if not avatar_image1 and not avatar_image2:
+    if not avatar_image1 and not avatar_image2 and not avatar_image3:
         font_info = pygame.font.Font(None, 36)
         info_text = font_info.render("Images d'avatar non trouvées", True, WHITE)
         info_rect = info_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2))
@@ -1222,7 +1240,7 @@ def draw_avatar_menu(screen):
         screen.blit(info_text2, info_rect2)
     
     # Bouton retour (décalé vers la droite pour ne pas chevaucher les images)
-    retour_button = pygame.Rect(190, 10, 100, 40)
+    retour_button = pygame.Rect(280, 10, 100, 40)
     pygame.draw.rect(screen, RED, retour_button)
     pygame.draw.rect(screen, WHITE, retour_button, 2)
     font_retour = pygame.font.Font(None, 36)
@@ -5199,7 +5217,7 @@ def main():
                         elif avatar_button_rect.collidepoint(mouse_pos):
                             current_state = AVATAR_MENU
                     elif current_state == AVATAR_MENU:
-                        avatar_retour_button = pygame.Rect(190, 10, 100, 40)
+                        avatar_retour_button = pygame.Rect(280, 10, 100, 40)
                         if avatar_retour_button.collidepoint(mouse_pos):
                             current_state = CUSTOMIZATION_MENU
                     elif current_state == MENU:
