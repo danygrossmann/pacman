@@ -1159,6 +1159,69 @@ def draw_customization_menu(screen):
     
     return retour_button, font_button_rect, avatar_button_rect
 
+def draw_font_menu(screen):
+    """Dessine le menu de police avec l'image de la police"""
+    screen.fill(BLACK)
+    
+    # Titre
+    font_title = pygame.font.Font(None, 72)
+    title_text = font_title.render("FONT", True, YELLOW)
+    title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 80))
+    screen.blit(title_text, title_rect)
+    
+    # Essayer de charger l'image de police
+    font_image = None
+    font_paths = ["font tout bleu.png", "font_tout_bleu.png", "font.png"]
+    
+    for path in font_paths:
+        if os.path.exists(path):
+            try:
+                font_image = pygame.image.load(path)
+                break
+            except:
+                continue
+    
+    # Afficher l'image si elle existe
+    if font_image:
+        # Redimensionner l'image pour qu'elle tienne dans l'écran
+        max_width = WINDOW_WIDTH - 40
+        max_height = WINDOW_HEIGHT - 150
+        
+        # Calculer les dimensions en gardant les proportions
+        img_width, img_height = font_image.get_size()
+        scale = min(max_width / img_width, max_height / img_height)
+        new_width = int(img_width * scale)
+        new_height = int(img_height * scale)
+        
+        font_image = pygame.transform.scale(font_image, (new_width, new_height))
+        
+        # Centrer l'image sous le titre
+        img_x = (WINDOW_WIDTH - new_width) // 2
+        img_y = 120
+        screen.blit(font_image, (img_x, img_y))
+    else:
+        # Afficher un message si l'image n'est pas trouvée
+        font_info = pygame.font.Font(None, 36)
+        info_text = font_info.render("Image de police non trouvée", True, WHITE)
+        info_rect = info_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2))
+        screen.blit(info_text, info_rect)
+        
+        font_info2 = pygame.font.Font(None, 24)
+        info_text2 = font_info2.render("Placez l'image 'font tout bleu.png' dans le dossier du jeu", True, WHITE)
+        info_rect2 = info_text2.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2 + 40))
+        screen.blit(info_text2, info_rect2)
+    
+    # Bouton retour
+    retour_button = pygame.Rect(10, 10, 100, 40)
+    pygame.draw.rect(screen, RED, retour_button)
+    pygame.draw.rect(screen, WHITE, retour_button, 2)
+    font_retour = pygame.font.Font(None, 36)
+    retour_text = font_retour.render("RETOUR", True, WHITE)
+    retour_text_rect = retour_text.get_rect(center=retour_button.center)
+    screen.blit(retour_text, retour_text_rect)
+    
+    return retour_button
+
 def draw_avatar_menu(screen):
     """Dessine le menu d'avatar avec les images du chat sur le fantôme"""
     screen.fill(BLACK)
@@ -5013,6 +5076,7 @@ def main():
     # États du jeu
     START_MENU = "start_menu"
     CUSTOMIZATION_MENU = "customization_menu"
+    FONT_MENU = "font_menu"
     AVATAR_MENU = "avatar_menu"
     MENU = "menu"
     GAME = "game"
@@ -5224,8 +5288,7 @@ def main():
                         if retour_button.collidepoint(mouse_pos):
                             current_state = START_MENU
                         elif font_button_rect.collidepoint(mouse_pos):
-                            # TODO: Ouvrir le menu de sélection de police
-                            pass
+                            current_state = FONT_MENU
                         elif avatar_button_rect.collidepoint(mouse_pos):
                             current_state = AVATAR_MENU
                     elif current_state == AVATAR_MENU:
