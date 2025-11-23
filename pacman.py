@@ -4967,7 +4967,7 @@ def draw_inventaire(screen, crown_poche=0, jeton_poche=0, pouvoir_items=None, in
                 desc_text = font_desc.render(lines[i], True, WHITE)
                 screen.blit(desc_text, (20, start_y + i * 25))
     
-    return retour_button, slots, start_button_for_slots if show_start_button else None
+    return retour_button, slots, start_button_for_slots if show_start_button else None, supprimer_button
 
 def draw_vente(screen, inventaire_items=None, jeton_poche=0, crown_poche=0, scroll_offset=0, capacite_items=None, bon_marche_ameliore=False):
     """Dessine l'écran de vente"""
@@ -6985,6 +6985,13 @@ def main():
                             if music_playing:
                                 pygame.mixer.music.stop()
                                 music_playing = False
+                        elif inventaire_supprimer_button is not None and inventaire_supprimer_button.collidepoint(mouse_pos):
+                            # Supprimer tous les objets équipés
+                            slots_to_remove = ['pouvoir', 'gadget', 'capacite1', 'capacite2', 'objet0', 'objet1', 'objet2']
+                            for slot in slots_to_remove:
+                                if slot in inventaire_items:
+                                    del inventaire_items[slot]
+                            item_description = None  # Effacer la description
                         # Vérifier si on clique sur un slot pour sélectionner un item
                         elif inventaire_slots is not None:
                             # Si on clique gauche ailleurs (pas sur un slot), effacer la description
