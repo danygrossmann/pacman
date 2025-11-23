@@ -6986,12 +6986,14 @@ def main():
                                 pygame.mixer.music.stop()
                                 music_playing = False
                         elif inventaire_supprimer_button is not None and inventaire_supprimer_button.collidepoint(mouse_pos):
-                            # Supprimer tous les objets équipés
+                            # Supprimer tous les objets équipés (seulement les slots équipés, pas la grille ni le compte)
                             slots_to_remove = ['pouvoir', 'gadget', 'capacite1', 'capacite2', 'objet0', 'objet1', 'objet2']
                             for slot in slots_to_remove:
                                 if slot in inventaire_items:
                                     del inventaire_items[slot]
                             item_description = None  # Effacer la description
+                            # Sauvegarder après suppression (sans toucher au compte)
+                            save_game_data(pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore)
                         # Vérifier si on clique sur un slot pour sélectionner un item
                         elif inventaire_slots is not None:
                             # Si on clique gauche ailleurs (pas sur un slot), effacer la description
