@@ -2229,7 +2229,7 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
     
     # Bouton "Pacgum" (aligné à gauche, en dessous de "Bon marché")
     pacgum_button = pygame.Rect(button_x, item_y + item_spacing, button_width, item_height)
-    pygame.draw.rect(screen, (0, 255, 0), pacgum_button)  # Vert
+    pygame.draw.rect(screen, (128, 0, 128), pacgum_button)  # Violet
     pygame.draw.rect(screen, WHITE, pacgum_button, 2)
     
     pacgum_count = capacite_items.count("pacgum")
