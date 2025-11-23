@@ -1165,15 +1165,7 @@ def draw_customization_menu(screen):
     retour_text_rect = retour_text.get_rect(center=retour_button.center)
     screen.blit(retour_text, retour_text_rect)
     
-    # Bouton "Jouer" pour lancer le jeu
-    jouer_button_rect = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 3, button_width, button_height)
-    pygame.draw.rect(screen, (0, 200, 0), jouer_button_rect)  # Vert
-    pygame.draw.rect(screen, WHITE, jouer_button_rect, 3)
-    jouer_text = font_button.render("Jouer", True, WHITE)
-    jouer_text_rect = jouer_text.get_rect(center=jouer_button_rect.center)
-    screen.blit(jouer_text, jouer_text_rect)
-    
-    return retour_button, font_button_rect, avatar_button_rect, nom_button_rect, jouer_button_rect
+    return retour_button, font_button_rect, avatar_button_rect, nom_button_rect
 
 def draw_font_menu(screen, selected_font=None):
     """Dessine le menu de police avec l'image de la police"""
@@ -5416,7 +5408,6 @@ def main():
                         font_button_rect = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y, button_width, button_height)
                         avatar_button_rect = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing, button_width, button_height)
                         nom_button_rect = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 2, button_width, button_height)
-                        jouer_button_rect = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 3, button_width, button_height)
                         retour_button = pygame.Rect(10, 10, 100, 40)
                         
                         if retour_button.collidepoint(mouse_pos):
@@ -5428,10 +5419,6 @@ def main():
                         elif nom_button_rect.collidepoint(mouse_pos):
                             current_state = NAME_MENU
                             name_input_active = True
-                        elif jouer_button_rect.collidepoint(mouse_pos):
-                            # Ouvrir l'inventaire pour permettre de changer l'équipement avant de commencer
-                            current_state = INVENTAIRE
-                            inventaire_before_game = True  # Variable pour indiquer qu'on est dans l'inventaire avant de commencer la partie
                     elif current_state == NAME_MENU:
                         name_retour_button = pygame.Rect(10, 10, 100, 40)
                         input_width = 400
@@ -9311,7 +9298,7 @@ def main():
         if current_state == START_MENU:
             start_plus_button = draw_start_menu(screen)
         elif current_state == CUSTOMIZATION_MENU:
-            customization_retour_button, customization_font_button, customization_avatar_button, customization_nom_button, customization_jouer_button = draw_customization_menu(screen)
+            customization_retour_button, customization_font_button, customization_avatar_button, customization_nom_button = draw_customization_menu(screen)
         elif current_state == NAME_MENU:
             name_retour_button, name_input_rect = draw_name_menu(screen, player_name, name_input_active)
         elif current_state == FONT_MENU:
