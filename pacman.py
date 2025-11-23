@@ -1092,8 +1092,8 @@ def start_game_with_difficulty(difficulty, inventaire_items, capacite_items, inv
             bombe_active, pieges, portal1_pos, portal2_pos, portal_use_count, mur_pos, mur_use_count,
             gadget_use_count, has_indigestion, indigestion_timer)
 
-def draw_start_menu(screen):
-    """Dessine l'écran de démarrage avec un bouton +"""
+def draw_start_menu(screen, player_name="", selected_avatar=None, selected_font=None):
+    """Dessine l'écran de démarrage avec un bouton + et le profil si configuré"""
     screen.fill(BLACK)
     
     # Titre
@@ -1101,6 +1101,68 @@ def draw_start_menu(screen):
     title_text = font_title.render("PACMAN", True, YELLOW)
     title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2 - 100))
     screen.blit(title_text, title_rect)
+    
+    # Si un profil est configuré (nom, avatar ou font), l'afficher
+    if player_name or selected_avatar or selected_font:
+        # Zone de profil en haut à gauche
+        profile_y = 120
+        profile_x = 50
+        
+        # Afficher l'avatar si sélectionné
+        if selected_avatar:
+            avatar_image = None
+            if selected_avatar == "avatar1":
+                avatar_paths = ["avatar.png", "image-t26edcoUjiXQ72uQKAB3R(2).png", "avatar.jpg", "avatar.jpeg", "cat_ghost.png", "cat_ghost.jpg"]
+            elif selected_avatar == "avatar2":
+                avatar_paths = ["image-j7dL7RMkwuA252pmY6W50(2).png"]
+            elif selected_avatar == "avatar3":
+                avatar_paths = ["image-1uA5ykn6ZPDhIyRHwCxym.webp"]
+            else:
+                avatar_paths = []
+            
+            for path in avatar_paths:
+                if os.path.exists(path):
+                    try:
+                        avatar_image = pygame.image.load(path)
+                        break
+                    except:
+                        continue
+            
+            if avatar_image:
+                avatar_size = 60
+                avatar_image = pygame.transform.scale(avatar_image, (avatar_size, avatar_size))
+                screen.blit(avatar_image, (profile_x, profile_y))
+                profile_y += avatar_size + 10
+        
+        # Afficher le nom si défini
+        if player_name:
+            font_name = pygame.font.Font(None, 36)
+            name_text = font_name.render(player_name, True, WHITE)
+            screen.blit(name_text, (profile_x, profile_y))
+            profile_y += 40
+        
+        # Afficher la police si sélectionnée
+        if selected_font:
+            font_image = None
+            if selected_font == "font1":
+                font_paths = ["font tout bleu.png", "font_tout_bleu.png", "font.png"]
+            elif selected_font == "font2":
+                font_paths = ["font arc en ciel.png", "font_arc_en_ciel.png"]
+            else:
+                font_paths = []
+            
+            for path in font_paths:
+                if os.path.exists(path):
+                    try:
+                        font_image = pygame.image.load(path)
+                        break
+                    except:
+                        continue
+            
+            if font_image:
+                font_size = 40
+                font_image = pygame.transform.scale(font_image, (font_size, font_size))
+                screen.blit(font_image, (profile_x, profile_y))
     
     # Bouton "+" au centre
     font_button = pygame.font.Font(None, 120)
