@@ -1169,37 +1169,67 @@ def draw_font_menu(screen):
     title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 80))
     screen.blit(title_text, title_rect)
     
-    # Essayer de charger l'image de police
-    font_image = None
-    font_paths = ["font tout bleu.png", "font_tout_bleu.png", "font.png"]
+    # Essayer de charger les images de police
+    font_image1 = None
+    font_image2 = None
+    font_paths1 = ["font tout bleu.png", "font_tout_bleu.png", "font.png"]
+    font_paths2 = ["font arc en ciel.png", "font_arc_en_ciel.png"]
     
-    for path in font_paths:
+    # Charger la première image
+    for path in font_paths1:
         if os.path.exists(path):
             try:
-                font_image = pygame.image.load(path)
+                font_image1 = pygame.image.load(path)
                 break
             except:
                 continue
     
-    # Afficher l'image si elle existe
-    if font_image:
-        # Redimensionner l'image en petit
-        small_size = 80  # Taille fixe de 80x80 pixels
-        font_image = pygame.transform.scale(font_image, (small_size, small_size))
-        
-        # Positionner l'image en dessous du titre, centrée horizontalement
-        img_x = (WINDOW_WIDTH - small_size) // 2
-        img_y = 120  # En dessous du titre (80 + marge)
-        screen.blit(font_image, (img_x, img_y))
+    # Charger la deuxième image
+    for path in font_paths2:
+        if os.path.exists(path):
+            try:
+                font_image2 = pygame.image.load(path)
+                break
+            except:
+                continue
+    
+    # Afficher les images si elles existent
+    small_size = 80  # Taille fixe de 80x80 pixels
+    
+    # Position verticale : en dessous du titre (80 + marge)
+    img_y = 120
+    spacing = 90  # Espacement entre les images
+    
+    # Calculer la position horizontale pour centrer les images
+    total_width = 0
+    image_count = sum([1 for img in [font_image1, font_image2] if img is not None])
+    if image_count > 0:
+        total_width = (image_count * small_size) + ((image_count - 1) * (spacing - small_size))
+        start_x = (WINDOW_WIDTH - total_width) // 2
     else:
-        # Afficher un message si l'image n'est pas trouvée
+        start_x = 10
+    
+    # Première image
+    if font_image1:
+        font_image1 = pygame.transform.scale(font_image1, (small_size, small_size))
+        img_x = start_x
+        screen.blit(font_image1, (img_x, img_y))
+        start_x += spacing
+    
+    # Deuxième image
+    if font_image2:
+        font_image2 = pygame.transform.scale(font_image2, (small_size, small_size))
+        img_x = start_x
+        screen.blit(font_image2, (img_x, img_y))
+    # Afficher un message si aucune image n'est trouvée
+    if not font_image1 and not font_image2:
         font_info = pygame.font.Font(None, 36)
-        info_text = font_info.render("Image de police non trouvée", True, WHITE)
+        info_text = font_info.render("Images de police non trouvées", True, WHITE)
         info_rect = info_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2))
         screen.blit(info_text, info_rect)
         
         font_info2 = pygame.font.Font(None, 24)
-        info_text2 = font_info2.render("Placez l'image 'font tout bleu.png' dans le dossier du jeu", True, WHITE)
+        info_text2 = font_info2.render("Placez les images dans le dossier du jeu", True, WHITE)
         info_rect2 = info_text2.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2 + 40))
         screen.blit(info_text2, info_rect2)
     
