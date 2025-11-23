@@ -5181,7 +5181,7 @@ def main():
                         elif avatar_button_rect.collidepoint(mouse_pos):
                             current_state = AVATAR_MENU
                     elif current_state == AVATAR_MENU:
-                        avatar_retour_button = pygame.Rect(10, 10, 100, 40)
+                        avatar_retour_button = pygame.Rect(100, 10, 100, 40)
                         if avatar_retour_button.collidepoint(mouse_pos):
                             current_state = CUSTOMIZATION_MENU
                     elif current_state == MENU:
