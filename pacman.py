@@ -1148,6 +1148,14 @@ def draw_customization_menu(screen):
     avatar_text_rect = avatar_text.get_rect(center=avatar_button_rect.center)
     screen.blit(avatar_text, avatar_text_rect)
     
+    # Bouton "Nom"
+    nom_button_rect = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 2, button_width, button_height)
+    pygame.draw.rect(screen, BLUE, nom_button_rect)
+    pygame.draw.rect(screen, WHITE, nom_button_rect, 3)
+    nom_text = font_button.render("Nom", True, WHITE)
+    nom_text_rect = nom_text.get_rect(center=nom_button_rect.center)
+    screen.blit(nom_text, nom_text_rect)
+    
     # Bouton retour
     retour_button = pygame.Rect(10, 10, 100, 40)
     pygame.draw.rect(screen, RED, retour_button)
@@ -1157,7 +1165,7 @@ def draw_customization_menu(screen):
     retour_text_rect = retour_text.get_rect(center=retour_button.center)
     screen.blit(retour_text, retour_text_rect)
     
-    return retour_button, font_button_rect, avatar_button_rect
+    return retour_button, font_button_rect, avatar_button_rect, nom_button_rect
 
 def draw_font_menu(screen):
     """Dessine le menu de police avec l'image de la police"""
@@ -1243,6 +1251,75 @@ def draw_font_menu(screen):
     screen.blit(retour_text, retour_text_rect)
     
     return retour_button
+
+def draw_name_menu(screen, player_name="", input_active=False):
+    """Dessine le menu de nom avec un champ de texte"""
+    screen.fill(BLACK)
+    
+    # Titre
+    font_title = pygame.font.Font(None, 72)
+    title_text = font_title.render("NOM", True, YELLOW)
+    title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 80))
+    screen.blit(title_text, title_rect)
+    
+    # Champ de texte
+    input_width = 400
+    input_height = 50
+    input_x = (WINDOW_WIDTH - input_width) // 2
+    input_y = WINDOW_HEIGHT // 2 - 50
+    input_rect = pygame.Rect(input_x, input_y, input_width, input_height)
+    
+    # Couleur du champ selon si il est actif
+    if input_active:
+        input_color = WHITE
+        border_color = YELLOW
+        border_width = 3
+    else:
+        input_color = (100, 100, 100)
+        border_color = WHITE
+        border_width = 2
+    
+    pygame.draw.rect(screen, input_color, input_rect)
+    pygame.draw.rect(screen, border_color, input_rect, border_width)
+    
+    # Afficher le texte saisi
+    font_input = pygame.font.Font(None, 36)
+    if player_name:
+        text_surface = font_input.render(player_name, True, BLACK if input_active else WHITE)
+        # Limiter la largeur du texte affiché
+        max_text_width = input_width - 20
+        if text_surface.get_width() > max_text_width:
+            # Tronquer le texte si trop long
+            while text_surface.get_width() > max_text_width and len(player_name) > 0:
+                player_name = player_name[:-1]
+                text_surface = font_input.render(player_name, True, BLACK if input_active else WHITE)
+        screen.blit(text_surface, (input_x + 10, input_y + 10))
+    
+    # Curseur clignotant si le champ est actif
+    if input_active:
+        cursor_x = input_x + 10 + (font_input.size(player_name)[0] if player_name else 0)
+        cursor_y = input_y + 10
+        # Faire clignoter le curseur (basé sur le temps)
+        import time
+        if int(time.time() * 2) % 2 == 0:
+            pygame.draw.line(screen, BLACK, (cursor_x, cursor_y), (cursor_x, cursor_y + 30), 2)
+    
+    # Instructions
+    font_instruction = pygame.font.Font(None, 24)
+    instruction_text = font_instruction.render("Tapez votre nom et appuyez sur Entrée pour valider", True, WHITE)
+    instruction_rect = instruction_text.get_rect(center=(WINDOW_WIDTH//2, input_y + 80))
+    screen.blit(instruction_text, instruction_rect)
+    
+    # Bouton retour
+    retour_button = pygame.Rect(10, 10, 100, 40)
+    pygame.draw.rect(screen, RED, retour_button)
+    pygame.draw.rect(screen, WHITE, retour_button, 2)
+    font_retour = pygame.font.Font(None, 36)
+    retour_text = font_retour.render("RETOUR", True, WHITE)
+    retour_text_rect = retour_text.get_rect(center=retour_button.center)
+    screen.blit(retour_text, retour_text_rect)
+    
+    return retour_button, input_rect
 
 def draw_avatar_menu(screen):
     """Dessine le menu d'avatar avec les images du chat sur le fantôme"""
@@ -5100,6 +5177,7 @@ def main():
     CUSTOMIZATION_MENU = "customization_menu"
     FONT_MENU = "font_menu"
     AVATAR_MENU = "avatar_menu"
+    NAME_MENU = "name_menu"
     MENU = "menu"
     GAME = "game"
     SHOP = "shop"
@@ -5241,6 +5319,10 @@ def main():
     # Variable pour le défilement dans l'écran de vente
     vente_scroll_offset = 0
     
+    # Variables pour le menu nom
+    player_name = ""  # Nom du joueur
+    name_input_active = False  # Si le champ de texte est actif
+    
     running = True
     while running:
         for event in pygame.event.get():
@@ -5305,6 +5387,7 @@ def main():
                         start_y = WINDOW_HEIGHT//2 - button_height
                         font_button_rect = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y, button_width, button_height)
                         avatar_button_rect = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing, button_width, button_height)
+                        nom_button_rect = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 2, button_width, button_height)
                         retour_button = pygame.Rect(10, 10, 100, 40)
                         
                         if retour_button.collidepoint(mouse_pos):
@@ -5313,6 +5396,24 @@ def main():
                             current_state = FONT_MENU
                         elif avatar_button_rect.collidepoint(mouse_pos):
                             current_state = AVATAR_MENU
+                        elif nom_button_rect.collidepoint(mouse_pos):
+                            current_state = NAME_MENU
+                            name_input_active = True
+                    elif current_state == NAME_MENU:
+                        name_retour_button = pygame.Rect(10, 10, 100, 40)
+                        input_width = 400
+                        input_height = 50
+                        input_x = (WINDOW_WIDTH - input_width) // 2
+                        input_y = WINDOW_HEIGHT // 2 - 50
+                        name_input_rect = pygame.Rect(input_x, input_y, input_width, input_height)
+                        
+                        if name_retour_button.collidepoint(mouse_pos):
+                            current_state = CUSTOMIZATION_MENU
+                            name_input_active = False
+                        elif name_input_rect.collidepoint(mouse_pos):
+                            name_input_active = True
+                        else:
+                            name_input_active = False
                     elif current_state == FONT_MENU:
                         font_retour_button = pygame.Rect(10, 10, 100, 40)
                         if font_retour_button.collidepoint(mouse_pos):
@@ -7557,7 +7658,19 @@ def main():
                         else:
                             # Si on clique ailleurs, ne pas changer la description (la laisser telle quelle)
                             pass
-            elif event.type == pygame.KEYDOWN and current_state == GAME:
+            elif event.type == pygame.KEYDOWN:
+                if current_state == NAME_MENU and name_input_active:
+                    # Gérer la saisie de texte dans le champ nom
+                    if event.key == pygame.K_RETURN:
+                        # Valider le nom (on peut ajouter une sauvegarde ici si nécessaire)
+                        name_input_active = False
+                    elif event.key == pygame.K_BACKSPACE:
+                        # Supprimer le dernier caractère
+                        player_name = player_name[:-1]
+                    elif event.unicode and len(player_name) < 20:  # Limiter à 20 caractères
+                        # Ajouter le caractère saisi
+                        player_name += event.unicode
+                elif current_state == GAME:
                 if bombe_active:
                     # Contrôler la bombe au lieu de Pacman
                     bombe_direction = (0, 0)
@@ -9079,7 +9192,9 @@ def main():
         if current_state == START_MENU:
             start_plus_button = draw_start_menu(screen)
         elif current_state == CUSTOMIZATION_MENU:
-            customization_retour_button, customization_font_button, customization_avatar_button = draw_customization_menu(screen)
+            customization_retour_button, customization_font_button, customization_avatar_button, customization_nom_button = draw_customization_menu(screen)
+        elif current_state == NAME_MENU:
+            name_retour_button, name_input_rect = draw_name_menu(screen, player_name, name_input_active)
         elif current_state == FONT_MENU:
             font_retour_button = draw_font_menu(screen)
         elif current_state == AVATAR_MENU:
