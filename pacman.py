@@ -1382,25 +1382,39 @@ def draw_avatar_menu(screen):
     else:
         start_x = 10
     
+    # Rectangles pour les clics
+    avatar_rect1 = None
+    avatar_rect2 = None
+    avatar_rect3 = None
+    
     # Première image
     if avatar_image1:
         avatar_image1 = pygame.transform.scale(avatar_image1, (small_size, small_size))
         img_x = start_x
+        avatar_rect1 = pygame.Rect(img_x, img_y, small_size, small_size)
         screen.blit(avatar_image1, (img_x, img_y))
+        # Dessiner une bordure pour indiquer que c'est cliquable
+        pygame.draw.rect(screen, WHITE, avatar_rect1, 2)
         start_x += spacing
     
     # Deuxième image
     if avatar_image2:
         avatar_image2 = pygame.transform.scale(avatar_image2, (small_size, small_size))
         img_x = start_x
+        avatar_rect2 = pygame.Rect(img_x, img_y, small_size, small_size)
         screen.blit(avatar_image2, (img_x, img_y))
+        # Dessiner une bordure pour indiquer que c'est cliquable
+        pygame.draw.rect(screen, WHITE, avatar_rect2, 2)
         start_x += spacing
     
     # Troisième image
     if avatar_image3:
         avatar_image3 = pygame.transform.scale(avatar_image3, (small_size, small_size))
         img_x = start_x
+        avatar_rect3 = pygame.Rect(img_x, img_y, small_size, small_size)
         screen.blit(avatar_image3, (img_x, img_y))
+        # Dessiner une bordure pour indiquer que c'est cliquable
+        pygame.draw.rect(screen, WHITE, avatar_rect3, 2)
     # Afficher un message si aucune image n'est trouvée
     if not avatar_image1 and not avatar_image2 and not avatar_image3:
         font_info = pygame.font.Font(None, 36)
@@ -5420,8 +5434,64 @@ def main():
                             current_state = CUSTOMIZATION_MENU
                     elif current_state == AVATAR_MENU:
                         avatar_retour_button = pygame.Rect(10, 10, 100, 40)
+                        # Calculer les positions des images (même logique que dans draw_avatar_menu)
+                        small_size = 80
+                        img_y = 120
+                        spacing = 90
+                        avatar_image1 = None
+                        avatar_image2 = None
+                        avatar_image3 = None
+                        avatar_paths1 = ["avatar.png", "image-t26edcoUjiXQ72uQKAB3R(2).png", "avatar.jpg", "avatar.jpeg", "cat_ghost.png", "cat_ghost.jpg"]
+                        avatar_paths2 = ["image-j7dL7RMkwuA252pmY6W50(2).png"]
+                        avatar_paths3 = ["image-1uA5ykn6ZPDhIyRHwCxym.webp"]
+                        
+                        for path in avatar_paths1:
+                            if os.path.exists(path):
+                                try:
+                                    avatar_image1 = pygame.image.load(path)
+                                    break
+                                except:
+                                    continue
+                        for path in avatar_paths2:
+                            if os.path.exists(path):
+                                try:
+                                    avatar_image2 = pygame.image.load(path)
+                                    break
+                                except:
+                                    continue
+                        for path in avatar_paths3:
+                            if os.path.exists(path):
+                                try:
+                                    avatar_image3 = pygame.image.load(path)
+                                    break
+                                except:
+                                    continue
+                        
+                        image_count = sum([1 for img in [avatar_image1, avatar_image2, avatar_image3] if img is not None])
+                        if image_count > 0:
+                            total_width = (image_count * small_size) + ((image_count - 1) * (spacing - small_size))
+                            start_x = (WINDOW_WIDTH - total_width) // 2
+                        else:
+                            start_x = 10
+                        
+                        avatar_rect1 = pygame.Rect(start_x, img_y, small_size, small_size) if avatar_image1 else None
+                        avatar_rect2 = pygame.Rect(start_x + spacing, img_y, small_size, small_size) if avatar_image2 else None
+                        avatar_rect3 = pygame.Rect(start_x + spacing * 2, img_y, small_size, small_size) if avatar_image3 else None
+                        
                         if avatar_retour_button.collidepoint(mouse_pos):
                             current_state = CUSTOMIZATION_MENU
+                        elif avatar_rect1 and avatar_rect1.collidepoint(mouse_pos):
+                            # Sélectionner le premier avatar
+                            selected_avatar = "avatar1"
+                            # TODO: Sauvegarder la sélection
+                        elif avatar_rect2 and avatar_rect2.collidepoint(mouse_pos):
+                            # Sélectionner le deuxième avatar
+                            selected_avatar = "avatar2"
+                            # TODO: Sauvegarder la sélection
+                        elif avatar_rect3 and avatar_rect3.collidepoint(mouse_pos):
+                            # Sélectionner le troisième avatar
+                            selected_avatar = "avatar3"
+                            # TODO: Sauvegarder la sélection
                     elif current_state == MENU:
                         # Calculer les positions des boutons (même logique que dans draw_menu)
                         button_width = 150
@@ -9198,7 +9268,7 @@ def main():
         elif current_state == FONT_MENU:
             font_retour_button = draw_font_menu(screen)
         elif current_state == AVATAR_MENU:
-            avatar_retour_button = draw_avatar_menu(screen)
+            avatar_retour_button, avatar_rect1, avatar_rect2, avatar_rect3 = draw_avatar_menu(screen)
         elif current_state == MENU:
             jeu_button, magasin_button, difficulte_button, poche_button, inventaire_button, vente_button, fabriqueur_button, super_vie_button = draw_menu(screen, super_vie_active=super_vie_active, difficulty=difficulty)
         elif current_state == SHOP:
