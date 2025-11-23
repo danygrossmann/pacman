@@ -1183,13 +1183,13 @@ def draw_font_menu(screen):
     
     # Afficher l'image si elle existe
     if font_image:
-        # Redimensionner l'image en petit pour le coin supérieur gauche
+        # Redimensionner l'image en petit
         small_size = 80  # Taille fixe de 80x80 pixels
         font_image = pygame.transform.scale(font_image, (small_size, small_size))
         
-        # Positionner l'image en haut à gauche
-        img_x = 10
-        img_y = 10
+        # Positionner l'image en dessous du titre, centrée horizontalement
+        img_x = (WINDOW_WIDTH - small_size) // 2
+        img_y = 120  # En dessous du titre (80 + marge)
         screen.blit(font_image, (img_x, img_y))
     else:
         # Afficher un message si l'image n'est pas trouvée
