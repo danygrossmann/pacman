@@ -2879,7 +2879,7 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     pygame.draw.rect(screen, WHITE, double_gadget_button, 2)
     
     double_gadget_name = "Double gadget"
-    double_gadget_text = font_item.render(double_gadget_name, True, WHITE)
+    double_gadget_text = font_item.render(double_gadget_name, True, BLACK)
     double_gadget_text_rect = double_gadget_text.get_rect(center=(double_gadget_button.centerx, double_gadget_button.centery - 10))
     screen.blit(double_gadget_text, double_gadget_text_rect)
     
