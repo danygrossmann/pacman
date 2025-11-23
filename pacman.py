@@ -1159,6 +1159,69 @@ def draw_customization_menu(screen):
     
     return retour_button, font_button_rect, avatar_button_rect
 
+def draw_avatar_menu(screen):
+    """Dessine le menu d'avatar avec l'image du chat sur le fantôme"""
+    screen.fill(BLACK)
+    
+    # Titre
+    font_title = pygame.font.Font(None, 72)
+    title_text = font_title.render("AVATAR", True, YELLOW)
+    title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 80))
+    screen.blit(title_text, title_rect)
+    
+    # Essayer de charger l'image d'avatar
+    avatar_image = None
+    avatar_paths = ["avatar.png", "avatar.jpg", "avatar.jpeg", "cat_ghost.png", "cat_ghost.jpg"]
+    
+    for path in avatar_paths:
+        if os.path.exists(path):
+            try:
+                avatar_image = pygame.image.load(path)
+                break
+            except:
+                continue
+    
+    # Afficher l'image si elle existe
+    if avatar_image:
+        # Redimensionner l'image pour qu'elle tienne dans l'écran
+        max_width = WINDOW_WIDTH - 40
+        max_height = WINDOW_HEIGHT - 150
+        
+        # Calculer les dimensions en gardant les proportions
+        img_width, img_height = avatar_image.get_size()
+        scale = min(max_width / img_width, max_height / img_height)
+        new_width = int(img_width * scale)
+        new_height = int(img_height * scale)
+        
+        avatar_image = pygame.transform.scale(avatar_image, (new_width, new_height))
+        
+        # Centrer l'image
+        img_x = (WINDOW_WIDTH - new_width) // 2
+        img_y = 120
+        screen.blit(avatar_image, (img_x, img_y))
+    else:
+        # Afficher un message si l'image n'est pas trouvée
+        font_info = pygame.font.Font(None, 36)
+        info_text = font_info.render("Image d'avatar non trouvée", True, WHITE)
+        info_rect = info_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2))
+        screen.blit(info_text, info_rect)
+        
+        font_info2 = pygame.font.Font(None, 24)
+        info_text2 = font_info2.render("Placez l'image 'avatar.png' dans le dossier du jeu", True, WHITE)
+        info_rect2 = info_text2.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2 + 40))
+        screen.blit(info_text2, info_rect2)
+    
+    # Bouton retour
+    retour_button = pygame.Rect(10, 10, 100, 40)
+    pygame.draw.rect(screen, RED, retour_button)
+    pygame.draw.rect(screen, WHITE, retour_button, 2)
+    font_retour = pygame.font.Font(None, 36)
+    retour_text = font_retour.render("RETOUR", True, WHITE)
+    retour_text_rect = retour_text.get_rect(center=retour_button.center)
+    screen.blit(retour_text, retour_text_rect)
+    
+    return retour_button
+
 def draw_menu(screen, super_vie_active=False, difficulty=None):
     """Dessine le menu principal"""
     screen.fill(BLACK)
@@ -4910,6 +4973,7 @@ def main():
     # États du jeu
     START_MENU = "start_menu"
     CUSTOMIZATION_MENU = "customization_menu"
+    AVATAR_MENU = "avatar_menu"
     MENU = "menu"
     GAME = "game"
     SHOP = "shop"
@@ -5123,8 +5187,11 @@ def main():
                             # TODO: Ouvrir le menu de sélection de police
                             pass
                         elif avatar_button_rect.collidepoint(mouse_pos):
-                            # TODO: Ouvrir le menu de sélection d'avatar
-                            pass
+                            current_state = AVATAR_MENU
+                    elif current_state == AVATAR_MENU:
+                        avatar_retour_button = pygame.Rect(10, 10, 100, 40)
+                        if avatar_retour_button.collidepoint(mouse_pos):
+                            current_state = CUSTOMIZATION_MENU
                     elif current_state == MENU:
                         # Calculer les positions des boutons (même logique que dans draw_menu)
                         button_width = 150
@@ -8884,6 +8951,8 @@ def main():
             start_plus_button = draw_start_menu(screen)
         elif current_state == CUSTOMIZATION_MENU:
             customization_retour_button, customization_font_button, customization_avatar_button = draw_customization_menu(screen)
+        elif current_state == AVATAR_MENU:
+            avatar_retour_button = draw_avatar_menu(screen)
         elif current_state == MENU:
             jeu_button, magasin_button, difficulte_button, poche_button, inventaire_button, vente_button, fabriqueur_button, super_vie_button = draw_menu(screen, super_vie_active=super_vie_active, difficulty=difficulty)
         elif current_state == SHOP:
