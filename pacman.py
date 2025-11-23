@@ -1160,7 +1160,7 @@ def draw_customization_menu(screen):
     return retour_button, font_button_rect, avatar_button_rect
 
 def draw_avatar_menu(screen):
-    """Dessine le menu d'avatar avec l'image du chat sur le fantôme"""
+    """Dessine le menu d'avatar avec les images du chat sur le fantôme"""
     screen.fill(BLACK)
     
     # Titre
@@ -1169,42 +1169,60 @@ def draw_avatar_menu(screen):
     title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 80))
     screen.blit(title_text, title_rect)
     
-    # Essayer de charger l'image d'avatar
-    avatar_image = None
-    avatar_paths = ["avatar.png", "image-t26edcoUjiXQ72uQKAB3R(2).png", "avatar.jpg", "avatar.jpeg", "cat_ghost.png", "cat_ghost.jpg"]
+    # Essayer de charger les images d'avatar
+    avatar_image1 = None
+    avatar_image2 = None
+    avatar_paths1 = ["avatar.png", "image-t26edcoUjiXQ72uQKAB3R(2).png", "avatar.jpg", "avatar.jpeg", "cat_ghost.png", "cat_ghost.jpg"]
+    avatar_paths2 = ["image-j7dL7RMkwuA252pmY6W50(2).png"]
     
-    for path in avatar_paths:
+    # Charger la première image
+    for path in avatar_paths1:
         if os.path.exists(path):
             try:
-                avatar_image = pygame.image.load(path)
+                avatar_image1 = pygame.image.load(path)
                 break
             except:
                 continue
     
-    # Afficher l'image si elle existe
-    if avatar_image:
-        # Redimensionner l'image en petit pour le coin supérieur gauche
-        small_size = 80  # Taille fixe de 80x80 pixels
-        avatar_image = pygame.transform.scale(avatar_image, (small_size, small_size))
-        
-        # Positionner l'image en haut à gauche
+    # Charger la deuxième image
+    for path in avatar_paths2:
+        if os.path.exists(path):
+            try:
+                avatar_image2 = pygame.image.load(path)
+                break
+            except:
+                continue
+    
+    # Afficher les images si elles existent
+    small_size = 80  # Taille fixe de 80x80 pixels
+    
+    # Première image en haut à gauche
+    if avatar_image1:
+        avatar_image1 = pygame.transform.scale(avatar_image1, (small_size, small_size))
         img_x = 10
         img_y = 10
-        screen.blit(avatar_image, (img_x, img_y))
-    else:
-        # Afficher un message si l'image n'est pas trouvée
+        screen.blit(avatar_image1, (img_x, img_y))
+    
+    # Deuxième image à côté de la première
+    if avatar_image2:
+        avatar_image2 = pygame.transform.scale(avatar_image2, (small_size, small_size))
+        img_x = 100  # À côté de la première image
+        img_y = 10
+        screen.blit(avatar_image2, (img_x, img_y))
+    # Afficher un message si aucune image n'est trouvée
+    if not avatar_image1 and not avatar_image2:
         font_info = pygame.font.Font(None, 36)
-        info_text = font_info.render("Image d'avatar non trouvée", True, WHITE)
+        info_text = font_info.render("Images d'avatar non trouvées", True, WHITE)
         info_rect = info_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2))
         screen.blit(info_text, info_rect)
         
         font_info2 = pygame.font.Font(None, 24)
-        info_text2 = font_info2.render("Placez l'image 'avatar.png' dans le dossier du jeu", True, WHITE)
+        info_text2 = font_info2.render("Placez les images dans le dossier du jeu", True, WHITE)
         info_rect2 = info_text2.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2 + 40))
         screen.blit(info_text2, info_rect2)
     
-    # Bouton retour (décalé vers la droite pour ne pas chevaucher l'image)
-    retour_button = pygame.Rect(100, 10, 100, 40)
+    # Bouton retour (décalé vers la droite pour ne pas chevaucher les images)
+    retour_button = pygame.Rect(190, 10, 100, 40)
     pygame.draw.rect(screen, RED, retour_button)
     pygame.draw.rect(screen, WHITE, retour_button, 2)
     font_retour = pygame.font.Font(None, 36)
