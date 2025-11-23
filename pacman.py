@@ -9328,7 +9328,7 @@ def main():
         elif current_state == INVENTAIRE:
             # Obtenir la position de la souris pour le tooltip
             mouse_pos = pygame.mouse.get_pos()
-            inventaire_retour_button, inventaire_slots, inventaire_start_button = draw_inventaire(screen, crown_poche, jeton_poche, pouvoir_items, inventaire_items, item_description, mouse_pos, show_start_button=inventaire_before_game)
+            inventaire_retour_button, inventaire_slots, inventaire_start_button, inventaire_supprimer_button = draw_inventaire(screen, crown_poche, jeton_poche, pouvoir_items, inventaire_items, item_description, mouse_pos, show_start_button=inventaire_before_game)
             # Afficher l'item sélectionné qui suit la souris
             if selected_item is not None:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
