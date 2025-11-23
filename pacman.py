@@ -1321,7 +1321,7 @@ def draw_name_menu(screen, player_name="", input_active=False):
     
     return retour_button, input_rect
 
-def draw_avatar_menu(screen):
+def draw_avatar_menu(screen, selected_avatar=None):
     """Dessine le menu d'avatar avec les images du chat sur le fantôme"""
     screen.fill(BLACK)
     
