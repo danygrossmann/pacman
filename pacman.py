@@ -5530,8 +5530,10 @@ def main():
                         spacing = 90
                         font_image1 = None
                         font_image2 = None
+                        font_image3 = None
                         font_paths1 = ["font tout bleu.png", "font_tout_bleu.png", "font.png"]
                         font_paths2 = ["font arc en ciel.png", "font_arc_en_ciel.png"]
+                        font_paths3 = ["tout pleins de couleur.png", "carré carré.png"]
                         
                         for path in font_paths1:
                             if os.path.exists(path):
@@ -5544,6 +5546,13 @@ def main():
                             if os.path.exists(path):
                                 try:
                                     font_image2 = pygame.image.load(path)
+                                    break
+                                except:
+                                    continue
+                        for path in font_paths3:
+                            if os.path.exists(path):
+                                try:
+                                    font_image3 = pygame.image.load(path)
                                     break
                                 except:
                                     continue
