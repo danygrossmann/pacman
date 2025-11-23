@@ -5,6 +5,7 @@ import math
 
 # Initialisation de Pygame
 pygame.init()
+pygame.mixer.init()
 
 # Constantes
 CELL_SIZE = 30
@@ -4628,6 +4629,7 @@ def main():
     inventaire_slots = None
     inventaire_start_button = None
     inventaire_before_game = False  # Variable pour savoir si on est dans l'inventaire avant de commencer la partie
+    music_playing = False  # Variable pour suivre si la musique est en cours de lecture
     shop_retour_button = None
     shop_gadget_button = None
     shop_pouvoir_button = None
@@ -6131,11 +6133,38 @@ def main():
                             current_state = GAME
                             inventaire_before_game = False  # Réinitialiser la variable
                             item_description = None  # Effacer la description
+                            # Démarrer la musique de fond si elle n'est pas déjà en cours
+                            if not music_playing:
+                                try:
+                                    # Essayer de charger différents formats de fichiers audio
+                                    music_files = ["pacman_music.mp3", "pacman_music.ogg", "pacman_music.wav"]
+                                    music_loaded = False
+                                    for music_file in music_files:
+                                        try:
+                                            pygame.mixer.music.load(music_file)
+                                            pygame.mixer.music.play(-1)  # -1 = boucle infinie
+                                            music_playing = True
+                                            music_loaded = True
+                                            break
+                                        except pygame.error:
+                                            continue
+                                    if not music_loaded:
+                                        # Si aucun fichier n'est trouvé, créer une musique simple avec des bips
+                                        # Note: pygame.mixer.music ne peut pas créer de musique synthétisée
+                                        # On laisse music_playing à False si aucun fichier n'est trouvé
+                                        pass
+                                except Exception:
+                                    # Si une erreur survient, continuer sans musique
+                                    pass
                         # Vérifier si on clique sur le bouton retour
                         elif inventaire_retour_button is not None and inventaire_retour_button.collidepoint(mouse_pos):
                             current_state = MENU
                             inventaire_before_game = False  # Réinitialiser la variable
                             item_description = None  # Effacer la description quand on retourne au menu
+                            # Arrêter la musique si elle est en cours
+                            if music_playing:
+                                pygame.mixer.music.stop()
+                                music_playing = False
                         # Vérifier si on clique sur un slot pour sélectionner un item
                         elif inventaire_slots is not None:
                             # Si on clique gauche ailleurs (pas sur un slot), effacer la description
@@ -6289,6 +6318,10 @@ def main():
                         if game_retour_button is not None and game_retour_button.collidepoint(mouse_pos):
                             game_needs_reset = True  # Marquer que la partie doit être réinitialisée au retour
                             current_state = MENU
+                            # Arrêter la musique si elle est en cours
+                            if music_playing:
+                                pygame.mixer.music.stop()
+                                music_playing = False
                         else:
                             # Activer le gadget équipé dans le slot "gadget" avec le clic gauche (seulement si le temps de recharge est terminé)
                             equipped_gadget = get_equipped_gadget(inventaire_items)
@@ -7452,12 +7485,24 @@ def main():
                             won = True
                             crown_poche += 10  # Gagner 10 couronnes
                             jeton_poche += 500  # Gagner 500 pacoins
+                            # Arrêter la musique si elle est en cours
+                            if music_playing:
+                                pygame.mixer.music.stop()
+                                music_playing = False
                         # Vérifier si on a gagné (niveau 20 en mode facile)
                         if difficulty == "facile" and level >= 20:
                             won = True
+                            # Arrêter la musique si elle est en cours
+                            if music_playing:
+                                pygame.mixer.music.stop()
+                                music_playing = False
                         # Vérifier si on a gagné au niveau 20 sans difficulté choisie
                         if difficulty is None and level >= 20:
                             won = True
+                            # Arrêter la musique si elle est en cours
+                            if music_playing:
+                                pygame.mixer.music.stop()
+                                music_playing = False
                             crown_poche += 10  # Gagner 10 couronnes
                             jeton_poche += 500  # Gagner 500 pacoins
                         level_transition = True
@@ -7794,12 +7839,24 @@ def main():
                                         won = True
                                         crown_poche += 10  # Gagner 10 couronnes
                                         jeton_poche += 500  # Gagner 500 pacoins
+                                        # Arrêter la musique si elle est en cours
+                                        if music_playing:
+                                            pygame.mixer.music.stop()
+                                            music_playing = False
                                     # Vérifier si on a gagné (niveau 20 en mode facile)
                                     if difficulty == "facile" and level >= 20:
                                         won = True
+                                        # Arrêter la musique si elle est en cours
+                                        if music_playing:
+                                            pygame.mixer.music.stop()
+                                            music_playing = False
                                     # Vérifier si on a gagné au niveau 20 sans difficulté choisie
                                     if difficulty is None and level >= 20:
                                         won = True
+                                        # Arrêter la musique si elle est en cours
+                                        if music_playing:
+                                            pygame.mixer.music.stop()
+                                            music_playing = False
                                         crown_poche += 10  # Gagner 10 couronnes
                                         jeton_poche += 500  # Gagner 500 pacoins
                                     level_transition = True
@@ -7997,12 +8054,24 @@ def main():
                         won = True
                         crown_poche += 10  # Gagner 10 couronnes
                         jeton_poche += 500  # Gagner 500 pacoins
+                        # Arrêter la musique si elle est en cours
+                        if music_playing:
+                            pygame.mixer.music.stop()
+                            music_playing = False
                     # Vérifier si on a gagné (niveau 20 en mode facile)
                     if difficulty == "facile" and level >= 20:
                         won = True
+                        # Arrêter la musique si elle est en cours
+                        if music_playing:
+                            pygame.mixer.music.stop()
+                            music_playing = False
                     # Vérifier si on a gagné au niveau 20 sans difficulté choisie
                     if difficulty is None and level >= 20:
                         won = True
+                        # Arrêter la musique si elle est en cours
+                        if music_playing:
+                            pygame.mixer.music.stop()
+                            music_playing = False
                         crown_poche += 10  # Gagner 10 couronnes
                         jeton_poche += 500  # Gagner 500 pacoins
                     level_transition = True
@@ -8373,6 +8442,10 @@ def main():
                             last_ghost_time = 0  # Réinitialiser le timer depuis le dernier fantôme mangé
                             if lives <= 0:
                                 game_over = True
+                                # Arrêter la musique si elle est en cours
+                                if music_playing:
+                                    pygame.mixer.music.stop()
+                                    music_playing = False
                             else:
                                 # Perdre une vie et réapparaître
                                 respawn_timer = 60  # 2 secondes de pause
