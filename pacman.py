@@ -1175,7 +1175,7 @@ def draw_customization_menu(screen):
     
     return retour_button, font_button_rect, avatar_button_rect, nom_button_rect, jouer_button_rect
 
-def draw_font_menu(screen):
+def draw_font_menu(screen, selected_font=None):
     """Dessine le menu de police avec l'image de la police"""
     screen.fill(BLACK)
     
@@ -1225,18 +1225,32 @@ def draw_font_menu(screen):
     else:
         start_x = 10
     
+    # Rectangles pour les clics
+    font_rect1 = None
+    font_rect2 = None
+    
     # Première image
     if font_image1:
         font_image1 = pygame.transform.scale(font_image1, (small_size, small_size))
         img_x = start_x
+        font_rect1 = pygame.Rect(img_x, img_y, small_size, small_size)
         screen.blit(font_image1, (img_x, img_y))
+        # Dessiner une bordure (jaune si sélectionné, blanche sinon)
+        border_color = YELLOW if (selected_font is not None and selected_font == "font1") else WHITE
+        border_width = 4 if (selected_font is not None and selected_font == "font1") else 2
+        pygame.draw.rect(screen, border_color, font_rect1, border_width)
         start_x += spacing
     
     # Deuxième image
     if font_image2:
         font_image2 = pygame.transform.scale(font_image2, (small_size, small_size))
         img_x = start_x
+        font_rect2 = pygame.Rect(img_x, img_y, small_size, small_size)
         screen.blit(font_image2, (img_x, img_y))
+        # Dessiner une bordure (jaune si sélectionné, blanche sinon)
+        border_color = YELLOW if (selected_font is not None and selected_font == "font2") else WHITE
+        border_width = 4 if (selected_font is not None and selected_font == "font2") else 2
+        pygame.draw.rect(screen, border_color, font_rect2, border_width)
     # Afficher un message si aucune image n'est trouvée
     if not font_image1 and not font_image2:
         font_info = pygame.font.Font(None, 36)
@@ -9258,7 +9272,7 @@ def main():
         elif current_state == NAME_MENU:
             name_retour_button, name_input_rect = draw_name_menu(screen, player_name, name_input_active)
         elif current_state == FONT_MENU:
-            font_retour_button = draw_font_menu(screen)
+            font_retour_button, font_rect1, font_rect2 = draw_font_menu(screen, selected_font)
         elif current_state == AVATAR_MENU:
             avatar_retour_button, avatar_rect1, avatar_rect2, avatar_rect3 = draw_avatar_menu(screen, selected_avatar)
         elif current_state == MENU:
