@@ -7672,38 +7672,38 @@ def main():
                         player_name += event.unicode
                 elif current_state == GAME:
                     if bombe_active:
-                    # Contrôler la bombe au lieu de Pacman
-                    bombe_direction = (0, 0)
-                    if event.key == pygame.K_UP:
-                        bombe_direction = (0, -1)
-                    elif event.key == pygame.K_DOWN:
-                        bombe_direction = (0, 1)
-                    elif event.key == pygame.K_LEFT:
-                        bombe_direction = (-1, 0)
-                    elif event.key == pygame.K_RIGHT:
-                        bombe_direction = (1, 0)
-                    
-                    # Déplacer la bombe dans la direction
-                    if bombe_direction != (0, 0):
-                        new_bombe_x = bombe_x + bombe_direction[0]
-                        new_bombe_y = bombe_y + bombe_direction[1]
+                        # Contrôler la bombe au lieu de Pacman
+                        bombe_direction = (0, 0)
+                        if event.key == pygame.K_UP:
+                            bombe_direction = (0, -1)
+                        elif event.key == pygame.K_DOWN:
+                            bombe_direction = (0, 1)
+                        elif event.key == pygame.K_LEFT:
+                            bombe_direction = (-1, 0)
+                        elif event.key == pygame.K_RIGHT:
+                            bombe_direction = (1, 0)
                         
-                        # Gérer la téléportation aux bords
-                        if new_bombe_x < 0:
-                            new_bombe_x = GRID_WIDTH - 1
-                        elif new_bombe_x >= GRID_WIDTH:
-                            new_bombe_x = 0
-                        if new_bombe_y < 0:
-                            new_bombe_y = GRID_HEIGHT - 1
-                        elif new_bombe_y >= GRID_HEIGHT:
-                            new_bombe_y = 0
-                        
-                        # Vérifier si la nouvelle position est valide (pas un mur)
-                        if 0 <= new_bombe_y < GRID_HEIGHT and 0 <= new_bombe_x < GRID_WIDTH:
-                            if maze[new_bombe_y][new_bombe_x] != 1:  # Pas un mur
-                                bombe_x = new_bombe_x
-                                bombe_y = new_bombe_y
-                else:
+                        # Déplacer la bombe dans la direction
+                        if bombe_direction != (0, 0):
+                            new_bombe_x = bombe_x + bombe_direction[0]
+                            new_bombe_y = bombe_y + bombe_direction[1]
+                            
+                            # Gérer la téléportation aux bords
+                            if new_bombe_x < 0:
+                                new_bombe_x = GRID_WIDTH - 1
+                            elif new_bombe_x >= GRID_WIDTH:
+                                new_bombe_x = 0
+                            if new_bombe_y < 0:
+                                new_bombe_y = GRID_HEIGHT - 1
+                            elif new_bombe_y >= GRID_HEIGHT:
+                                new_bombe_y = 0
+                            
+                            # Vérifier si la nouvelle position est valide (pas un mur)
+                            if 0 <= new_bombe_y < GRID_HEIGHT and 0 <= new_bombe_x < GRID_WIDTH:
+                                if maze[new_bombe_y][new_bombe_x] != 1:  # Pas un mur
+                                    bombe_x = new_bombe_x
+                                    bombe_y = new_bombe_y
+                    else:
                     # Contrôler Pacman normalement
                     if event.key == pygame.K_UP:
                         pacman.set_direction((0, -1))
