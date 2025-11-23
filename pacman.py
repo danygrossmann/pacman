@@ -5449,8 +5449,48 @@ def main():
                             name_input_active = False
                     elif current_state == FONT_MENU:
                         font_retour_button = pygame.Rect(10, 10, 100, 40)
+                        # Calculer les positions des images (même logique que dans draw_font_menu)
+                        small_size = 80
+                        img_y = 120
+                        spacing = 90
+                        font_image1 = None
+                        font_image2 = None
+                        font_paths1 = ["font tout bleu.png", "font_tout_bleu.png", "font.png"]
+                        font_paths2 = ["font arc en ciel.png", "font_arc_en_ciel.png"]
+                        
+                        for path in font_paths1:
+                            if os.path.exists(path):
+                                try:
+                                    font_image1 = pygame.image.load(path)
+                                    break
+                                except:
+                                    continue
+                        for path in font_paths2:
+                            if os.path.exists(path):
+                                try:
+                                    font_image2 = pygame.image.load(path)
+                                    break
+                                except:
+                                    continue
+                        
+                        image_count = sum([1 for img in [font_image1, font_image2] if img is not None])
+                        if image_count > 0:
+                            total_width = (image_count * small_size) + ((image_count - 1) * (spacing - small_size))
+                            start_x = (WINDOW_WIDTH - total_width) // 2
+                        else:
+                            start_x = 10
+                        
+                        font_rect1 = pygame.Rect(start_x, img_y, small_size, small_size) if font_image1 else None
+                        font_rect2 = pygame.Rect(start_x + spacing, img_y, small_size, small_size) if font_image2 else None
+                        
                         if font_retour_button.collidepoint(mouse_pos):
                             current_state = CUSTOMIZATION_MENU
+                        elif font_rect1 and font_rect1.collidepoint(mouse_pos):
+                            # Sélectionner la première police
+                            selected_font = "font1"
+                        elif font_rect2 and font_rect2.collidepoint(mouse_pos):
+                            # Sélectionner la deuxième police
+                            selected_font = "font2"
                     elif current_state == AVATAR_MENU:
                         avatar_retour_button = pygame.Rect(10, 10, 100, 40)
                         # Calculer les positions des images (même logique que dans draw_avatar_menu)
