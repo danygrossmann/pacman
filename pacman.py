@@ -1537,27 +1537,7 @@ def draw_menu(screen, super_vie_active=False, difficulty=None):
     vente_text_rect = vente_text.get_rect(center=vente_button.center)
     screen.blit(vente_text, vente_text_rect)
     
-    # Bouton Fabriqueur
-    fabriqueur_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 6, button_width, button_height)
-    pygame.draw.rect(screen, (255, 215, 0), fabriqueur_button)  # Or/Doré
-    pygame.draw.rect(screen, WHITE, fabriqueur_button, 3)
-    # Utiliser une police plus petite pour que le texte rentre
-    font_fabriqueur = pygame.font.Font(None, 28)
-    fabriqueur_text = font_fabriqueur.render("FABRIQUEUR", True, WHITE)
-    fabriqueur_text_rect = fabriqueur_text.get_rect(center=fabriqueur_button.center)
-    screen.blit(fabriqueur_text, fabriqueur_text_rect)
-    
-    # Bouton Super Vie (avec indicateur d'état si actif)
-    super_vie_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 7, button_width, button_height)
-    # Couleur verte si actif, rouge si inactif
-    super_vie_color = (0, 255, 0) if super_vie_active else (255, 0, 0)
-    pygame.draw.rect(screen, super_vie_color, super_vie_button)
-    pygame.draw.rect(screen, WHITE, super_vie_button, 3)
-    super_vie_text = font_button.render("SUPER VIE", True, WHITE)
-    super_vie_text_rect = super_vie_text.get_rect(center=super_vie_button.center)
-    screen.blit(super_vie_text, super_vie_text_rect)
-    
-    return jeu_button, magasin_button, difficulte_button, poche_button, inventaire_button, vente_button, fabriqueur_button, super_vie_button
+    return jeu_button, magasin_button, difficulte_button, poche_button, inventaire_button, vente_button
 
 def draw_shop(screen):
     """Dessine l'écran du magasin"""
@@ -5535,9 +5515,6 @@ def main():
                         poche_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 3, button_width, button_height)
                         inventaire_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 4, button_width, button_height)
                         vente_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 5, button_width, button_height)
-                        fabriqueur_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 6, button_width, button_height)
-                        super_vie_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 7, button_width, button_height)
-                        
                         if jeu_button.collidepoint(mouse_pos):
                             # Si on revient du menu après avoir cliqué sur retour, réinitialiser la partie
                             if game_needs_reset:
@@ -9320,7 +9297,7 @@ def main():
         elif current_state == AVATAR_MENU:
             avatar_retour_button, avatar_rect1, avatar_rect2, avatar_rect3 = draw_avatar_menu(screen, selected_avatar)
         elif current_state == MENU:
-            jeu_button, magasin_button, difficulte_button, poche_button, inventaire_button, vente_button, fabriqueur_button, super_vie_button = draw_menu(screen, super_vie_active=super_vie_active, difficulty=difficulty)
+            jeu_button, magasin_button, difficulte_button, poche_button, inventaire_button, vente_button = draw_menu(screen, difficulty=difficulty)
         elif current_state == SHOP:
             shop_retour_button, shop_gadget_button, shop_pouvoir_button, shop_objet_button, shop_capacite_button = draw_shop(screen)
         elif current_state == SHOP_GADGET:
