@@ -1183,21 +1183,13 @@ def draw_avatar_menu(screen):
     
     # Afficher l'image si elle existe
     if avatar_image:
-        # Redimensionner l'image pour qu'elle tienne dans l'écran
-        max_width = WINDOW_WIDTH - 40
-        max_height = WINDOW_HEIGHT - 150
+        # Redimensionner l'image en petit pour le coin supérieur gauche
+        small_size = 80  # Taille fixe de 80x80 pixels
+        avatar_image = pygame.transform.scale(avatar_image, (small_size, small_size))
         
-        # Calculer les dimensions en gardant les proportions
-        img_width, img_height = avatar_image.get_size()
-        scale = min(max_width / img_width, max_height / img_height)
-        new_width = int(img_width * scale)
-        new_height = int(img_height * scale)
-        
-        avatar_image = pygame.transform.scale(avatar_image, (new_width, new_height))
-        
-        # Centrer l'image
-        img_x = (WINDOW_WIDTH - new_width) // 2
-        img_y = 120
+        # Positionner l'image en haut à gauche
+        img_x = 10
+        img_y = 10
         screen.blit(avatar_image, (img_x, img_y))
     else:
         # Afficher un message si l'image n'est pas trouvée
