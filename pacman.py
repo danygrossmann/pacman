@@ -1165,7 +1165,15 @@ def draw_customization_menu(screen):
     retour_text_rect = retour_text.get_rect(center=retour_button.center)
     screen.blit(retour_text, retour_text_rect)
     
-    return retour_button, font_button_rect, avatar_button_rect, nom_button_rect
+    # Bouton "Jouer" pour lancer le jeu
+    jouer_button_rect = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 3, button_width, button_height)
+    pygame.draw.rect(screen, (0, 200, 0), jouer_button_rect)  # Vert
+    pygame.draw.rect(screen, WHITE, jouer_button_rect, 3)
+    jouer_text = font_button.render("Jouer", True, WHITE)
+    jouer_text_rect = jouer_text.get_rect(center=jouer_button_rect.center)
+    screen.blit(jouer_text, jouer_text_rect)
+    
+    return retour_button, font_button_rect, avatar_button_rect, nom_button_rect, jouer_button_rect
 
 def draw_font_menu(screen):
     """Dessine le menu de police avec l'image de la police"""
@@ -5411,6 +5419,7 @@ def main():
                         font_button_rect = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y, button_width, button_height)
                         avatar_button_rect = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing, button_width, button_height)
                         nom_button_rect = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 2, button_width, button_height)
+                        jouer_button_rect = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 3, button_width, button_height)
                         retour_button = pygame.Rect(10, 10, 100, 40)
                         
                         if retour_button.collidepoint(mouse_pos):
@@ -5422,6 +5431,21 @@ def main():
                         elif nom_button_rect.collidepoint(mouse_pos):
                             current_state = NAME_MENU
                             name_input_active = True
+                        elif jouer_button_rect.collidepoint(mouse_pos):
+                            # Lancer le jeu
+                            game_needs_reset = False
+                            if not game_initialized:
+                                game_initialized = True
+                            current_state = GAME
+                            inventaire_before_game = False
+                            item_description = None
+                            # Démarrer la musique de fond si elle n'est pas déjà en cours
+                            if not pygame.mixer.music.get_busy():
+                                try:
+                                    pygame.mixer.music.load("pacman_theme.mp3")
+                                    pygame.mixer.music.play(-1)  # -1 pour jouer en boucle
+                                except:
+                                    pass
                     elif current_state == NAME_MENU:
                         name_retour_button = pygame.Rect(10, 10, 100, 40)
                         input_width = 400
