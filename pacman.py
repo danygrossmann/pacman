@@ -5291,6 +5291,10 @@ def main():
                             current_state = FONT_MENU
                         elif avatar_button_rect.collidepoint(mouse_pos):
                             current_state = AVATAR_MENU
+                    elif current_state == FONT_MENU:
+                        font_retour_button = pygame.Rect(10, 10, 100, 40)
+                        if font_retour_button.collidepoint(mouse_pos):
+                            current_state = CUSTOMIZATION_MENU
                     elif current_state == AVATAR_MENU:
                         avatar_retour_button = pygame.Rect(10, 10, 100, 40)
                         if avatar_retour_button.collidepoint(mouse_pos):
@@ -9054,6 +9058,8 @@ def main():
             start_plus_button = draw_start_menu(screen)
         elif current_state == CUSTOMIZATION_MENU:
             customization_retour_button, customization_font_button, customization_avatar_button = draw_customization_menu(screen)
+        elif current_state == FONT_MENU:
+            font_retour_button = draw_font_menu(screen)
         elif current_state == AVATAR_MENU:
             avatar_retour_button = draw_avatar_menu(screen)
         elif current_state == MENU:
