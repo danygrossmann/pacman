@@ -1733,9 +1733,9 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     
     # Afficher les pacoins et couronnes disponibles
     font_info = pygame.font.Font(None, 36)
-    pacoin_text = font_info.render(f"Pacoins: {jeton_poche}", True, BLACK)
+    pacoin_text = font_info.render(f"Pacoins: {jeton_poche}", True, WHITE)
     screen.blit(pacoin_text, (WINDOW_WIDTH//2 - 100, 150))
-    crown_text = font_info.render(f"Couronnes: {crown_poche}", True, BLACK)
+    crown_text = font_info.render(f"Couronnes: {crown_poche}", True, WHITE)
     screen.blit(crown_text, (WINDOW_WIDTH//2 - 100, 180))
     
     # Bouton retour
@@ -2571,9 +2571,9 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     
     # Afficher les pacoins et couronnes disponibles
     font_info = pygame.font.Font(None, 36)
-    pacoin_text = font_info.render(f"Pacoins: {jeton_poche}", True, BLACK)
+    pacoin_text = font_info.render(f"Pacoins: {jeton_poche}", True, WHITE)
     screen.blit(pacoin_text, (WINDOW_WIDTH//2 - 100, 150))
-    crown_text = font_info.render(f"Couronnes: {crown_poche}", True, BLACK)
+    crown_text = font_info.render(f"Couronnes: {crown_poche}", True, WHITE)
     screen.blit(crown_text, (WINDOW_WIDTH//2 - 100, 180))
     
     # Bouton retour
@@ -4344,9 +4344,9 @@ def draw_vente(screen, inventaire_items=None, jeton_poche=0, crown_poche=0, scro
     
     # Afficher les pacoins et couronnes disponibles
     font_info = pygame.font.Font(None, 36)
-    pacoin_text = font_info.render(f"Pacoins: {jeton_poche}", True, BLACK)
+    pacoin_text = font_info.render(f"Pacoins: {jeton_poche}", True, WHITE)
     screen.blit(pacoin_text, (WINDOW_WIDTH//2 - 100, 100))
-    crown_text = font_info.render(f"Couronnes: {crown_poche}", True, BLACK)
+    crown_text = font_info.render(f"Couronnes: {crown_poche}", True, WHITE)
     screen.blit(crown_text, (WINDOW_WIDTH//2 - 100, 130))
     
     # Bouton retour
