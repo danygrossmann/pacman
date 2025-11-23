@@ -9295,7 +9295,7 @@ def main():
         if current_state == START_MENU:
             start_plus_button = draw_start_menu(screen)
         elif current_state == CUSTOMIZATION_MENU:
-            customization_retour_button, customization_font_button, customization_avatar_button, customization_nom_button = draw_customization_menu(screen)
+            customization_retour_button, customization_font_button, customization_avatar_button, customization_nom_button, customization_jouer_button = draw_customization_menu(screen)
         elif current_state == NAME_MENU:
             name_retour_button, name_input_rect = draw_name_menu(screen, player_name, name_input_active)
         elif current_state == FONT_MENU:
