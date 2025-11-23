@@ -1393,8 +1393,10 @@ def draw_avatar_menu(screen):
         img_x = start_x
         avatar_rect1 = pygame.Rect(img_x, img_y, small_size, small_size)
         screen.blit(avatar_image1, (img_x, img_y))
-        # Dessiner une bordure pour indiquer que c'est cliquable
-        pygame.draw.rect(screen, WHITE, avatar_rect1, 2)
+        # Dessiner une bordure (jaune si sélectionné, blanche sinon)
+        border_color = YELLOW if selected_avatar == "avatar1" else WHITE
+        border_width = 4 if selected_avatar == "avatar1" else 2
+        pygame.draw.rect(screen, border_color, avatar_rect1, border_width)
         start_x += spacing
     
     # Deuxième image
@@ -1403,8 +1405,10 @@ def draw_avatar_menu(screen):
         img_x = start_x
         avatar_rect2 = pygame.Rect(img_x, img_y, small_size, small_size)
         screen.blit(avatar_image2, (img_x, img_y))
-        # Dessiner une bordure pour indiquer que c'est cliquable
-        pygame.draw.rect(screen, WHITE, avatar_rect2, 2)
+        # Dessiner une bordure (jaune si sélectionné, blanche sinon)
+        border_color = YELLOW if selected_avatar == "avatar2" else WHITE
+        border_width = 4 if selected_avatar == "avatar2" else 2
+        pygame.draw.rect(screen, border_color, avatar_rect2, border_width)
         start_x += spacing
     
     # Troisième image
@@ -1413,8 +1417,10 @@ def draw_avatar_menu(screen):
         img_x = start_x
         avatar_rect3 = pygame.Rect(img_x, img_y, small_size, small_size)
         screen.blit(avatar_image3, (img_x, img_y))
-        # Dessiner une bordure pour indiquer que c'est cliquable
-        pygame.draw.rect(screen, WHITE, avatar_rect3, 2)
+        # Dessiner une bordure (jaune si sélectionné, blanche sinon)
+        border_color = YELLOW if selected_avatar == "avatar3" else WHITE
+        border_width = 4 if selected_avatar == "avatar3" else 2
+        pygame.draw.rect(screen, border_color, avatar_rect3, border_width)
     # Afficher un message si aucune image n'est trouvée
     if not avatar_image1 and not avatar_image2 and not avatar_image3:
         font_info = pygame.font.Font(None, 36)
@@ -5336,6 +5342,9 @@ def main():
     # Variables pour le menu nom
     player_name = ""  # Nom du joueur
     name_input_active = False  # Si le champ de texte est actif
+    
+    # Variable pour l'avatar sélectionné
+    selected_avatar = None  # "avatar1", "avatar2", "avatar3" ou None
     
     running = True
     while running:
@@ -9268,7 +9277,7 @@ def main():
         elif current_state == FONT_MENU:
             font_retour_button = draw_font_menu(screen)
         elif current_state == AVATAR_MENU:
-            avatar_retour_button, avatar_rect1, avatar_rect2, avatar_rect3 = draw_avatar_menu(screen)
+            avatar_retour_button, avatar_rect1, avatar_rect2, avatar_rect3 = draw_avatar_menu(screen, selected_avatar)
         elif current_state == MENU:
             jeu_button, magasin_button, difficulte_button, poche_button, inventaire_button, vente_button, fabriqueur_button, super_vie_button = draw_menu(screen, super_vie_active=super_vie_active, difficulty=difficulty)
         elif current_state == SHOP:
