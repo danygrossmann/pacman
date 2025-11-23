@@ -1171,7 +1171,7 @@ def draw_avatar_menu(screen):
     
     # Essayer de charger l'image d'avatar
     avatar_image = None
-    avatar_paths = ["avatar.png", "avatar.jpg", "avatar.jpeg", "cat_ghost.png", "cat_ghost.jpg"]
+    avatar_paths = ["avatar.png", "image-t26edcoUjiXQ72uQKAB3R(2).png", "avatar.jpg", "avatar.jpeg", "cat_ghost.png", "cat_ghost.jpg"]
     
     for path in avatar_paths:
         if os.path.exists(path):
