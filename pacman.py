@@ -5348,6 +5348,9 @@ def main():
     # Variable pour l'avatar sélectionné
     selected_avatar = None  # "avatar1", "avatar2", "avatar3" ou None
     
+    # Variable pour la police sélectionnée
+    selected_font = None  # "font1", "font2" ou None
+    
     running = True
     while running:
         for event in pygame.event.get():
