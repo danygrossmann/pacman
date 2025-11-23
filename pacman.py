@@ -1249,7 +1249,7 @@ def draw_shop(screen):
     retour_button = pygame.Rect(10, 10, 100, 40)
     pygame.draw.rect(screen, RED, retour_button)
     pygame.draw.rect(screen, WHITE, retour_button, 2)
-    retour_text = font_retour.render("RETOUR", True, BLACK)
+    retour_text = font_retour.render("RETOUR", True, WHITE)
     retour_text_rect = retour_text.get_rect(center=retour_button.center)
     screen.blit(retour_text, retour_text_rect)
     
@@ -1472,7 +1472,7 @@ def draw_shop_pouvoir(screen, jeton_poche=0, pouvoir_items=None, crown_poche=0, 
     retour_button = pygame.Rect(10, 10, 100, 40)
     pygame.draw.rect(screen, RED, retour_button)
     pygame.draw.rect(screen, WHITE, retour_button, 2)
-    retour_text = font_retour.render("RETOUR", True, BLACK)
+    retour_text = font_retour.render("RETOUR", True, WHITE)
     retour_text_rect = retour_text.get_rect(center=retour_button.center)
     screen.blit(retour_text, retour_text_rect)
     
@@ -1743,7 +1743,7 @@ def draw_shop_gadget(screen, jeton_poche=0, gadget_items=None, crown_poche=0, it
     retour_button = pygame.Rect(10, 10, 100, 40)
     pygame.draw.rect(screen, RED, retour_button)
     pygame.draw.rect(screen, WHITE, retour_button, 2)
-    retour_text = font_retour.render("RETOUR", True, BLACK)
+    retour_text = font_retour.render("RETOUR", True, WHITE)
     retour_text_rect = retour_text.get_rect(center=retour_button.center)
     screen.blit(retour_text, retour_text_rect)
     
@@ -2476,7 +2476,7 @@ def draw_shop_capacite(screen, jeton_poche=0, capacite_items=None, crown_poche=0
     retour_button = pygame.Rect(10, 10, 100, 40)
     pygame.draw.rect(screen, RED, retour_button)
     pygame.draw.rect(screen, WHITE, retour_button, 2)
-    retour_text = font_retour.render("RETOUR", True, BLACK)
+    retour_text = font_retour.render("RETOUR", True, WHITE)
     retour_text_rect = retour_text.get_rect(center=retour_button.center)
     screen.blit(retour_text, retour_text_rect)
     
@@ -2581,7 +2581,7 @@ def draw_shop_objet(screen, jeton_poche=0, objet_items=None, crown_poche=0, item
     retour_button = pygame.Rect(10, 10, 100, 40)
     pygame.draw.rect(screen, RED, retour_button)
     pygame.draw.rect(screen, WHITE, retour_button, 2)
-    retour_text = font_retour.render("RETOUR", True, BLACK)
+    retour_text = font_retour.render("RETOUR", True, WHITE)
     retour_text_rect = retour_text.get_rect(center=retour_button.center)
     screen.blit(retour_text, retour_text_rect)
     
@@ -2975,7 +2975,7 @@ def draw_difficulty(screen):
     retour_button = pygame.Rect(10, 10, 100, 40)
     pygame.draw.rect(screen, RED, retour_button)
     pygame.draw.rect(screen, WHITE, retour_button, 2)
-    retour_text = font_retour.render("RETOUR", True, BLACK)
+    retour_text = font_retour.render("RETOUR", True, WHITE)
     retour_text_rect = retour_text.get_rect(center=retour_button.center)
     screen.blit(retour_text, retour_text_rect)
     
