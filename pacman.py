@@ -7633,7 +7633,7 @@ def main():
                         # Bouton retour dans le jeu
                         if game_retour_button is not None and game_retour_button.collidepoint(mouse_pos):
                             game_needs_reset = True  # Marquer que la partie doit être réinitialisée au retour
-                            current_state = START_MENU  # Retourner au menu de sélection des comptes
+                            current_state = MENU  # Retourner au menu principal
                             # Arrêter la musique si elle est en cours
                             if music_playing:
                                 pygame.mixer.music.stop()
