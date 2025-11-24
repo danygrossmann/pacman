@@ -1230,15 +1230,20 @@ def draw_customization_menu(screen, player_name="", selected_avatar=None, select
     title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 100))
     screen.blit(title_text, title_rect)
     
-    # Afficher un cercle et le nom en dessous si défini
+    # Afficher un cercle avec le fond de police et l'avatar à l'intérieur si défini
     if player_name:
         # Zone de profil en haut à gauche
         profile_y = 200
         profile_x = 50
         
-        # Afficher la police en arrière-plan (derrière l'avatar) si sélectionnée
+        # Dessiner un cercle avec le fond de police sélectionné
+        circle_radius = 50
+        circle_x = profile_x + circle_radius
+        circle_y = profile_y + circle_radius
+        
+        # Charger l'image de police pour le fond du cercle
+        font_image = None
         if selected_font:
-            font_image = None
             if selected_font == "font1":
                 font_paths = ["font tout bleu.png", "font_tout_bleu.png", "font.png"]
             elif selected_font == "font2":
@@ -1255,17 +1260,32 @@ def draw_customization_menu(screen, player_name="", selected_avatar=None, select
                         break
                     except:
                         continue
-            
-            if font_image:
-                # Afficher la police en arrière-plan, légèrement plus grande et décalée
-                font_size = 80
-                font_image = pygame.transform.scale(font_image, (font_size, font_size))
-                # Centrer la police derrière l'avatar (avatar sera à 60x60, donc on centre la police de 80x80)
-                font_offset_x = profile_x - (font_size - 60) // 2
-                font_offset_y = profile_y - (font_size - 60) // 2
-                screen.blit(font_image, (font_offset_x, font_offset_y))
         
-        # Afficher l'avatar si sélectionné (par-dessus la police)
+        # Créer une surface pour le cercle avec transparence
+        circle_surface = pygame.Surface((circle_radius * 2, circle_radius * 2), pygame.SRCALPHA)
+        
+        # Si une police est sélectionnée, utiliser l'image comme texture
+        if font_image:
+            # Redimensionner l'image de police pour couvrir le cercle
+            font_texture = pygame.transform.scale(font_image, (circle_radius * 2, circle_radius * 2))
+            # Créer un masque circulaire
+            mask = pygame.Surface((circle_radius * 2, circle_radius * 2), pygame.SRCALPHA)
+            pygame.draw.circle(mask, (255, 255, 255, 255), (circle_radius, circle_radius), circle_radius)
+            # Appliquer l'image de police sur la surface du cercle
+            circle_surface.blit(font_texture, (0, 0))
+            # Appliquer le masque circulaire pour découper l'image
+            circle_surface.blit(mask, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+        else:
+            # Si pas de police, utiliser la couleur jaune par défaut
+            pygame.draw.circle(circle_surface, YELLOW, (circle_radius, circle_radius), circle_radius)
+        
+        # Dessiner le cercle sur l'écran
+        screen.blit(circle_surface, (circle_x - circle_radius, circle_y - circle_radius))
+        
+        # Dessiner la bordure blanche
+        pygame.draw.circle(screen, WHITE, (circle_x, circle_y), circle_radius, 2)
+        
+        # Afficher l'avatar à l'intérieur du cercle si sélectionné
         if selected_avatar:
             avatar_image = None
             if selected_avatar == "avatar1":
@@ -1286,21 +1306,13 @@ def draw_customization_menu(screen, player_name="", selected_avatar=None, select
                         continue
             
             if avatar_image:
-                avatar_size = 60
+                # Redimensionner l'avatar pour qu'il rentre dans le cercle (avec un peu de marge)
+                avatar_size = int(circle_radius * 1.6)  # Légèrement plus petit que le cercle
                 avatar_image = pygame.transform.scale(avatar_image, (avatar_size, avatar_size))
-                screen.blit(avatar_image, (profile_x, profile_y))
-                profile_y += avatar_size + 10
-        
-        # Dessiner un cercle
-        circle_radius = 30
-        # Si un avatar est affiché, centrer le cercle par rapport à l'avatar, sinon le centrer à profile_x
-        if selected_avatar:
-            circle_x = profile_x + 30  # Centrer le cercle par rapport à l'avatar (avatar_size/2 = 30)
-        else:
-            circle_x = profile_x + circle_radius  # Centrer le cercle à profile_x
-        circle_y = profile_y
-        pygame.draw.circle(screen, YELLOW, (circle_x, circle_y), circle_radius)
-        pygame.draw.circle(screen, WHITE, (circle_x, circle_y), circle_radius, 2)
+                # Centrer l'avatar dans le cercle
+                avatar_x = circle_x - avatar_size // 2
+                avatar_y = circle_y - avatar_size // 2
+                screen.blit(avatar_image, (avatar_x, avatar_y))
         
         # Afficher le nom en dessous du cercle
         font_name = pygame.font.Font(None, 36)
