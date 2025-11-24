@@ -1484,7 +1484,15 @@ def draw_font_menu(screen, selected_font=None):
     retour_text_rect = retour_text.get_rect(center=retour_button.center)
     screen.blit(retour_text, retour_text_rect)
     
-    return retour_button, font_rect1, font_rect2, font_rect3
+    # Bouton Valider
+    valider_button = pygame.Rect(WINDOW_WIDTH - 120, WINDOW_HEIGHT - 60, 110, 50)
+    pygame.draw.rect(screen, (0, 200, 0), valider_button)  # Vert
+    pygame.draw.rect(screen, WHITE, valider_button, 2)
+    valider_text = font_retour.render("VALIDER", True, WHITE)
+    valider_text_rect = valider_text.get_rect(center=valider_button.center)
+    screen.blit(valider_text, valider_text_rect)
+    
+    return retour_button, font_rect1, font_rect2, font_rect3, valider_button
 
 def draw_name_menu(screen, player_name="", input_active=False):
     """Dessine le menu de nom avec un champ de texte"""
@@ -1676,7 +1684,15 @@ def draw_avatar_menu(screen, selected_avatar=None):
     retour_text_rect = retour_text.get_rect(center=retour_button.center)
     screen.blit(retour_text, retour_text_rect)
     
-    return retour_button
+    # Bouton Valider
+    valider_button = pygame.Rect(WINDOW_WIDTH - 120, WINDOW_HEIGHT - 60, 110, 50)
+    pygame.draw.rect(screen, (0, 200, 0), valider_button)  # Vert
+    pygame.draw.rect(screen, WHITE, valider_button, 2)
+    valider_text = font_retour.render("VALIDER", True, WHITE)
+    valider_text_rect = valider_text.get_rect(center=valider_button.center)
+    screen.blit(valider_text, valider_text_rect)
+    
+    return retour_button, avatar_rect1, avatar_rect2, avatar_rect3, valider_button
 
 def draw_menu(screen, difficulty=None):
     """Dessine le menu principal"""
@@ -5562,6 +5578,8 @@ def main():
     
     # Variable pour la police sélectionnée
     selected_font = None  # "font1", "font2" ou None
+    pending_font = None  # Sélection temporaire dans le menu font
+    pending_avatar = None  # Sélection temporaire dans le menu avatar
     
     running = True
     while running:
@@ -5702,15 +5720,22 @@ def main():
                         
                         if font_retour_button.collidepoint(mouse_pos):
                             current_state = CUSTOMIZATION_MENU
+                            pending_font = None  # Réinitialiser la sélection temporaire
+                        elif font_valider_button.collidepoint(mouse_pos):
+                            # Valider la sélection temporaire
+                            if pending_font is not None:
+                                selected_font = pending_font
+                            current_state = CUSTOMIZATION_MENU
+                            pending_font = None
                         elif font_rect1 and font_rect1.collidepoint(mouse_pos):
-                            # Sélectionner la première police
-                            selected_font = "font1"
+                            # Sélectionner temporairement la première police
+                            pending_font = "font1"
                         elif font_rect2 and font_rect2.collidepoint(mouse_pos):
-                            # Sélectionner la deuxième police
-                            selected_font = "font2"
+                            # Sélectionner temporairement la deuxième police
+                            pending_font = "font2"
                         elif font_rect3 and font_rect3.collidepoint(mouse_pos):
-                            # Sélectionner la troisième police
-                            selected_font = "font3"
+                            # Sélectionner temporairement la troisième police
+                            pending_font = "font3"
                     elif current_state == AVATAR_MENU:
                         avatar_retour_button = pygame.Rect(10, 10, 100, 40)
                         # Calculer les positions des images (même logique que dans draw_avatar_menu)
@@ -5759,18 +5784,22 @@ def main():
                         
                         if avatar_retour_button.collidepoint(mouse_pos):
                             current_state = CUSTOMIZATION_MENU
+                            pending_avatar = None  # Réinitialiser la sélection temporaire
+                        elif avatar_valider_button.collidepoint(mouse_pos):
+                            # Valider la sélection temporaire
+                            if pending_avatar is not None:
+                                selected_avatar = pending_avatar
+                            current_state = CUSTOMIZATION_MENU
+                            pending_avatar = None
                         elif avatar_rect1 and avatar_rect1.collidepoint(mouse_pos):
-                            # Sélectionner le premier avatar
-                            selected_avatar = "avatar1"
-                            # TODO: Sauvegarder la sélection
+                            # Sélectionner temporairement le premier avatar
+                            pending_avatar = "avatar1"
                         elif avatar_rect2 and avatar_rect2.collidepoint(mouse_pos):
-                            # Sélectionner le deuxième avatar
-                            selected_avatar = "avatar2"
-                            # TODO: Sauvegarder la sélection
+                            # Sélectionner temporairement le deuxième avatar
+                            pending_avatar = "avatar2"
                         elif avatar_rect3 and avatar_rect3.collidepoint(mouse_pos):
-                            # Sélectionner le troisième avatar
-                            selected_avatar = "avatar3"
-                            # TODO: Sauvegarder la sélection
+                            # Sélectionner temporairement le troisième avatar
+                            pending_avatar = "avatar3"
                     elif current_state == MENU:
                         # Calculer les positions des boutons (même logique que dans draw_menu)
                         button_width = 150
@@ -9536,9 +9565,9 @@ def main():
         elif current_state == NAME_MENU:
             name_retour_button, name_input_rect = draw_name_menu(screen, player_name, name_input_active)
         elif current_state == FONT_MENU:
-            font_retour_button, font_rect1, font_rect2, font_rect3 = draw_font_menu(screen, selected_font)
+            font_retour_button, font_rect1, font_rect2, font_rect3, font_valider_button = draw_font_menu(screen, pending_font if pending_font is not None else selected_font)
         elif current_state == AVATAR_MENU:
-            avatar_retour_button, avatar_rect1, avatar_rect2, avatar_rect3 = draw_avatar_menu(screen, selected_avatar)
+            avatar_retour_button, avatar_rect1, avatar_rect2, avatar_rect3, avatar_valider_button = draw_avatar_menu(screen, pending_avatar if pending_avatar is not None else selected_avatar)
         elif current_state == MENU:
             jeu_button, magasin_button, difficulte_button, poche_button, inventaire_button, vente_button = draw_menu(screen, difficulty=difficulty)
         elif current_state == SHOP:
