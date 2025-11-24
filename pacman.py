@@ -5463,6 +5463,11 @@ def load_game_data_for_account(account_index):
         )
     return [], [], [], [], {}, 0, 0, False
 
+def auto_save_account_data(account_index, pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, accounts_list):
+    """Sauvegarde automatiquement les données du compte actuel"""
+    if account_index is not None:
+        save_game_data_for_account(account_index, pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, accounts_list)
+
 def main():
     screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
     pygame.display.set_caption("Pacman")
