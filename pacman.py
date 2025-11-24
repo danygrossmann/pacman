@@ -1206,12 +1206,26 @@ def draw_start_menu(screen, player_name="", selected_avatar=None, selected_font=
                 screen.blit(avatar_image, (profile_x, profile_y))
                 profile_y += avatar_size + 10
         
-        # Afficher le nom si défini
+        # Afficher un cercle et le nom en dessous si défini
         if player_name:
+            # Dessiner un cercle
+            circle_radius = 30
+            # Si un avatar est affiché, centrer le cercle par rapport à l'avatar, sinon le centrer à profile_x
+            if selected_avatar:
+                circle_x = profile_x + 30  # Centrer le cercle par rapport à l'avatar (avatar_size/2 = 30)
+            else:
+                circle_x = profile_x + circle_radius  # Centrer le cercle à profile_x
+            circle_y = profile_y
+            pygame.draw.circle(screen, YELLOW, (circle_x, circle_y), circle_radius)
+            pygame.draw.circle(screen, WHITE, (circle_x, circle_y), circle_radius, 2)
+            
+            # Afficher le nom en dessous du cercle
             font_name = pygame.font.Font(None, 36)
             name_text = font_name.render(player_name, True, WHITE)
-            screen.blit(name_text, (profile_x, profile_y))
-            profile_y += 40
+            name_x = circle_x - name_text.get_width() // 2  # Centrer le texte sous le cercle
+            name_y = circle_y + circle_radius + 10
+            screen.blit(name_text, (name_x, name_y))
+            profile_y += circle_radius * 2 + 50  # Espacement pour le cercle et le texte
     
     # Bouton "+" au centre
     font_button = pygame.font.Font(None, 120)
@@ -7916,8 +7930,9 @@ def main():
                 if current_state == NAME_MENU and name_input_active:
                     # Gérer la saisie de texte dans le champ nom
                     if event.key == pygame.K_RETURN:
-                        # Valider le nom (on peut ajouter une sauvegarde ici si nécessaire)
+                        # Valider le nom et sortir automatiquement
                         name_input_active = False
+                        current_state = CUSTOMIZATION_MENU
                     elif event.key == pygame.K_BACKSPACE:
                         # Supprimer le dernier caractère
                         player_name = player_name[:-1]
