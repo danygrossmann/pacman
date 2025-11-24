@@ -1092,12 +1092,141 @@ def start_game_with_difficulty(difficulty, inventaire_items, capacite_items, inv
             bombe_active, pieges, portal1_pos, portal2_pos, portal_use_count, mur_pos, mur_use_count,
             gadget_use_count, has_indigestion, indigestion_timer)
 
-def draw_start_menu(screen, player_name="", selected_avatar=None, selected_font=None):
-    """Dessine l'écran de démarrage avec un bouton + et le profil si configuré"""
+def draw_start_menu(screen, accounts=None, current_account_index=None):
+    """Dessine l'écran de démarrage avec les comptes créés et un bouton +"""
+    if accounts is None:
+        accounts = []
+    
     screen.fill(BLACK)
     
-    # Titre - utiliser l'image de police si sélectionnée
-    if selected_font:
+    # Titre
+    font_title = pygame.font.Font(None, 72)
+    title_text = font_title.render("PACMAN", True, YELLOW)
+    title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2 - 100))
+    screen.blit(title_text, title_rect)
+    
+    # Afficher tous les comptes créés en haut à gauche, les uns après les autres
+    profile_rects = []  # Liste des rectangles cliquables pour chaque compte
+    start_x = 50
+    start_y = 50
+    circle_radius = 50
+    spacing = 120  # Espacement horizontal entre les comptes
+    
+    for i, account in enumerate(accounts):
+        if account.get('player_name') and account.get('selected_avatar') and account.get('selected_font'):
+            profile_x = start_x + i * spacing
+            profile_y = start_y
+            circle_x = profile_x + circle_radius
+            circle_y = profile_y + circle_radius
+            
+            # Charger l'image de police pour le fond du cercle
+            font_image = None
+            selected_font = account.get('selected_font')
+            if selected_font == "font1":
+                font_paths = ["font tout bleu.png", "font_tout_bleu.png", "font.png"]
+            elif selected_font == "font2":
+                font_paths = ["font arc en ciel.png", "font_arc_en_ciel.png"]
+            elif selected_font == "font3":
+                font_paths = ["tout pleins de couleur.png", "carré carré.png"]
+            else:
+                font_paths = []
+            
+            for path in font_paths:
+                if os.path.exists(path):
+                    try:
+                        font_image = pygame.image.load(path)
+                        break
+                    except:
+                        continue
+            
+            # Créer une surface pour le cercle avec transparence
+            circle_surface = pygame.Surface((circle_radius * 2, circle_radius * 2), pygame.SRCALPHA)
+            
+            # Si une police est sélectionnée, utiliser l'image comme texture
+            if font_image:
+                font_texture = pygame.transform.scale(font_image, (circle_radius * 2, circle_radius * 2))
+                mask = pygame.Surface((circle_radius * 2, circle_radius * 2), pygame.SRCALPHA)
+                pygame.draw.circle(mask, (255, 255, 255, 255), (circle_radius, circle_radius), circle_radius)
+                circle_surface.blit(font_texture, (0, 0))
+                circle_surface.blit(mask, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+            else:
+                pygame.draw.circle(circle_surface, YELLOW, (circle_radius, circle_radius), circle_radius)
+            
+            # Dessiner le cercle sur l'écran
+            screen.blit(circle_surface, (circle_x - circle_radius, circle_y - circle_radius))
+            
+            # Dessiner la bordure blanche (jaune si c'est le compte actuel)
+            border_color = YELLOW if (current_account_index is not None and i == current_account_index) else WHITE
+            border_width = 4 if (current_account_index is not None and i == current_account_index) else 2
+            pygame.draw.circle(screen, border_color, (circle_x, circle_y), circle_radius, border_width)
+            
+            # Afficher l'avatar à l'intérieur du cercle
+            avatar_image = None
+            selected_avatar = account.get('selected_avatar')
+            if selected_avatar == "avatar1":
+                avatar_paths = ["avatar.png", "image-t26edcoUjiXQ72uQKAB3R(2).png", "avatar.jpg", "avatar.jpeg", "cat_ghost.png", "cat_ghost.jpg"]
+            elif selected_avatar == "avatar2":
+                avatar_paths = ["image-j7dL7RMkwuA252pmY6W50(2).png"]
+            elif selected_avatar == "avatar3":
+                avatar_paths = ["image-1uA5ykn6ZPDhIyRHwCxym.webp"]
+            else:
+                avatar_paths = []
+            
+            for path in avatar_paths:
+                if os.path.exists(path):
+                    try:
+                        avatar_image = pygame.image.load(path)
+                        break
+                    except:
+                        continue
+            
+            if avatar_image:
+                avatar_size = int(circle_radius * 1.6)
+                avatar_image = pygame.transform.scale(avatar_image, (avatar_size, avatar_size))
+                avatar_x = circle_x - avatar_size // 2
+                avatar_y = circle_y - avatar_size // 2
+                screen.blit(avatar_image, (avatar_x, avatar_y))
+            
+            # Afficher le nom en dessous du cercle
+            font_name = pygame.font.Font(None, 36)
+            name_text = font_name.render(account.get('player_name', ''), True, WHITE)
+            name_x = circle_x - name_text.get_width() // 2
+            name_y = circle_y + circle_radius + 10
+            
+            # Créer un rectangle cliquable autour du profil
+            rect_padding = 20
+            profile_rect = pygame.Rect(
+                circle_x - circle_radius - rect_padding,
+                circle_y - circle_radius - rect_padding,
+                circle_radius * 2 + rect_padding * 2,
+                circle_radius * 2 + rect_padding * 2 + 50
+            )
+            profile_rects.append((profile_rect, i))  # Stocker l'index du compte avec le rectangle
+            
+            screen.blit(name_text, (name_x, name_y))
+    
+    # Bouton "+" après le dernier compte (ou au début si aucun compte)
+    plus_button = None
+    if len(accounts) > 0:
+        # Positionner le bouton "+" après le dernier compte
+        plus_x = start_x + len(accounts) * spacing
+        plus_y = start_y
+    else:
+        # Si aucun compte, positionner le bouton "+" au début
+        plus_x = start_x
+        plus_y = start_y
+    
+    font_button = pygame.font.Font(None, 120)
+    button_size = 100
+    plus_button = pygame.Rect(plus_x, plus_y, button_size, button_size)
+    pygame.draw.rect(screen, YELLOW, plus_button)
+    pygame.draw.rect(screen, WHITE, plus_button, 3)
+    
+    plus_text = font_button.render("+", True, BLACK)
+    plus_text_rect = plus_text.get_rect(center=plus_button.center)
+    screen.blit(plus_text, plus_text_rect)
+    
+    return plus_button, profile_rects
         # Charger l'image de police
         font_image = None
         if selected_font == "font1":
@@ -1245,10 +1374,9 @@ def draw_start_menu(screen, player_name="", selected_avatar=None, selected_font=
         
         screen.blit(name_text, (name_x, name_y))
     
-    # Bouton "+" au centre (seulement si aucun élément n'est choisi)
+    # Bouton "+" au centre (seulement si le profil n'est pas complet)
     plus_button = None
-    # Ne pas afficher le bouton "+" si au moins un élément est choisi
-    if not (player_name or selected_avatar or selected_font):
+    if not (player_name and selected_avatar and selected_font):
         font_button = pygame.font.Font(None, 120)
         button_size = 100
         plus_button = pygame.Rect(WINDOW_WIDTH//2 - button_size//2, WINDOW_HEIGHT//2, button_size, button_size)
@@ -5620,7 +5748,12 @@ def main():
     # Variable pour le défilement dans l'écran de vente
     vente_scroll_offset = 0
     
-    # Variables pour le menu nom
+    # Variables pour les comptes multiples
+    accounts = []  # Liste de comptes : [{"player_name": "", "selected_avatar": None, "selected_font": None}, ...]
+    current_account_index = None  # Index du compte actuellement sélectionné
+    creating_new_account = False  # Si on est en train de créer un nouveau compte
+    
+    # Variables pour le menu nom (pour la création/édition de compte)
     player_name = ""  # Nom du joueur
     name_input_active = False  # Si le champ de texte est actif
     
@@ -5683,30 +5816,31 @@ def main():
                     mouse_pos = event.pos
                     
                     if current_state == START_MENU:
-                        # Vérifier le clic sur le rectangle de profil si le profil est complet
-                        if player_name and selected_avatar and selected_font:
-                            # Calculer la position du rectangle de profil (même logique que dans draw_start_menu)
-                            profile_y = 50
-                            profile_x = 50
-                            circle_radius = 50
-                            circle_x = profile_x + circle_radius
-                            circle_y = profile_y + circle_radius
-                            rect_padding = 20
-                            profile_rect = pygame.Rect(
-                                circle_x - circle_radius - rect_padding,
-                                circle_y - circle_radius - rect_padding,
-                                circle_radius * 2 + rect_padding * 2,
-                                circle_radius * 2 + rect_padding * 2 + 50
-                            )
+                        # Vérifier le clic sur les comptes existants
+                        account_clicked = False
+                        for profile_rect, account_idx in start_profile_rects:
                             if profile_rect.collidepoint(mouse_pos):
+                                # Sélectionner ce compte
+                                current_account_index = account_idx
+                                account = accounts[account_idx]
+                                player_name = account.get('player_name', '')
+                                selected_avatar = account.get('selected_avatar')
+                                selected_font = account.get('selected_font')
                                 # Lancer le jeu
                                 current_state = MENU
-                        else:
-                            # Calculer la position du bouton +
-                            button_size = 100
-                            start_plus_button = pygame.Rect(WINDOW_WIDTH//2 - button_size//2, WINDOW_HEIGHT//2, button_size, button_size)
-                            if start_plus_button.collidepoint(mouse_pos):
-                                current_state = CUSTOMIZATION_MENU
+                                account_clicked = True
+                                break
+                        
+                        # Si on a cliqué sur le bouton "+"
+                        if not account_clicked and start_plus_button and start_plus_button.collidepoint(mouse_pos):
+                            # Créer un nouveau compte
+                            creating_new_account = True
+                            player_name = ""
+                            selected_avatar = None
+                            selected_font = None
+                            pending_font = None
+                            pending_avatar = None
+                            current_state = CUSTOMIZATION_MENU
                     elif current_state == CUSTOMIZATION_MENU:
                         # Calculer les positions des boutons (même logique que dans draw_customization_menu)
                         button_width = 200
@@ -5726,7 +5860,21 @@ def main():
                         if retour_button.collidepoint(mouse_pos):
                             current_state = START_MENU
                         elif creer_compte_button and creer_compte_button.collidepoint(mouse_pos):
-                            # Créer le compte et retourner au menu de début
+                            # Créer le compte et l'ajouter à la liste
+                            new_account = {
+                                'player_name': player_name,
+                                'selected_avatar': selected_avatar,
+                                'selected_font': selected_font
+                            }
+                            accounts.append(new_account)
+                            current_account_index = len(accounts) - 1
+                            # Réinitialiser pour un nouveau compte si nécessaire
+                            creating_new_account = False
+                            player_name = ""
+                            selected_avatar = None
+                            selected_font = None
+                            pending_font = None
+                            pending_avatar = None
                             current_state = START_MENU
                         elif font_button_rect.collidepoint(mouse_pos):
                             current_state = FONT_MENU
@@ -9637,7 +9785,7 @@ def main():
         
         # Dessiner selon l'état actuel
         if current_state == START_MENU:
-            start_plus_button, start_profile_rect = draw_start_menu(screen, player_name, selected_avatar, selected_font)
+            start_plus_button, start_profile_rects = draw_start_menu(screen, accounts, current_account_index)
         elif current_state == CUSTOMIZATION_MENU:
             customization_retour_button, customization_font_button, customization_avatar_button, customization_nom_button, customization_creer_compte_button = draw_customization_menu(screen, player_name, selected_avatar, selected_font)
         elif current_state == NAME_MENU:
