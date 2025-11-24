@@ -1145,9 +1145,9 @@ def draw_start_menu(screen, player_name="", selected_avatar=None, selected_font=
         title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2 - 100))
         screen.blit(title_text, title_rect)
     
-    # Si le profil est complet (nom, avatar et font), afficher un rectangle cliquable
+    # Si au moins un élément est choisi (nom, avatar ou font), afficher le cercle
     profile_rect = None
-    if player_name and selected_avatar and selected_font:
+    if player_name or selected_avatar or selected_font:
         # Zone de profil au centre
         profile_y = WINDOW_HEIGHT//2 + 50
         profile_x = WINDOW_WIDTH//2
@@ -1228,29 +1228,34 @@ def draw_start_menu(screen, player_name="", selected_avatar=None, selected_font=
             avatar_y = circle_y - avatar_size // 2
             screen.blit(avatar_image, (avatar_x, avatar_y))
         
-        # Afficher le nom en dessous du cercle
-        font_name = pygame.font.Font(None, 36)
-        name_text = font_name.render(player_name, True, WHITE)
-        name_x = circle_x - name_text.get_width() // 2  # Centrer le texte sous le cercle
+        # Afficher le nom en dessous du cercle si défini
         name_y = circle_y + circle_radius + 10
+        if player_name:
+            font_name = pygame.font.Font(None, 36)
+            name_text = font_name.render(player_name, True, WHITE)
+            name_x = circle_x - name_text.get_width() // 2  # Centrer le texte sous le cercle
+            screen.blit(name_text, (name_x, name_y))
+            name_y += 40  # Ajuster pour le rectangle cliquable
         
-        # Créer un rectangle cliquable autour du profil (cercle + nom)
+        # Créer un rectangle cliquable autour du profil (cercle + nom si présent)
         rect_padding = 20
+        rect_height = circle_radius * 2 + rect_padding * 2
+        if player_name:
+            rect_height += 50  # Inclure l'espace pour le nom
+        
         profile_rect = pygame.Rect(
             circle_x - circle_radius - rect_padding,
             circle_y - circle_radius - rect_padding,
             circle_radius * 2 + rect_padding * 2,
-            circle_radius * 2 + rect_padding * 2 + 50  # Inclure l'espace pour le nom
+            rect_height
         )
         
         # Dessiner un rectangle avec bordure pour indiquer que c'est cliquable
         pygame.draw.rect(screen, (100, 100, 100, 100), profile_rect, 2)
-        
-        screen.blit(name_text, (name_x, name_y))
     
-    # Bouton "+" au centre (seulement si le profil n'est pas complet)
+    # Bouton "+" au centre (seulement si aucun élément n'est choisi)
     plus_button = None
-    if not (player_name and selected_avatar and selected_font):
+    if not (player_name or selected_avatar or selected_font):
         font_button = pygame.font.Font(None, 120)
         button_size = 100
         plus_button = pygame.Rect(WINDOW_WIDTH//2 - button_size//2, WINDOW_HEIGHT//2, button_size, button_size)
