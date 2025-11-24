@@ -1720,6 +1720,15 @@ def draw_menu(screen, difficulty=None):
     """Dessine le menu principal"""
     screen.fill(BLACK)
     
+    # Bouton "Changer de compte" en haut à droite
+    font_changer_compte = pygame.font.Font(None, 24)
+    changer_compte_button = pygame.Rect(WINDOW_WIDTH - 180, 10, 170, 35)
+    pygame.draw.rect(screen, (100, 100, 200), changer_compte_button)  # Bleu-gris
+    pygame.draw.rect(screen, WHITE, changer_compte_button, 2)
+    changer_compte_text = font_changer_compte.render("Changer de compte", True, WHITE)
+    changer_compte_text_rect = changer_compte_text.get_rect(center=changer_compte_button.center)
+    screen.blit(changer_compte_text, changer_compte_text_rect)
+    
     # Titre
     font_title = pygame.font.Font(None, 72)
     title_text = font_title.render("PACMAN", True, YELLOW)
@@ -1801,7 +1810,7 @@ def draw_menu(screen, difficulty=None):
     vente_text_rect = vente_text.get_rect(center=vente_button.center)
     screen.blit(vente_text, vente_text_rect)
     
-    return jeu_button, magasin_button, difficulte_button, poche_button, inventaire_button, vente_button
+    return jeu_button, magasin_button, difficulte_button, poche_button, inventaire_button, vente_button, changer_compte_button
 
 def draw_shop(screen):
     """Dessine l'écran du magasin"""
@@ -5870,6 +5879,10 @@ def main():
                             # Sélectionner temporairement le troisième avatar
                             pending_avatar = "avatar3"
                     elif current_state == MENU:
+                        # Vérifier le clic sur le bouton "Changer de compte"
+                        if changer_compte_button.collidepoint(mouse_pos):
+                            current_state = START_MENU
+                        elif jeu_button.collidepoint(mouse_pos):
                         # Calculer les positions des boutons (même logique que dans draw_menu)
                         button_width = 150
                         button_height = 45
@@ -9638,7 +9651,7 @@ def main():
         elif current_state == AVATAR_MENU:
             avatar_retour_button, avatar_rect1, avatar_rect2, avatar_rect3, avatar_valider_button = draw_avatar_menu(screen, pending_avatar if pending_avatar is not None else selected_avatar, pending_avatar)
         elif current_state == MENU:
-            jeu_button, magasin_button, difficulte_button, poche_button, inventaire_button, vente_button = draw_menu(screen, difficulty=difficulty)
+            jeu_button, magasin_button, difficulte_button, poche_button, inventaire_button, vente_button, changer_compte_button = draw_menu(screen, difficulty=difficulty)
         elif current_state == SHOP:
             shop_retour_button, shop_gadget_button, shop_pouvoir_button, shop_objet_button, shop_capacite_button = draw_shop(screen)
         elif current_state == SHOP_GADGET:
