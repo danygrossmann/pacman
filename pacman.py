@@ -6040,6 +6040,9 @@ def main():
                         
                         # Vérifier le clic sur le bouton "Changer de compte"
                         if changer_compte_button.collidepoint(mouse_pos):
+                            # Sauvegarder les données du compte actuel avant de quitter
+                            if current_account_index is not None:
+                                save_game_data_for_account(current_account_index, pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, accounts)
                             current_state = START_MENU
                         elif jeu_button.collidepoint(mouse_pos):
                             # Si on revient du menu après avoir cliqué sur retour, réinitialiser la partie
@@ -7632,6 +7635,9 @@ def main():
                     elif current_state == GAME:
                         # Bouton retour dans le jeu
                         if game_retour_button is not None and game_retour_button.collidepoint(mouse_pos):
+                            # Sauvegarder les données du compte actuel avant de quitter
+                            if current_account_index is not None:
+                                save_game_data_for_account(current_account_index, pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, accounts)
                             game_needs_reset = True  # Marquer que la partie doit être réinitialisée au retour
                             current_state = MENU  # Retourner au menu principal
                             # Arrêter la musique si elle est en cours
