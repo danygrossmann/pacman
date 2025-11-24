@@ -1206,26 +1206,6 @@ def draw_start_menu(screen, player_name="", selected_avatar=None, selected_font=
                 screen.blit(avatar_image, (profile_x, profile_y))
                 profile_y += avatar_size + 10
         
-        # Afficher un cercle et le nom en dessous si défini
-        if player_name:
-            # Dessiner un cercle
-            circle_radius = 30
-            # Si un avatar est affiché, centrer le cercle par rapport à l'avatar, sinon le centrer à profile_x
-            if selected_avatar:
-                circle_x = profile_x + 30  # Centrer le cercle par rapport à l'avatar (avatar_size/2 = 30)
-            else:
-                circle_x = profile_x + circle_radius  # Centrer le cercle à profile_x
-            circle_y = profile_y
-            pygame.draw.circle(screen, YELLOW, (circle_x, circle_y), circle_radius)
-            pygame.draw.circle(screen, WHITE, (circle_x, circle_y), circle_radius, 2)
-            
-            # Afficher le nom en dessous du cercle
-            font_name = pygame.font.Font(None, 36)
-            name_text = font_name.render(player_name, True, WHITE)
-            name_x = circle_x - name_text.get_width() // 2  # Centrer le texte sous le cercle
-            name_y = circle_y + circle_radius + 10
-            screen.blit(name_text, (name_x, name_y))
-            profile_y += circle_radius * 2 + 50  # Espacement pour le cercle et le texte
     
     # Bouton "+" au centre
     font_button = pygame.font.Font(None, 120)
@@ -1240,7 +1220,7 @@ def draw_start_menu(screen, player_name="", selected_avatar=None, selected_font=
     
     return plus_button
 
-def draw_customization_menu(screen):
+def draw_customization_menu(screen, player_name="", selected_avatar=None, selected_font=None):
     """Dessine le menu de personnalisation avec les boutons Font et Avatar"""
     screen.fill(BLACK)
     
@@ -1249,6 +1229,85 @@ def draw_customization_menu(screen):
     title_text = font_title.render("PERSONNALISATION", True, YELLOW)
     title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 100))
     screen.blit(title_text, title_rect)
+    
+    # Afficher un cercle et le nom en dessous si défini
+    if player_name:
+        # Zone de profil en haut à gauche
+        profile_y = 200
+        profile_x = 50
+        
+        # Afficher la police en arrière-plan (derrière l'avatar) si sélectionnée
+        if selected_font:
+            font_image = None
+            if selected_font == "font1":
+                font_paths = ["font tout bleu.png", "font_tout_bleu.png", "font.png"]
+            elif selected_font == "font2":
+                font_paths = ["font arc en ciel.png", "font_arc_en_ciel.png"]
+            elif selected_font == "font3":
+                font_paths = ["tout pleins de couleur.png", "carré carré.png"]
+            else:
+                font_paths = []
+            
+            for path in font_paths:
+                if os.path.exists(path):
+                    try:
+                        font_image = pygame.image.load(path)
+                        break
+                    except:
+                        continue
+            
+            if font_image:
+                # Afficher la police en arrière-plan, légèrement plus grande et décalée
+                font_size = 80
+                font_image = pygame.transform.scale(font_image, (font_size, font_size))
+                # Centrer la police derrière l'avatar (avatar sera à 60x60, donc on centre la police de 80x80)
+                font_offset_x = profile_x - (font_size - 60) // 2
+                font_offset_y = profile_y - (font_size - 60) // 2
+                screen.blit(font_image, (font_offset_x, font_offset_y))
+        
+        # Afficher l'avatar si sélectionné (par-dessus la police)
+        if selected_avatar:
+            avatar_image = None
+            if selected_avatar == "avatar1":
+                avatar_paths = ["avatar.png", "image-t26edcoUjiXQ72uQKAB3R(2).png", "avatar.jpg", "avatar.jpeg", "cat_ghost.png", "cat_ghost.jpg"]
+            elif selected_avatar == "avatar2":
+                avatar_paths = ["image-j7dL7RMkwuA252pmY6W50(2).png"]
+            elif selected_avatar == "avatar3":
+                avatar_paths = ["image-1uA5ykn6ZPDhIyRHwCxym.webp"]
+            else:
+                avatar_paths = []
+            
+            for path in avatar_paths:
+                if os.path.exists(path):
+                    try:
+                        avatar_image = pygame.image.load(path)
+                        break
+                    except:
+                        continue
+            
+            if avatar_image:
+                avatar_size = 60
+                avatar_image = pygame.transform.scale(avatar_image, (avatar_size, avatar_size))
+                screen.blit(avatar_image, (profile_x, profile_y))
+                profile_y += avatar_size + 10
+        
+        # Dessiner un cercle
+        circle_radius = 30
+        # Si un avatar est affiché, centrer le cercle par rapport à l'avatar, sinon le centrer à profile_x
+        if selected_avatar:
+            circle_x = profile_x + 30  # Centrer le cercle par rapport à l'avatar (avatar_size/2 = 30)
+        else:
+            circle_x = profile_x + circle_radius  # Centrer le cercle à profile_x
+        circle_y = profile_y
+        pygame.draw.circle(screen, YELLOW, (circle_x, circle_y), circle_radius)
+        pygame.draw.circle(screen, WHITE, (circle_x, circle_y), circle_radius, 2)
+        
+        # Afficher le nom en dessous du cercle
+        font_name = pygame.font.Font(None, 36)
+        name_text = font_name.render(player_name, True, WHITE)
+        name_x = circle_x - name_text.get_width() // 2  # Centrer le texte sous le cercle
+        name_y = circle_y + circle_radius + 10
+        screen.blit(name_text, (name_x, name_y))
     
     # Boutons
     font_button = pygame.font.Font(None, 48)
@@ -9461,7 +9520,7 @@ def main():
         if current_state == START_MENU:
             start_plus_button = draw_start_menu(screen, player_name, selected_avatar, selected_font)
         elif current_state == CUSTOMIZATION_MENU:
-            customization_retour_button, customization_font_button, customization_avatar_button, customization_nom_button = draw_customization_menu(screen)
+            customization_retour_button, customization_font_button, customization_avatar_button, customization_nom_button = draw_customization_menu(screen, player_name, selected_avatar, selected_font)
         elif current_state == NAME_MENU:
             name_retour_button, name_input_rect = draw_name_menu(screen, player_name, name_input_active)
         elif current_state == FONT_MENU:
