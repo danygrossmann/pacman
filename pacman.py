@@ -5408,44 +5408,59 @@ def draw_poche(screen, crown_poche=0, jeton_poche=0):
     
     return retour_button
 
-def save_game_data(pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore):
-    """Sauvegarde toutes les données du jeu dans un fichier JSON"""
-    save_data = {
-        'pouvoir_items': pouvoir_items,
-        'gadget_items': gadget_items,
-        'objet_items': objet_items,
-        'capacite_items': capacite_items,
-        'inventaire_items': inventaire_items,
-        'jeton_poche': jeton_poche,
-        'crown_poche': crown_poche,
-        'bon_marche_ameliore': bon_marche_ameliore
-    }
+def save_accounts_data(accounts):
+    """Sauvegarde tous les comptes dans un fichier JSON"""
     try:
-        with open('pacman_save.json', 'w', encoding='utf-8') as f:
-            json.dump(save_data, f, ensure_ascii=False, indent=2)
+        with open('pacman_accounts.json', 'w', encoding='utf-8') as f:
+            json.dump(accounts, f, ensure_ascii=False, indent=2)
     except Exception as e:
-        print(f"Erreur lors de la sauvegarde: {e}")
+        print(f"Erreur lors de la sauvegarde des comptes: {e}")
 
-def load_game_data():
-    """Charge les données du jeu depuis un fichier JSON"""
-    save_file = 'pacman_save.json'
+def load_accounts_data():
+    """Charge tous les comptes depuis un fichier JSON"""
+    save_file = 'pacman_accounts.json'
     if os.path.exists(save_file):
         try:
             with open(save_file, 'r', encoding='utf-8') as f:
-                save_data = json.load(f)
-                return (
-                    save_data.get('pouvoir_items', []),
-                    save_data.get('gadget_items', []),
-                    save_data.get('objet_items', []),
-                    save_data.get('capacite_items', []),
-                    save_data.get('inventaire_items', {}),
-                    save_data.get('jeton_poche', 0),
-                    save_data.get('crown_poche', 0),
-                    save_data.get('bon_marche_ameliore', False)
-                )
+                accounts = json.load(f)
+                return accounts if isinstance(accounts, list) else []
         except Exception as e:
-            print(f"Erreur lors du chargement: {e}")
-            return [], [], [], [], {}, 0, 0, False
+            print(f"Erreur lors du chargement des comptes: {e}")
+            return []
+    return []
+
+def save_game_data_for_account(account_index, pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, accounts_list=None):
+    """Sauvegarde les données de jeu d'un compte spécifique"""
+    if accounts_list is None:
+        accounts_list = load_accounts_data()
+    if 0 <= account_index < len(accounts_list):
+        accounts_list[account_index]['game_data'] = {
+            'pouvoir_items': pouvoir_items,
+            'gadget_items': gadget_items,
+            'objet_items': objet_items,
+            'capacite_items': capacite_items,
+            'inventaire_items': inventaire_items,
+            'jeton_poche': jeton_poche,
+            'crown_poche': crown_poche,
+            'bon_marche_ameliore': bon_marche_ameliore
+        }
+        save_accounts_data(accounts_list)
+
+def load_game_data_for_account(account_index):
+    """Charge les données de jeu d'un compte spécifique"""
+    accounts = load_accounts_data()
+    if 0 <= account_index < len(accounts) and 'game_data' in accounts[account_index]:
+        game_data = accounts[account_index]['game_data']
+        return (
+            game_data.get('pouvoir_items', []),
+            game_data.get('gadget_items', []),
+            game_data.get('objet_items', []),
+            game_data.get('capacite_items', []),
+            game_data.get('inventaire_items', {}),
+            game_data.get('jeton_poche', 0),
+            game_data.get('crown_poche', 0),
+            game_data.get('bon_marche_ameliore', False)
+        )
     return [], [], [], [], {}, 0, 0, False
 
 def main():
@@ -5505,19 +5520,15 @@ def main():
     last_ghost_time = 0  # Timer depuis le dernier fantôme mangé (en frames)
     difficulty = None  # Difficulté choisie ("facile", "moyen", "difficile")
     
-    # Charger les données sauvegardées
-    pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items_loaded, jeton_poche, crown_poche, bon_marche_ameliore = load_game_data()
-    
-    # Si pas de sauvegarde, initialiser avec des valeurs par défaut
-    if not pouvoir_items and not gadget_items and not objet_items and not capacite_items and jeton_poche == 0 and crown_poche == 0:
-        pouvoir_items = []  # Liste des items de pouvoir achetés
-        gadget_items = []  # Liste des items de gadget achetés
-        capacite_items = []  # Liste des items de capacité achetés
-        objet_items = []  # Liste des items d'objet achetés
-        inventaire_items_loaded = {}  # Dictionnaire des items dans l'inventaire {slot_name: item_data}
-        jeton_poche = 0
-        crown_poche = 0
-        bon_marche_ameliore = False
+    # Initialiser les données de jeu (seront chargées quand un compte est sélectionné)
+    pouvoir_items = []  # Liste des items de pouvoir achetés
+    gadget_items = []  # Liste des items de gadget achetés
+    capacite_items = []  # Liste des items de capacité achetés
+    objet_items = []  # Liste des items d'objet achetés
+    inventaire_items_loaded = {}  # Dictionnaire des items dans l'inventaire {slot_name: item_data}
+    jeton_poche = 0
+    crown_poche = 0
+    bon_marche_ameliore = False
     
     inventaire_items = inventaire_items_loaded.copy() if inventaire_items_loaded else {}  # Dictionnaire des items dans l'inventaire {slot_name: item_data}
     jeton_count = 0  # Compteur de jetons gagnés pendant le jeu (temporaires)
@@ -5601,7 +5612,7 @@ def main():
     vente_scroll_offset = 0
     
     # Variables pour les comptes multiples
-    accounts = []  # Liste de comptes : [{"player_name": "", "selected_avatar": None, "selected_font": None}, ...]
+    accounts = load_accounts_data()  # Charger les comptes sauvegardés
     current_account_index = None  # Index du compte actuellement sélectionné
     creating_new_account = False  # Si on est en train de créer un nouveau compte
     
@@ -5678,6 +5689,8 @@ def main():
                                 player_name = account.get('player_name', '')
                                 selected_avatar = account.get('selected_avatar')
                                 selected_font = account.get('selected_font')
+                                # Charger les données de jeu de ce compte
+                                pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items_loaded, jeton_poche, crown_poche, bon_marche_ameliore = load_game_data_for_account(current_account_index)
                                 # Lancer le jeu
                                 current_state = MENU
                                 account_clicked = True
@@ -5716,10 +5729,24 @@ def main():
                             new_account = {
                                 'player_name': player_name,
                                 'selected_avatar': selected_avatar,
-                                'selected_font': selected_font
+                                'selected_font': selected_font,
+                                'game_data': {
+                                    'pouvoir_items': [],
+                                    'gadget_items': [],
+                                    'objet_items': [],
+                                    'capacite_items': [],
+                                    'inventaire_items': {},
+                                    'jeton_poche': 0,
+                                    'crown_poche': 0,
+                                    'bon_marche_ameliore': False
+                                }
                             }
                             accounts.append(new_account)
                             current_account_index = len(accounts) - 1
+                            # Charger les données de jeu du nouveau compte
+                            pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items_loaded, jeton_poche, crown_poche, bon_marche_ameliore = load_game_data_for_account(current_account_index)
+                            # Sauvegarder les comptes
+                            save_accounts_data(accounts)
                             # Réinitialiser pour un nouveau compte si nécessaire
                             creating_new_account = False
                             player_name = ""
@@ -9960,7 +9987,8 @@ def main():
             clock.tick(30)  # FPS constant pour le menu
     
     # Sauvegarder toutes les données avant de quitter
-    save_game_data(pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore)
+    if current_account_index is not None:
+        save_game_data_for_account(current_account_index, pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, accounts)
     
     pygame.quit()
     sys.exit()
