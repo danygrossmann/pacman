@@ -7473,7 +7473,7 @@ def main():
                         # Bouton retour dans le jeu
                         if game_retour_button is not None and game_retour_button.collidepoint(mouse_pos):
                             game_needs_reset = True  # Marquer que la partie doit être réinitialisée au retour
-                            current_state = MENU
+                            current_state = START_MENU  # Retourner au menu de sélection des comptes
                             # Arrêter la musique si elle est en cours
                             if music_playing:
                                 pygame.mixer.music.stop()
@@ -9677,6 +9677,15 @@ def main():
             # Dessiner le jeu
             screen.fill(BLACK)
             draw_maze(screen, maze, ice_tiles, fire_tiles)
+            
+            # Bouton pour revenir au menu de sélection des comptes (en haut à droite)
+            retour_menu_button = pygame.Rect(WINDOW_WIDTH - 120, 10, 110, 40)
+            pygame.draw.rect(screen, RED, retour_menu_button)
+            pygame.draw.rect(screen, WHITE, retour_menu_button, 2)
+            font_retour_menu = pygame.font.Font(None, 28)
+            retour_menu_text = font_retour_menu.render("MENU", True, WHITE)
+            retour_menu_text_rect = retour_menu_text.get_rect(center=retour_menu_button.center)
+            screen.blit(retour_menu_text, retour_menu_text_rect)
             
             # Dessiner les pièges posés
             for piege_pos in pieges:
