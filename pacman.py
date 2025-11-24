@@ -5879,11 +5879,8 @@ def main():
                             # Sélectionner temporairement le troisième avatar
                             pending_avatar = "avatar3"
                     elif current_state == MENU:
-                        # Vérifier le clic sur le bouton "Changer de compte"
-                        if changer_compte_button.collidepoint(mouse_pos):
-                            current_state = START_MENU
-                        elif jeu_button.collidepoint(mouse_pos):
                         # Calculer les positions des boutons (même logique que dans draw_menu)
+                        changer_compte_button = pygame.Rect(WINDOW_WIDTH - 180, 10, 170, 35)
                         button_width = 150
                         button_height = 45
                         button_spacing = 50
@@ -5894,7 +5891,11 @@ def main():
                         poche_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 3, button_width, button_height)
                         inventaire_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 4, button_width, button_height)
                         vente_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 5, button_width, button_height)
-                        if jeu_button.collidepoint(mouse_pos):
+                        
+                        # Vérifier le clic sur le bouton "Changer de compte"
+                        if changer_compte_button.collidepoint(mouse_pos):
+                            current_state = START_MENU
+                        elif jeu_button.collidepoint(mouse_pos):
                             # Si on revient du menu après avoir cliqué sur retour, réinitialiser la partie
                             if game_needs_reset:
                                 # Réinitialiser la partie complètement
