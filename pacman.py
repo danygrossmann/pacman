@@ -1227,55 +1227,6 @@ def draw_start_menu(screen, accounts=None, current_account_index=None):
     screen.blit(plus_text, plus_text_rect)
     
     return plus_button, profile_rects
-        # Charger l'image de police
-        font_image = None
-        if selected_font == "font1":
-            font_paths = ["font tout bleu.png", "font_tout_bleu.png", "font.png"]
-        elif selected_font == "font2":
-            font_paths = ["font arc en ciel.png", "font_arc_en_ciel.png"]
-        elif selected_font == "font3":
-            font_paths = ["tout pleins de couleur.png", "carré carré.png"]
-        else:
-            font_paths = []
-        
-        for path in font_paths:
-            if os.path.exists(path):
-                try:
-                    font_image = pygame.image.load(path)
-                    break
-                except:
-                    continue
-        
-        if font_image:
-            # Créer le texte avec la police par défaut
-            font_title = pygame.font.Font(None, 72)
-            title_text = font_title.render("PACMAN", True, YELLOW)
-            title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2 - 100))
-            
-            # Créer une surface pour le texte avec l'image de police comme texture
-            text_surface = pygame.Surface(title_text.get_size(), pygame.SRCALPHA)
-            # Redimensionner l'image de police pour couvrir la surface du texte
-            font_texture = pygame.transform.scale(font_image, title_text.get_size())
-            # Appliquer l'image comme texture de fond
-            text_surface.blit(font_texture, (0, 0))
-            # Appliquer le texte par-dessus avec un masque
-            text_surface.blit(title_text, (0, 0), special_flags=pygame.BLEND_MULT)
-            screen.blit(text_surface, title_rect)
-        else:
-            # Fallback si l'image n'est pas trouvée
-            font_title = pygame.font.Font(None, 72)
-            title_text = font_title.render("PACMAN", True, YELLOW)
-            title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2 - 100))
-            screen.blit(title_text, title_rect)
-    else:
-        # Police par défaut
-        font_title = pygame.font.Font(None, 72)
-        title_text = font_title.render("PACMAN", True, YELLOW)
-        title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2 - 100))
-        screen.blit(title_text, title_rect)
-    
-    # Si le profil est complet (nom, avatar et font), afficher un rectangle cliquable
-    profile_rect = None
     if player_name and selected_avatar and selected_font:
         # Zone de profil en haut à gauche
         profile_y = 50
