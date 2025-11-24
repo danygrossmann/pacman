@@ -5790,7 +5790,7 @@ def main():
                         if font_retour_button.collidepoint(mouse_pos):
                             current_state = CUSTOMIZATION_MENU
                             pending_font = None  # Réinitialiser la sélection temporaire
-                        elif font_valider_button.collidepoint(mouse_pos):
+                        elif font_valider_button is not None and font_valider_button.collidepoint(mouse_pos):
                             # Valider la sélection temporaire
                             if pending_font is not None:
                                 selected_font = pending_font
@@ -5854,7 +5854,7 @@ def main():
                         if avatar_retour_button.collidepoint(mouse_pos):
                             current_state = CUSTOMIZATION_MENU
                             pending_avatar = None  # Réinitialiser la sélection temporaire
-                        elif avatar_valider_button.collidepoint(mouse_pos):
+                        elif avatar_valider_button is not None and avatar_valider_button.collidepoint(mouse_pos):
                             # Valider la sélection temporaire
                             if pending_avatar is not None:
                                 selected_avatar = pending_avatar
