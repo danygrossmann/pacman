@@ -1249,6 +1249,7 @@ def draw_start_menu(screen, player_name="", selected_avatar=None, selected_font=
         screen.blit(name_text, (name_x, name_y))
     
     # Bouton "+" au centre (seulement si le profil n'est pas complet)
+    plus_button = None
     if not (player_name and selected_avatar and selected_font):
         font_button = pygame.font.Font(None, 120)
         button_size = 100
@@ -1260,7 +1261,7 @@ def draw_start_menu(screen, player_name="", selected_avatar=None, selected_font=
         plus_text_rect = plus_text.get_rect(center=plus_button.center)
         screen.blit(plus_text, plus_text_rect)
     
-    return plus_button if not (player_name and selected_avatar and selected_font) else None, profile_rect
+    return plus_button, profile_rect
 
 def draw_customization_menu(screen, player_name="", selected_avatar=None, selected_font=None):
     """Dessine le menu de personnalisation avec les boutons Font et Avatar"""
