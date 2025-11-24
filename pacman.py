@@ -1108,7 +1108,36 @@ def draw_start_menu(screen, player_name="", selected_avatar=None, selected_font=
         profile_y = 120
         profile_x = 50
         
-        # Afficher l'avatar si sélectionné
+        # Afficher la police en arrière-plan (derrière l'avatar) si sélectionnée
+        if selected_font:
+            font_image = None
+            if selected_font == "font1":
+                font_paths = ["font tout bleu.png", "font_tout_bleu.png", "font.png"]
+            elif selected_font == "font2":
+                font_paths = ["font arc en ciel.png", "font_arc_en_ciel.png"]
+            elif selected_font == "font3":
+                font_paths = ["tout pleins de couleur.png", "carré carré.png"]
+            else:
+                font_paths = []
+            
+            for path in font_paths:
+                if os.path.exists(path):
+                    try:
+                        font_image = pygame.image.load(path)
+                        break
+                    except:
+                        continue
+            
+            if font_image:
+                # Afficher la police en arrière-plan, légèrement plus grande et décalée
+                font_size = 80
+                font_image = pygame.transform.scale(font_image, (font_size, font_size))
+                # Centrer la police derrière l'avatar (avatar sera à 60x60, donc on centre la police de 80x80)
+                font_offset_x = profile_x - (font_size - 60) // 2
+                font_offset_y = profile_y - (font_size - 60) // 2
+                screen.blit(font_image, (font_offset_x, font_offset_y))
+        
+        # Afficher l'avatar si sélectionné (par-dessus la police)
         if selected_avatar:
             avatar_image = None
             if selected_avatar == "avatar1":
@@ -1140,31 +1169,6 @@ def draw_start_menu(screen, player_name="", selected_avatar=None, selected_font=
             name_text = font_name.render(player_name, True, WHITE)
             screen.blit(name_text, (profile_x, profile_y))
             profile_y += 40
-        
-        # Afficher la police si sélectionnée
-        if selected_font:
-            font_image = None
-            if selected_font == "font1":
-                font_paths = ["font tout bleu.png", "font_tout_bleu.png", "font.png"]
-            elif selected_font == "font2":
-                font_paths = ["font arc en ciel.png", "font_arc_en_ciel.png"]
-            elif selected_font == "font3":
-                font_paths = ["tout pleins de couleur.png", "carré carré.png"]
-            else:
-                font_paths = []
-            
-            for path in font_paths:
-                if os.path.exists(path):
-                    try:
-                        font_image = pygame.image.load(path)
-                        break
-                    except:
-                        continue
-            
-            if font_image:
-                font_size = 40
-                font_image = pygame.transform.scale(font_image, (font_size, font_size))
-                screen.blit(font_image, (profile_x, profile_y))
     
     # Bouton "+" au centre
     font_button = pygame.font.Font(None, 120)
