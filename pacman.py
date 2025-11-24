@@ -1245,10 +1245,10 @@ def draw_start_menu(screen, player_name="", selected_avatar=None, selected_font=
         
         screen.blit(name_text, (name_x, name_y))
     
-    # Bouton "+" au centre (seulement si le profil n'est pas complet)
+    # Bouton "+" au centre (seulement si aucun élément n'est choisi)
     plus_button = None
-    # Ne pas afficher le bouton "+" si le compte est créé (tous les éléments sont choisis)
-    if not (player_name and selected_avatar and selected_font):
+    # Ne pas afficher le bouton "+" si au moins un élément est choisi
+    if not (player_name or selected_avatar or selected_font):
         font_button = pygame.font.Font(None, 120)
         button_size = 100
         plus_button = pygame.Rect(WINDOW_WIDTH//2 - button_size//2, WINDOW_HEIGHT//2, button_size, button_size)
