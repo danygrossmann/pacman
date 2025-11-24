@@ -5690,8 +5690,8 @@ def main():
                     mouse_pos = event.pos
                     
                     if current_state == START_MENU:
-                        # Vérifier le clic sur le rectangle de profil si le profil est complet
-                        if player_name and selected_avatar and selected_font:
+                        # Vérifier le clic sur le rectangle de profil si au moins un élément est choisi
+                        if player_name or selected_avatar or selected_font:
                             # Calculer la position du rectangle de profil (même logique que dans draw_start_menu)
                             profile_y = WINDOW_HEIGHT//2 + 50
                             profile_x = WINDOW_WIDTH//2
