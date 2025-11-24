@@ -1092,6 +1092,66 @@ def start_game_with_difficulty(difficulty, inventaire_items, capacite_items, inv
             bombe_active, pieges, portal1_pos, portal2_pos, portal_use_count, mur_pos, mur_use_count,
             gadget_use_count, has_indigestion, indigestion_timer)
 
+def draw_delete_confirmation(screen, step=1, account_name=""):
+    """Dessine la boîte de dialogue de confirmation de suppression"""
+    # Fond semi-transparent
+    overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT))
+    overlay.set_alpha(180)
+    overlay.fill(BLACK)
+    screen.blit(overlay, (0, 0))
+    
+    # Boîte de dialogue
+    dialog_width = 500
+    dialog_height = 200
+    dialog_x = (WINDOW_WIDTH - dialog_width) // 2
+    dialog_y = (WINDOW_HEIGHT - dialog_height) // 2
+    dialog_rect = pygame.Rect(dialog_x, dialog_y, dialog_width, dialog_height)
+    
+    # Fond de la boîte
+    pygame.draw.rect(screen, (50, 50, 50), dialog_rect)
+    pygame.draw.rect(screen, WHITE, dialog_rect, 3)
+    
+    # Texte de la question
+    font_question = pygame.font.Font(None, 36)
+    if step == 1:
+        question_text = font_question.render("Voulez-vous supprimer ce compte ?", True, WHITE)
+    else:
+        question_text = font_question.render("Vous allez supprimer ce compte", True, WHITE)
+    question_rect = question_text.get_rect(center=(dialog_x + dialog_width // 2, dialog_y + 50))
+    screen.blit(question_text, question_rect)
+    
+    # Nom du compte
+    if account_name:
+        font_name = pygame.font.Font(None, 28)
+        name_text = font_name.render(f"({account_name})", True, YELLOW)
+        name_rect = name_text.get_rect(center=(dialog_x + dialog_width // 2, dialog_y + 90))
+        screen.blit(name_text, name_rect)
+    
+    # Boutons Oui et Non
+    button_width = 100
+    button_height = 40
+    button_spacing = 20
+    
+    oui_button = pygame.Rect(dialog_x + dialog_width // 2 - button_width - button_spacing // 2, dialog_y + 130, button_width, button_height)
+    non_button = pygame.Rect(dialog_x + dialog_width // 2 + button_spacing // 2, dialog_y + 130, button_width, button_height)
+    
+    # Bouton Oui (rouge)
+    pygame.draw.rect(screen, RED, oui_button)
+    pygame.draw.rect(screen, WHITE, oui_button, 2)
+    font_button = pygame.font.Font(None, 32)
+    oui_text = font_button.render("OUI", True, WHITE)
+    oui_text_rect = oui_text.get_rect(center=oui_button.center)
+    screen.blit(oui_text, oui_text_rect)
+    
+    # Bouton Non (vert)
+    pygame.draw.rect(screen, (0, 150, 0), non_button)
+    pygame.draw.rect(screen, WHITE, non_button, 2)
+    non_text = font_button.render("NON", True, WHITE)
+    non_text_rect = non_text.get_rect(center=non_button.center)
+    screen.blit(non_text, non_text_rect)
+    
+    return oui_button, non_button
+
 def draw_start_menu(screen, accounts=None, current_account_index=None):
     """Dessine l'écran de démarrage avec les comptes créés et un bouton +"""
     if accounts is None:
@@ -5621,6 +5681,13 @@ def main():
     current_account_index = None  # Index du compte actuellement sélectionné
     creating_new_account = False  # Si on est en train de créer un nouveau compte
     
+    # Variables pour la suppression de compte
+    account_long_press_timer = 0  # Timer pour détecter l'appui long
+    account_long_press_index = None  # Index du compte sur lequel on maintient le clic
+    mouse_button_down = False  # Si le bouton de la souris est enfoncé
+    delete_confirmation_step = 0  # 0 = pas de confirmation, 1 = première confirmation, 2 = deuxième confirmation
+    account_to_delete = None  # Index du compte à supprimer
+    
     # Variables pour le menu nom (pour la création/édition de compte)
     player_name = ""  # Nom du joueur
     name_input_active = False  # Si le champ de texte est actif
@@ -5682,22 +5749,15 @@ def main():
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # Clic gauche
                     mouse_pos = event.pos
+                    mouse_button_down = True
                     
-                    if current_state == START_MENU:
-                        # Vérifier le clic sur les comptes existants
+                    if current_state == START_MENU and delete_confirmation_step == 0:
+                        # Vérifier si on clique sur un compte pour commencer l'appui long
                         account_clicked = False
                         for profile_rect, account_idx in start_profile_rects:
                             if profile_rect.collidepoint(mouse_pos):
-                                # Sélectionner ce compte
-                                current_account_index = account_idx
-                                account = accounts[account_idx]
-                                player_name = account.get('player_name', '')
-                                selected_avatar = account.get('selected_avatar')
-                                selected_font = account.get('selected_font')
-                                # Charger les données de jeu de ce compte
-                                pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items_loaded, jeton_poche, crown_poche, bon_marche_ameliore = load_game_data_for_account(current_account_index)
-                                # Lancer le jeu
-                                current_state = MENU
+                                account_long_press_index = account_idx
+                                account_long_press_timer = 0
                                 account_clicked = True
                                 break
                         
@@ -5711,6 +5771,60 @@ def main():
                             pending_font = None
                             pending_avatar = None
                             current_state = CUSTOMIZATION_MENU
+                    elif current_state == START_MENU and delete_confirmation_step > 0:
+                        # Gérer les clics sur les boutons de confirmation
+                        # Calculer les positions des boutons (même logique que dans draw_delete_confirmation)
+                        dialog_width = 500
+                        dialog_height = 200
+                        dialog_x = (WINDOW_WIDTH - dialog_width) // 2
+                        dialog_y = (WINDOW_HEIGHT - dialog_height) // 2
+                        button_width = 100
+                        button_height = 40
+                        button_spacing = 20
+                        oui_button = pygame.Rect(dialog_x + dialog_width // 2 - button_width - button_spacing // 2, dialog_y + 130, button_width, button_height)
+                        non_button = pygame.Rect(dialog_x + dialog_width // 2 + button_spacing // 2, dialog_y + 130, button_width, button_height)
+                        
+                        if oui_button.collidepoint(mouse_pos):
+                            if delete_confirmation_step == 1:
+                                # Première confirmation : passer à la deuxième
+                                delete_confirmation_step = 2
+                            elif delete_confirmation_step == 2:
+                                # Deuxième confirmation : supprimer le compte
+                                if account_to_delete is not None and account_to_delete < len(accounts):
+                                    accounts.pop(account_to_delete)
+                                    save_accounts_data(accounts)
+                                    # Réinitialiser les variables
+                                    delete_confirmation_step = 0
+                                    account_to_delete = None
+                                    account_long_press_index = None
+                                    account_long_press_timer = 0
+                        elif non_button.collidepoint(mouse_pos):
+                            # Annuler la suppression
+                            delete_confirmation_step = 0
+                            account_to_delete = None
+                            account_long_press_index = None
+                            account_long_press_timer = 0
+            elif event.type == pygame.MOUSEBUTTONUP:
+                if event.button == 1:  # Relâchement du clic gauche
+                    mouse_pos = event.pos
+                    mouse_button_down = False
+                    
+                    if current_state == START_MENU and delete_confirmation_step == 0:
+                        # Si on relâche avant le temps d'appui long, c'est un clic normal
+                        if account_long_press_index is not None and account_long_press_timer < 60:  # Moins de 1 seconde (60 frames à 60 FPS)
+                            # Clic normal : sélectionner le compte
+                            current_account_index = account_long_press_index
+                            account = accounts[account_long_press_index]
+                            player_name = account.get('player_name', '')
+                            selected_avatar = account.get('selected_avatar')
+                            selected_font = account.get('selected_font')
+                            # Charger les données de jeu de ce compte
+                            pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items_loaded, jeton_poche, crown_poche, bon_marche_ameliore = load_game_data_for_account(current_account_index)
+                            # Lancer le jeu
+                            current_state = MENU
+                        # Réinitialiser le timer
+                        account_long_press_index = None
+                        account_long_press_timer = 0
                     elif current_state == CUSTOMIZATION_MENU:
                         # Calculer les positions des boutons (même logique que dans draw_customization_menu)
                         button_width = 200
@@ -9675,6 +9789,19 @@ def main():
         # Dessiner selon l'état actuel
         if current_state == START_MENU:
             start_plus_button, start_profile_rects = draw_start_menu(screen, accounts, current_account_index)
+            
+            # Gérer l'appui long pour la suppression
+            if mouse_button_down and account_long_press_index is not None and delete_confirmation_step == 0:
+                account_long_press_timer += 1
+                # Si on maintient le clic pendant 60 frames (1 seconde à 60 FPS)
+                if account_long_press_timer >= 60:
+                    delete_confirmation_step = 1
+                    account_to_delete = account_long_press_index
+                    mouse_button_down = False  # Réinitialiser pour éviter les problèmes
+            
+            # Afficher la boîte de dialogue de confirmation si nécessaire
+            if delete_confirmation_step > 0 and account_to_delete is not None and account_to_delete < len(accounts):
+                draw_delete_confirmation(screen, delete_confirmation_step, accounts[account_to_delete].get('player_name', ''))
         elif current_state == CUSTOMIZATION_MENU:
             customization_retour_button, customization_font_button, customization_avatar_button, customization_nom_button, customization_creer_compte_button = draw_customization_menu(screen, player_name, selected_avatar, selected_font)
         elif current_state == NAME_MENU:
