@@ -1,0 +1,46 @@
+{
+  "pouvoir_items": [
+    "longue vue",
+    "double longue vue",
+    "bon repas",
+    "pas d'indigestion",
+    "bon goût",
+    "glace",
+    "skin rose",
+    "skin rouge",
+    "skin orange",
+    "skin bleu"
+  ],
+  "gadget_items": [
+    "mur",
+    "portail",
+    "explosion",
+    "vision x",
+    "bombe téléguidée",
+    "tp",
+    "piège",
+    "mort",
+    "tir",
+    "feu"
+  ],
+  "objet_items": [
+    "infra rouge",
+    "pièce mythique",
+    "flamme",
+    "coffre fort",
+    "coffre au trésor"
+  ],
+  "capacite_items": [
+    "bon marché",
+    "bon marché",
+    "bon marché",
+    "bon marché",
+    "bonbe",
+    "bonbe",
+    "bonbe"
+  ],
+  "inventaire_items": {},
+  "jeton_poche": 705,
+  "crown_poche": 3,
+  "bon_marche_ameliore": true
+}

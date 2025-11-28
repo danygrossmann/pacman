@@ -1,0 +1,18 @@
+[
+  {
+    "player_name": "l*",
+    "selected_avatar": "avatar2",
+    "selected_font": "font arc en ciel.png",
+    "trophies": [],
+    "game_data": {
+      "pouvoir_items": [],
+      "gadget_items": [],
+      "objet_items": [],
+      "capacite_items": [],
+      "inventaire_items": {},
+      "jeton_poche": 0,
+      "crown_poche": 0,
+      "bon_marche_ameliore": false
+    }
+  }
+]

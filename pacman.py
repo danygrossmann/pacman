@@ -26,6 +26,100 @@ RED = (255, 0, 0)
 WHITE = (255, 255, 255)
 DARK_BLUE = (0, 0, 150)
 
+TROPHY_FIRST_LEVEL = "premier_niveau"
+TOTAL_TROPHY_COUNT = 1
+
+# Configuration des images de font
+FONT_IMAGE_EXTENSIONS = ('.png', '.jpg', '.jpeg', '.webp')
+FONT_IMAGE_EXCLUDE = {
+    "avatar.png",
+    "avatar pacman simple.png",
+    "image-1ua5ykn6zpdhiyrhwcxym.webp",
+    "image-j7dl7rmkwua252pmy6w50(2).png",
+    "image-t26edcoujixq72uqkab3r(2).png",
+    "avatar.jpg",
+    "avatar.jpeg",
+    "fatome_epee.png",
+    "67",
+    "67.png",
+    "67.jpg",
+    "67.jpeg",
+    "67.webp",
+    "six seveen .png"
+}
+LEGACY_FONT_MAPPINGS = {
+    "font1": ["font tout bleu.png", "font_tout_bleu.png", "font.png"],
+    "font2": ["font arc en ciel.png", "font_arc_en_ciel.png"],
+    "font3": ["tout pleins de couleur.png", "carré carré.png"]
+}
+FONT_GRID_IMAGE_SIZE = 80
+FONT_GRID_SPACING = 90
+FONT_GRID_START_Y = 120
+
+def normalize_font_selection(font_key):
+    """Normalise le nom de font en tenant compte des anciennes valeurs."""
+    if not font_key:
+        return None
+    if font_key in LEGACY_FONT_MAPPINGS:
+        for candidate in LEGACY_FONT_MAPPINGS[font_key]:
+            if os.path.exists(candidate):
+                return candidate
+        return LEGACY_FONT_MAPPINGS[font_key][0]
+    return font_key
+
+def ensure_account_structure(account):
+    """S'assure que la structure du compte contient toutes les clés nécessaires."""
+    if 'trophies' not in account or not isinstance(account['trophies'], list):
+        account['trophies'] = []
+    # Normaliser les anciens avatars qui utilisaient l'image 2 (désormais supprimée)
+    if account.get('selected_avatar') == 'avatar2':
+        account['selected_avatar'] = 'avatar1'
+    return account
+
+def get_available_font_images():
+    """Retourne la liste triée des images disponibles pour les fonts."""
+    font_files = []
+    for entry in sorted(os.listdir(".")):
+        entry_path = os.path.join(".", entry)
+        if not os.path.isfile(entry_path):
+            continue
+        entry_lower = entry.lower()
+        if not entry_lower.endswith(FONT_IMAGE_EXTENSIONS):
+            continue
+        # Exclure les images dans FONT_IMAGE_EXCLUDE, les avatars, les images avec "67", et les images avec "(2)"
+        if entry_lower in FONT_IMAGE_EXCLUDE or entry_lower.startswith("avatar") or entry_lower.startswith("67") or "(2)" in entry_lower:
+            continue
+        font_files.append(entry)
+    return font_files
+
+def build_font_option_rects(font_files, small_size=FONT_GRID_IMAGE_SIZE, spacing=FONT_GRID_SPACING, start_y=FONT_GRID_START_Y):
+    """Construit les rectangles utilisés pour positionner les images de font."""
+    rects = []
+    items_per_row = max(1, (WINDOW_WIDTH - 40) // spacing)
+    idx = 0
+    current_y = start_y
+    while idx < len(font_files):
+        row_files = font_files[idx:idx + items_per_row]
+        row_count = len(row_files)
+        row_total_width = row_count * small_size + max(0, row_count - 1) * (spacing - small_size)
+        row_start_x = max(10, (WINDOW_WIDTH - row_total_width) // 2)
+        for col, font_file in enumerate(row_files):
+            rect = pygame.Rect(row_start_x + col * spacing, current_y, small_size, small_size)
+            rects.append((rect, font_file))
+        current_y += spacing
+        idx += items_per_row
+    return rects
+
+def load_font_surface(font_key):
+    """Charge la surface correspondant à la font sélectionnée."""
+    font_path = normalize_font_selection(font_key)
+    if font_path and os.path.exists(font_path):
+        try:
+            return pygame.image.load(font_path)
+        except Exception:
+            return None
+    return None
+
 # Labyrinthes (1 = mur, 0 = chemin, 2 = point, 3 = pacgomme)
 MAZE_1 = [
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
@@ -1132,8 +1226,15 @@ def draw_delete_confirmation(screen, step=1, account_name=""):
     button_height = 40
     button_spacing = 20
     
-    oui_button = pygame.Rect(dialog_x + dialog_width // 2 - button_width - button_spacing // 2, dialog_y + 130, button_width, button_height)
-    non_button = pygame.Rect(dialog_x + dialog_width // 2 + button_spacing // 2, dialog_y + 130, button_width, button_height)
+    # Inverser les positions lors de la deuxième vérification
+    if step == 1:
+        # Première vérification : OUI à gauche, NON à droite
+        oui_button = pygame.Rect(dialog_x + dialog_width // 2 - button_width - button_spacing // 2, dialog_y + 130, button_width, button_height)
+        non_button = pygame.Rect(dialog_x + dialog_width // 2 + button_spacing // 2, dialog_y + 130, button_width, button_height)
+    else:
+        # Deuxième vérification : OUI à droite, NON à gauche (inversé)
+        non_button = pygame.Rect(dialog_x + dialog_width // 2 - button_width - button_spacing // 2, dialog_y + 130, button_width, button_height)
+        oui_button = pygame.Rect(dialog_x + dialog_width // 2 + button_spacing // 2, dialog_y + 130, button_width, button_height)
     
     # Bouton Oui (rouge)
     pygame.draw.rect(screen, RED, oui_button)
@@ -1152,12 +1253,24 @@ def draw_delete_confirmation(screen, step=1, account_name=""):
     
     return oui_button, non_button
 
-def draw_start_menu(screen, accounts=None, current_account_index=None):
+def draw_start_menu(screen, accounts=None, current_account_index=None, scroll_offset=0):
     """Dessine l'écran de démarrage avec les comptes créés et un bouton +"""
     if accounts is None:
         accounts = []
     
     screen.fill(BLACK)
+    
+    # Afficher le compteur de trophées total en haut de l'écran
+    # Compter tous les trophées uniques gagnés (chaque trophée ne peut être gagné qu'une fois)
+    all_trophies = set()
+    for account in accounts:
+        for trophy in account.get('trophies', []):
+            all_trophies.add(trophy)
+    total_trophies = len(all_trophies)
+    font_trophy_header = pygame.font.Font(None, 48)
+    trophy_header_text = font_trophy_header.render(f"Trophées: {total_trophies}/{TOTAL_TROPHY_COUNT}", True, YELLOW)
+    trophy_header_rect = trophy_header_text.get_rect(center=(WINDOW_WIDTH//2, 30))
+    screen.blit(trophy_header_text, trophy_header_rect)
     
     # Titre
     font_title = pygame.font.Font(None, 72)
@@ -1171,33 +1284,27 @@ def draw_start_menu(screen, accounts=None, current_account_index=None):
     start_y = 50
     circle_radius = 50
     spacing = 120  # Espacement horizontal entre les comptes
+    line_height = circle_radius * 2 + 80  # Hauteur d'une ligne (cercle + nom + espacement)
+    
+    current_x = start_x
+    current_y = start_y
     
     for i, account in enumerate(accounts):
         if account.get('player_name') and account.get('selected_avatar') and account.get('selected_font'):
-            profile_x = start_x + i * spacing
-            profile_y = start_y
+            # Vérifier si le compte dépasse de l'écran par la droite
+            if current_x + circle_radius * 2 > WINDOW_WIDTH - 20:
+                # Passer à la ligne suivante
+                current_x = start_x
+                current_y += line_height
+            
+            profile_x = current_x
+            profile_y = current_y - scroll_offset
             circle_x = profile_x + circle_radius
             circle_y = profile_y + circle_radius
             
             # Charger l'image de police pour le fond du cercle
-            font_image = None
             selected_font = account.get('selected_font')
-            if selected_font == "font1":
-                font_paths = ["font tout bleu.png", "font_tout_bleu.png", "font.png"]
-            elif selected_font == "font2":
-                font_paths = ["font arc en ciel.png", "font_arc_en_ciel.png"]
-            elif selected_font == "font3":
-                font_paths = ["tout pleins de couleur.png", "carré carré.png"]
-            else:
-                font_paths = []
-            
-            for path in font_paths:
-                if os.path.exists(path):
-                    try:
-                        font_image = pygame.image.load(path)
-                        break
-                    except:
-                        continue
+            font_image = load_font_surface(selected_font)
             
             # Créer une surface pour le cercle avec transparence
             circle_surface = pygame.Surface((circle_radius * 2, circle_radius * 2), pygame.SRCALPHA)
@@ -1224,9 +1331,9 @@ def draw_start_menu(screen, accounts=None, current_account_index=None):
             avatar_image = None
             selected_avatar = account.get('selected_avatar')
             if selected_avatar == "avatar1":
-                avatar_paths = ["avatar.png", "image-t26edcoUjiXQ72uQKAB3R(2).png", "avatar.jpg", "avatar.jpeg", "cat_ghost.png", "cat_ghost.jpg"]
+                avatar_paths = ["fatome_epee.png", "avatar.png", "image-t26edcoUjiXQ72uQKAB3R(2).png", "avatar.jpg", "avatar.jpeg"]
             elif selected_avatar == "avatar2":
-                avatar_paths = ["image-j7dL7RMkwuA252pmY6W50(2).png"]
+                avatar_paths = ["fatome_epee.png", "avatar.png", "image-t26edcoUjiXQ72uQKAB3R(2).png", "avatar.jpg", "avatar.jpeg"]
             elif selected_avatar == "avatar3":
                 avatar_paths = ["image-1uA5ykn6ZPDhIyRHwCxym.webp"]
             else:
@@ -1264,21 +1371,37 @@ def draw_start_menu(screen, accounts=None, current_account_index=None):
             profile_rects.append((profile_rect, i))  # Stocker l'index du compte avec le rectangle
             
             screen.blit(name_text, (name_x, name_y))
+            
+            # Mettre à jour la position pour le prochain compte
+            current_x += spacing
     
     # Bouton "+" après le dernier compte (ou au début si aucun compte)
     plus_button = None
+    font_button = pygame.font.Font(None, 120)
+    button_size = 100
+    
     if len(accounts) > 0:
         # Positionner le bouton "+" après le dernier compte
-        plus_x = start_x + len(accounts) * spacing
-        plus_y = start_y
+        plus_x = current_x
+        plus_y = current_y
+        
+        # Vérifier si le bouton dépasse de l'écran
+        if plus_x + button_size > WINDOW_WIDTH - 20:
+            # Passer à la ligne suivante
+            plus_x = start_x
+            plus_y += line_height
     else:
         # Si aucun compte, positionner le bouton "+" au début
         plus_x = start_x
         plus_y = start_y
     
-    font_button = pygame.font.Font(None, 120)
-    button_size = 100
-    plus_button = pygame.Rect(plus_x, plus_y, button_size, button_size)
+    # Calculer la hauteur totale du contenu (après avoir déterminé la position finale du bouton "+")
+    total_height = plus_y + line_height
+    
+    # Appliquer le scroll_offset au bouton "+"
+    plus_y_display = plus_y - scroll_offset
+    
+    plus_button = pygame.Rect(plus_x, plus_y_display, button_size, button_size)
     pygame.draw.rect(screen, YELLOW, plus_button)
     pygame.draw.rect(screen, WHITE, plus_button, 3)
     
@@ -1286,9 +1409,9 @@ def draw_start_menu(screen, accounts=None, current_account_index=None):
     plus_text_rect = plus_text.get_rect(center=plus_button.center)
     screen.blit(plus_text, plus_text_rect)
     
-    return plus_button, profile_rects
+    return plus_button, profile_rects, total_height
 
-def draw_customization_menu(screen, player_name="", selected_avatar=None, selected_font=None):
+def draw_customization_menu(screen, player_name="", selected_avatar=None, selected_font=None, trophy_count=0):
     """Dessine le menu de personnalisation avec les boutons Font et Avatar"""
     screen.fill(BLACK)
     
@@ -1297,6 +1420,9 @@ def draw_customization_menu(screen, player_name="", selected_avatar=None, select
     title_text = font_title.render("PERSONNALISATION", True, YELLOW)
     title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 100))
     screen.blit(title_text, title_rect)
+    
+    # Rectangle de clic pour le cercle avatar (initialisé à None)
+    avatar_circle_rect = None
     
     # Afficher un cercle avec le fond de police et l'avatar à l'intérieur si défini
     if player_name:
@@ -1309,25 +1435,11 @@ def draw_customization_menu(screen, player_name="", selected_avatar=None, select
         circle_x = profile_x + circle_radius
         circle_y = profile_y + circle_radius
         
+        # Créer un rectangle de clic pour le cercle (carré qui englobe le cercle)
+        avatar_circle_rect = pygame.Rect(circle_x - circle_radius, circle_y - circle_radius, circle_radius * 2, circle_radius * 2)
+        
         # Charger l'image de police pour le fond du cercle
-        font_image = None
-        if selected_font:
-            if selected_font == "font1":
-                font_paths = ["font tout bleu.png", "font_tout_bleu.png", "font.png"]
-            elif selected_font == "font2":
-                font_paths = ["font arc en ciel.png", "font_arc_en_ciel.png"]
-            elif selected_font == "font3":
-                font_paths = ["tout pleins de couleur.png", "carré carré.png"]
-            else:
-                font_paths = []
-            
-            for path in font_paths:
-                if os.path.exists(path):
-                    try:
-                        font_image = pygame.image.load(path)
-                        break
-                    except:
-                        continue
+        font_image = load_font_surface(selected_font)
         
         # Créer une surface pour le cercle avec transparence
         circle_surface = pygame.Surface((circle_radius * 2, circle_radius * 2), pygame.SRCALPHA)
@@ -1357,9 +1469,9 @@ def draw_customization_menu(screen, player_name="", selected_avatar=None, select
         if selected_avatar:
             avatar_image = None
             if selected_avatar == "avatar1":
-                avatar_paths = ["avatar.png", "image-t26edcoUjiXQ72uQKAB3R(2).png", "avatar.jpg", "avatar.jpeg", "cat_ghost.png", "cat_ghost.jpg"]
+                avatar_paths = ["fatome_epee.png", "avatar.png", "image-t26edcoUjiXQ72uQKAB3R(2).png", "avatar.jpg", "avatar.jpeg"]
             elif selected_avatar == "avatar2":
-                avatar_paths = ["image-j7dL7RMkwuA252pmY6W50(2).png"]
+                avatar_paths = ["fatome_epee.png", "avatar.png", "image-t26edcoUjiXQ72uQKAB3R(2).png", "avatar.jpg", "avatar.jpeg"]
             elif selected_avatar == "avatar3":
                 avatar_paths = ["image-1uA5ykn6ZPDhIyRHwCxym.webp"]
             else:
@@ -1388,6 +1500,12 @@ def draw_customization_menu(screen, player_name="", selected_avatar=None, select
         name_x = circle_x - name_text.get_width() // 2  # Centrer le texte sous le cercle
         name_y = circle_y + circle_radius + 10
         screen.blit(name_text, (name_x, name_y))
+        
+        trophy_font = pygame.font.Font(None, 28)
+        trophy_text = trophy_font.render(f"Trophées: {trophy_count}/{TOTAL_TROPHY_COUNT}", True, WHITE)
+        trophy_x = circle_x - trophy_text.get_width() // 2
+        trophy_y = name_y + 30
+        screen.blit(trophy_text, (trophy_x, trophy_y))
     
     # Boutons
     font_button = pygame.font.Font(None, 48)
@@ -1439,7 +1557,7 @@ def draw_customization_menu(screen, player_name="", selected_avatar=None, select
         creer_text_rect = creer_text.get_rect(center=creer_compte_button.center)
         screen.blit(creer_text, creer_text_rect)
     
-    return retour_button, font_button_rect, avatar_button_rect, nom_button_rect, creer_compte_button
+    return retour_button, font_button_rect, avatar_button_rect, nom_button_rect, creer_compte_button, avatar_circle_rect
 
 def draw_font_menu(screen, selected_font=None, pending_font=None):
     """Dessine le menu de police avec l'image de la police"""
@@ -1451,98 +1569,26 @@ def draw_font_menu(screen, selected_font=None, pending_font=None):
     title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 80))
     screen.blit(title_text, title_rect)
     
-    # Essayer de charger les images de police
-    font_image1 = None
-    font_image2 = None
-    font_image3 = None
-    font_paths1 = ["font tout bleu.png", "font_tout_bleu.png", "font.png"]
-    font_paths2 = ["font arc en ciel.png", "font_arc_en_ciel.png"]
-    font_paths3 = ["tout pleins de couleur.png", "carré carré.png"]
+    font_files = get_available_font_images()
+    font_option_rects = build_font_option_rects(font_files)
+    normalized_selected = normalize_font_selection(selected_font)
+    normalized_pending = normalize_font_selection(pending_font)
+    active_selection = normalized_pending if pending_font is not None else normalized_selected
     
-    # Charger la première image
-    for path in font_paths1:
-        if os.path.exists(path):
-            try:
-                font_image1 = pygame.image.load(path)
-                break
-            except:
-                continue
-    
-    # Charger la deuxième image
-    for path in font_paths2:
-        if os.path.exists(path):
-            try:
-                font_image2 = pygame.image.load(path)
-                break
-            except:
-                continue
-    
-    # Charger la troisième image
-    for path in font_paths3:
-        if os.path.exists(path):
-            try:
-                font_image3 = pygame.image.load(path)
-                break
-            except:
-                continue
-    
-    # Afficher les images si elles existent
-    small_size = 80  # Taille fixe de 80x80 pixels
-    
-    # Position verticale : en dessous du titre (80 + marge)
-    img_y = 120
-    spacing = 90  # Espacement entre les images
-    
-    # Calculer la position horizontale pour centrer les images
-    total_width = 0
-    image_count = sum([1 for img in [font_image1, font_image2, font_image3] if img is not None])
-    if image_count > 0:
-        total_width = (image_count * small_size) + ((image_count - 1) * (spacing - small_size))
-        start_x = (WINDOW_WIDTH - total_width) // 2
-    else:
-        start_x = 10
-    
-    # Rectangles pour les clics
-    font_rect1 = None
-    font_rect2 = None
-    font_rect3 = None
-    
-    # Première image
-    if font_image1:
-        font_image1 = pygame.transform.scale(font_image1, (small_size, small_size))
-        img_x = start_x
-        font_rect1 = pygame.Rect(img_x, img_y, small_size, small_size)
-        screen.blit(font_image1, (img_x, img_y))
-        # Dessiner une bordure (jaune si sélectionné, blanche sinon)
-        border_color = YELLOW if (selected_font is not None and selected_font == "font1") else WHITE
-        border_width = 4 if (selected_font is not None and selected_font == "font1") else 2
-        pygame.draw.rect(screen, border_color, font_rect1, border_width)
-        start_x += spacing
-    
-    # Deuxième image
-    if font_image2:
-        font_image2 = pygame.transform.scale(font_image2, (small_size, small_size))
-        img_x = start_x
-        font_rect2 = pygame.Rect(img_x, img_y, small_size, small_size)
-        screen.blit(font_image2, (img_x, img_y))
-        # Dessiner une bordure (jaune si sélectionné, blanche sinon)
-        border_color = YELLOW if (selected_font is not None and selected_font == "font2") else WHITE
-        border_width = 4 if (selected_font is not None and selected_font == "font2") else 2
-        pygame.draw.rect(screen, border_color, font_rect2, border_width)
-        start_x += spacing
-    
-    # Troisième image
-    if font_image3:
-        font_image3 = pygame.transform.scale(font_image3, (small_size, small_size))
-        img_x = start_x
-        font_rect3 = pygame.Rect(img_x, img_y, small_size, small_size)
-        screen.blit(font_image3, (img_x, img_y))
-        # Dessiner une bordure (jaune si sélectionné, blanche sinon)
-        border_color = YELLOW if (selected_font is not None and selected_font == "font3") else WHITE
-        border_width = 4 if (selected_font is not None and selected_font == "font3") else 2
-        pygame.draw.rect(screen, border_color, font_rect3, border_width)
+    for rect, font_file in font_option_rects:
+        try:
+            font_image = pygame.image.load(font_file)
+            font_image = pygame.transform.scale(font_image, (FONT_GRID_IMAGE_SIZE, FONT_GRID_IMAGE_SIZE))
+            screen.blit(font_image, rect.topleft)
+        except Exception:
+            pygame.draw.rect(screen, WHITE, rect, 2)
+        font_identifier = normalize_font_selection(font_file)
+        is_selected = active_selection is not None and font_identifier == active_selection
+        border_color = YELLOW if is_selected else WHITE
+        border_width = 4 if is_selected else 2
+        pygame.draw.rect(screen, border_color, rect, border_width)
     # Afficher un message si aucune image n'est trouvée
-    if not font_image1 and not font_image2 and not font_image3:
+    if not font_option_rects:
         font_info = pygame.font.Font(None, 36)
         info_text = font_info.render("Images de police non trouvées", True, WHITE)
         info_rect = info_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2))
@@ -1564,7 +1610,7 @@ def draw_font_menu(screen, selected_font=None, pending_font=None):
     
     # Bouton Valider - apparaît seulement si une sélection temporaire existe
     valider_button = None
-    if pending_font is not None:
+    if normalized_pending is not None:
         valider_button = pygame.Rect(WINDOW_WIDTH - 120, WINDOW_HEIGHT - 60, 110, 50)
         pygame.draw.rect(screen, (0, 200, 0), valider_button)  # Vert
         pygame.draw.rect(screen, WHITE, valider_button, 2)
@@ -1572,7 +1618,7 @@ def draw_font_menu(screen, selected_font=None, pending_font=None):
         valider_text_rect = valider_text.get_rect(center=valider_button.center)
         screen.blit(valider_text, valider_text_rect)
     
-    return retour_button, font_rect1, font_rect2, font_rect3, valider_button
+    return retour_button, font_option_rects, valider_button
 
 def draw_name_menu(screen, player_name="", input_active=False):
     """Dessine le menu de nom avec un champ de texte"""
@@ -1657,8 +1703,8 @@ def draw_avatar_menu(screen, selected_avatar=None, pending_avatar=None):
     avatar_image1 = None
     avatar_image2 = None
     avatar_image3 = None
-    avatar_paths1 = ["avatar.png", "image-t26edcoUjiXQ72uQKAB3R(2).png", "avatar.jpg", "avatar.jpeg", "cat_ghost.png", "cat_ghost.jpg"]
-    avatar_paths2 = ["image-j7dL7RMkwuA252pmY6W50(2).png"]
+    avatar_paths1 = ["fatome_epee.png", "avatar.png", "image-t26edcoUjiXQ72uQKAB3R(2).png", "avatar.jpg", "avatar.jpeg"]
+    avatar_paths2 = []
     avatar_paths3 = ["image-1uA5ykn6ZPDhIyRHwCxym.webp"]
     
     # Charger la première image
@@ -1870,7 +1916,15 @@ def draw_menu(screen, difficulty=None):
     vente_text_rect = vente_text.get_rect(center=vente_button.center)
     screen.blit(vente_text, vente_text_rect)
     
-    return jeu_button, magasin_button, difficulte_button, poche_button, inventaire_button, vente_button, changer_compte_button
+    # Bouton Supprimer le compte (en bas, en rouge pour indiquer le danger)
+    supprimer_compte_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 6, button_width, button_height)
+    pygame.draw.rect(screen, RED, supprimer_compte_button)  # Rouge pour indiquer le danger
+    pygame.draw.rect(screen, WHITE, supprimer_compte_button, 3)
+    supprimer_text = font_button.render("SUPPRIMER", True, WHITE)
+    supprimer_text_rect = supprimer_text.get_rect(center=supprimer_compte_button.center)
+    screen.blit(supprimer_text, supprimer_text_rect)
+    
+    return jeu_button, magasin_button, difficulte_button, poche_button, inventaire_button, vente_button, changer_compte_button, supprimer_compte_button
 
 def draw_shop(screen):
     """Dessine l'écran du magasin"""
@@ -5483,7 +5537,11 @@ def load_accounts_data():
         try:
             with open(save_file, 'r', encoding='utf-8') as f:
                 accounts = json.load(f)
-                return accounts if isinstance(accounts, list) else []
+                if not isinstance(accounts, list):
+                    accounts = []
+                for account in accounts:
+                    ensure_account_structure(account)
+                return accounts
         except Exception as e:
             print(f"Erreur lors du chargement des comptes: {e}")
             return []
@@ -5584,6 +5642,9 @@ def main():
     grande_couronne_count = 0  # Compteur de grandes couronnes
     last_ghost_time = 0  # Timer depuis le dernier fantôme mangé (en frames)
     difficulty = None  # Difficulté choisie ("facile", "moyen", "difficile")
+    first_level_success_unlocked = False  # Succès "Premier niveau" déjà débloqué
+    success_notification_text = ""  # Texte du dernier succès débloqué
+    success_notification_timer = 0  # Timer d'affichage du succès (1 s = 60 frames)
     
     # Initialiser les données de jeu (seront chargées quand un compte est sélectionné)
     pouvoir_items = []  # Liste des items de pouvoir achetés
@@ -5676,6 +5737,10 @@ def main():
     # Variable pour le défilement dans l'écran de vente
     vente_scroll_offset = 0
     
+    # Variable pour le défilement dans le menu de démarrage
+    start_menu_scroll_offset = 0
+    start_menu_total_height = 0  # Hauteur totale du contenu dans le menu de démarrage
+    
     # Variables pour les comptes multiples
     accounts = load_accounts_data()  # Charger les comptes sauvegardés
     current_account_index = None  # Index du compte actuellement sélectionné
@@ -5696,8 +5761,8 @@ def main():
     selected_avatar = None  # "avatar1", "avatar2", "avatar3" ou None
     
     # Variable pour la police sélectionnée
-    selected_font = None  # "font1", "font2" ou None
-    pending_font = None  # Sélection temporaire dans le menu font
+    selected_font = None  # Nom de fichier de la font sélectionnée (ou valeur legacy)
+    pending_font = None  # Nom de fichier temporaire dans le menu font
     pending_avatar = None  # Sélection temporaire dans le menu avatar
     
     running = True
@@ -5707,8 +5772,45 @@ def main():
                 running = False
                 break
             elif event.type == pygame.MOUSEWHEEL:
+                # Gérer le défilement dans le menu de démarrage
+                if current_state == START_MENU:
+                    # Constantes utilisées dans draw_start_menu
+                    start_y = 50
+                    
+                    # Utiliser la hauteur totale calculée lors du dernier dessin
+                    # Si c'est la première frame, utiliser une estimation
+                    if start_menu_total_height == 0:
+                        start_x = 50
+                        circle_radius = 50
+                        spacing = 120
+                        line_height = circle_radius * 2 + 110
+                        
+                        # Estimer la hauteur totale
+                        num_valid_accounts = sum(1 for acc in accounts if acc.get('player_name') and acc.get('selected_avatar') and acc.get('selected_font'))
+                        if num_valid_accounts > 0:
+                            # Calculer le nombre de lignes nécessaires
+                            accounts_per_line = max(1, (WINDOW_WIDTH - start_x * 2) // spacing)
+                            num_lines = (num_valid_accounts + accounts_per_line) // accounts_per_line
+                            if (num_valid_accounts % accounts_per_line) == 0 and num_valid_accounts > 0:
+                                num_lines += 1  # Ligne pour le bouton "+"
+                            total_height = start_y + num_lines * line_height
+                        else:
+                            total_height = start_y + line_height
+                    else:
+                        total_height = start_menu_total_height
+                    
+                    # Calculer le défilement maximum
+                    visible_area_bottom = WINDOW_HEIGHT
+                    max_scroll = max(0, total_height - visible_area_bottom + start_y)
+                    
+                    # Ajuster le défilement selon la molette (event.y est positif vers le haut, négatif vers le bas)
+                    scroll_speed = 30  # Vitesse de défilement
+                    start_menu_scroll_offset += event.y * scroll_speed
+                    
+                    # Limiter le défilement
+                    start_menu_scroll_offset = max(0, min(start_menu_scroll_offset, max_scroll))
                 # Gérer le défilement dans l'écran de vente
-                if current_state == VENTE:
+                elif current_state == VENTE:
                     # Calculer le nombre total d'items
                     num_items = len(inventaire_items)
                     # Utiliser les mêmes valeurs que dans draw_vente
@@ -5771,7 +5873,7 @@ def main():
                             pending_font = None
                             pending_avatar = None
                             current_state = CUSTOMIZATION_MENU
-                    elif current_state == START_MENU and delete_confirmation_step > 0:
+                    elif (current_state == START_MENU or current_state == MENU) and delete_confirmation_step > 0:
                         # Gérer les clics sur les boutons de confirmation
                         # Calculer les positions des boutons (même logique que dans draw_delete_confirmation)
                         dialog_width = 500
@@ -5781,8 +5883,15 @@ def main():
                         button_width = 100
                         button_height = 40
                         button_spacing = 20
-                        oui_button = pygame.Rect(dialog_x + dialog_width // 2 - button_width - button_spacing // 2, dialog_y + 130, button_width, button_height)
-                        non_button = pygame.Rect(dialog_x + dialog_width // 2 + button_spacing // 2, dialog_y + 130, button_width, button_height)
+                        # Inverser les positions lors de la deuxième vérification
+                        if delete_confirmation_step == 1:
+                            # Première vérification : OUI à gauche, NON à droite
+                            oui_button = pygame.Rect(dialog_x + dialog_width // 2 - button_width - button_spacing // 2, dialog_y + 130, button_width, button_height)
+                            non_button = pygame.Rect(dialog_x + dialog_width // 2 + button_spacing // 2, dialog_y + 130, button_width, button_height)
+                        else:
+                            # Deuxième vérification : OUI à droite, NON à gauche (inversé)
+                            non_button = pygame.Rect(dialog_x + dialog_width // 2 - button_width - button_spacing // 2, dialog_y + 130, button_width, button_height)
+                            oui_button = pygame.Rect(dialog_x + dialog_width // 2 + button_spacing // 2, dialog_y + 130, button_width, button_height)
                         
                         if oui_button.collidepoint(mouse_pos):
                             if delete_confirmation_step == 1:
@@ -5798,6 +5907,10 @@ def main():
                                     account_to_delete = None
                                     account_long_press_index = None
                                     account_long_press_timer = 0
+                                    # Si on était dans MENU, retourner au menu de démarrage
+                                    if current_state == MENU:
+                                        current_account_index = None
+                                        current_state = START_MENU
                         elif non_button.collidepoint(mouse_pos):
                             # Annuler la suppression
                             delete_confirmation_step = 0
@@ -5841,14 +5954,28 @@ def main():
                         if player_name and selected_avatar and selected_font:
                             creer_compte_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 3, button_width, button_height)
                         
+                        # Calculer le rectangle du cercle avatar si un nom est défini
+                        avatar_circle_rect = None
+                        if player_name:
+                            profile_y = 200
+                            profile_x = 50
+                            circle_radius = 50
+                            circle_x = profile_x + circle_radius
+                            circle_y = profile_y + circle_radius
+                            avatar_circle_rect = pygame.Rect(circle_x - circle_radius, circle_y - circle_radius, circle_radius * 2, circle_radius * 2)
+                        
                         if retour_button.collidepoint(mouse_pos):
                             current_state = START_MENU
+                        elif avatar_circle_rect and avatar_circle_rect.collidepoint(mouse_pos):
+                            # Ouvrir le menu avatar en cliquant sur le cercle
+                            current_state = AVATAR_MENU
                         elif creer_compte_button and creer_compte_button.collidepoint(mouse_pos):
                             # Créer le compte et l'ajouter à la liste
                             new_account = {
                                 'player_name': player_name,
                                 'selected_avatar': selected_avatar,
                                 'selected_font': selected_font,
+                                'trophies': [],
                                 'game_data': {
                                     'pouvoir_items': [],
                                     'gadget_items': [],
@@ -5898,49 +6025,8 @@ def main():
                             name_input_active = False
                     elif current_state == FONT_MENU:
                         font_retour_button = pygame.Rect(10, 10, 100, 40)
-                        # Calculer les positions des images (même logique que dans draw_font_menu)
-                        small_size = 80
-                        img_y = 120
-                        spacing = 90
-                        font_image1 = None
-                        font_image2 = None
-                        font_image3 = None
-                        font_paths1 = ["font tout bleu.png", "font_tout_bleu.png", "font.png"]
-                        font_paths2 = ["font arc en ciel.png", "font_arc_en_ciel.png"]
-                        font_paths3 = ["tout pleins de couleur.png", "carré carré.png"]
-                        
-                        for path in font_paths1:
-                            if os.path.exists(path):
-                                try:
-                                    font_image1 = pygame.image.load(path)
-                                    break
-                                except:
-                                    continue
-                        for path in font_paths2:
-                            if os.path.exists(path):
-                                try:
-                                    font_image2 = pygame.image.load(path)
-                                    break
-                                except:
-                                    continue
-                        for path in font_paths3:
-                            if os.path.exists(path):
-                                try:
-                                    font_image3 = pygame.image.load(path)
-                                    break
-                                except:
-                                    continue
-                        
-                        image_count = sum([1 for img in [font_image1, font_image2, font_image3] if img is not None])
-                        if image_count > 0:
-                            total_width = (image_count * small_size) + ((image_count - 1) * (spacing - small_size))
-                            start_x = (WINDOW_WIDTH - total_width) // 2
-                        else:
-                            start_x = 10
-                        
-                        font_rect1 = pygame.Rect(start_x, img_y, small_size, small_size) if font_image1 else None
-                        font_rect2 = pygame.Rect(start_x + spacing, img_y, small_size, small_size) if font_image2 else None
-                        font_rect3 = pygame.Rect(start_x + spacing * 2, img_y, small_size, small_size) if font_image3 else None
+                        font_files = get_available_font_images()
+                        font_rects = build_font_option_rects(font_files)
                         
                         if font_retour_button.collidepoint(mouse_pos):
                             current_state = CUSTOMIZATION_MENU
@@ -5951,15 +6037,11 @@ def main():
                                 selected_font = pending_font
                             current_state = CUSTOMIZATION_MENU
                             pending_font = None
-                        elif font_rect1 and font_rect1.collidepoint(mouse_pos):
-                            # Sélectionner temporairement la première police
-                            pending_font = "font1"
-                        elif font_rect2 and font_rect2.collidepoint(mouse_pos):
-                            # Sélectionner temporairement la deuxième police
-                            pending_font = "font2"
-                        elif font_rect3 and font_rect3.collidepoint(mouse_pos):
-                            # Sélectionner temporairement la troisième police
-                            pending_font = "font3"
+                        else:
+                            for rect, font_file in font_rects:
+                                if rect.collidepoint(mouse_pos):
+                                    pending_font = font_file
+                                    break
                     elif current_state == AVATAR_MENU:
                         avatar_retour_button = pygame.Rect(10, 10, 100, 40)
                         # Calculer les positions des images (même logique que dans draw_avatar_menu)
@@ -5969,8 +6051,8 @@ def main():
                         avatar_image1 = None
                         avatar_image2 = None
                         avatar_image3 = None
-                        avatar_paths1 = ["avatar.png", "image-t26edcoUjiXQ72uQKAB3R(2).png", "avatar.jpg", "avatar.jpeg", "cat_ghost.png", "cat_ghost.jpg"]
-                        avatar_paths2 = ["image-j7dL7RMkwuA252pmY6W50(2).png"]
+                        avatar_paths1 = ["fatome_epee.png", "avatar.png", "image-t26edcoUjiXQ72uQKAB3R(2).png", "avatar.jpg", "avatar.jpeg"]
+                        avatar_paths2 = []
                         avatar_paths3 = ["image-1uA5ykn6ZPDhIyRHwCxym.webp"]
                         
                         for path in avatar_paths1:
@@ -6025,82 +6107,137 @@ def main():
                             # Sélectionner temporairement le troisième avatar
                             pending_avatar = "avatar3"
                     elif current_state == MENU:
-                        # Calculer les positions des boutons (même logique que dans draw_menu)
-                        changer_compte_button = pygame.Rect(WINDOW_WIDTH - 180, 10, 170, 35)
-                        button_width = 150
-                        button_height = 45
-                        button_spacing = 50
-                        start_y = 180
-                        jeu_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y, button_width, button_height)
-                        magasin_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing, button_width, button_height)
-                        difficulte_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 2, button_width, button_height)
-                        poche_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 3, button_width, button_height)
-                        inventaire_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 4, button_width, button_height)
-                        vente_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 5, button_width, button_height)
-                        
-                        # Vérifier le clic sur le bouton "Changer de compte"
-                        if changer_compte_button.collidepoint(mouse_pos):
-                            # Sauvegarder les données du compte actuel avant de quitter
-                            if current_account_index is not None:
-                                save_game_data_for_account(current_account_index, pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, accounts)
-                            current_state = START_MENU
-                        elif jeu_button.collidepoint(mouse_pos):
-                            # Si on revient du menu après avoir cliqué sur retour, réinitialiser la partie
-                            if game_needs_reset:
-                                # Réinitialiser la partie complètement
-                                maze = [row[:] for row in MAZES[0]]
-                                pacman = Pacman(10, 15)
-                                ghosts = [
-                                    Ghost(10, 9, BLUE),
-                                ]
-                                # Définir le chemin pour tous les fantômes bleus
-                                for ghost in ghosts:
-                                    if ghost.color == BLUE:
-                                        ghost.set_path(maze)
-                                score = 0
-                                level = 1
-                                last_bonus_score = 0
-                                game_over = False
-                                won = False
-                                vulnerable_timer = 0
-                                ice_tiles = {}  # Réinitialiser les cases de glace
-                                fire_tiles = {}  # Réinitialiser les cases de feu
-                                fire_active = False
-                                fire_timer = 0
-                                gadget_cooldown = 0
-                                mort_cooldown = 0
-                                bombe_cooldown = 0
-                                bombe_active = False
-                                pieges = {}
-                                portal1_pos = None
-                                portal2_pos = None
-                                portal_use_count = 0
-                                mur_pos = None
-                                mur_use_count = 0
-                                gadget_use_count = 0
-                                invincibility_timer = 30 + invincibilite_bonus  # Réinitialiser le timer d'invincibilité
-                                level_transition = False
-                                level_transition_timer = 0
-                                respawn_timer = 0
-                                crown_count = 0  # Réinitialiser le compteur de couronnes temporaires
-                                jeton_count = 0  # Réinitialiser le compteur de jetons temporaires
-                                last_ghost_time = 0  # Réinitialiser le timer depuis le dernier fantôme mangé
-                                has_indigestion = False
-                                indigestion_timer = 0
-                                game_needs_reset = False
-                            # Ouvrir l'inventaire pour permettre de changer l'équipement avant de commencer
-                            current_state = INVENTAIRE
-                            inventaire_before_game = True  # Variable pour indiquer qu'on est dans l'inventaire avant de commencer la partie
-                        elif magasin_button.collidepoint(mouse_pos):
-                            current_state = SHOP
-                        elif difficulte_button.collidepoint(mouse_pos):
-                            current_state = DIFFICULTY
-                        elif poche_button.collidepoint(mouse_pos):
-                            current_state = POCHE
-                        elif inventaire_button.collidepoint(mouse_pos):
-                            current_state = INVENTAIRE
-                        elif vente_button.collidepoint(mouse_pos):
-                            current_state = VENTE
+                        # Si on est en mode confirmation, ignorer tous les autres clics
+                        if delete_confirmation_step == 0:
+                            # Calculer les positions des boutons (même logique que dans draw_menu)
+                            changer_compte_button = pygame.Rect(WINDOW_WIDTH - 180, 10, 170, 35)
+                            button_width = 150
+                            button_height = 45
+                            button_spacing = 50
+                            start_y = 180
+                            jeu_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y, button_width, button_height)
+                            magasin_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing, button_width, button_height)
+                            difficulte_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 2, button_width, button_height)
+                            poche_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 3, button_width, button_height)
+                            inventaire_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 4, button_width, button_height)
+                            vente_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 5, button_width, button_height)
+                            supprimer_compte_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 6, button_width, button_height)
+                            
+                            # Vérifier le clic sur le bouton "Changer de compte"
+                            if changer_compte_button.collidepoint(mouse_pos):
+                                # Sauvegarder les données du compte actuel avant de quitter
+                                if current_account_index is not None:
+                                    save_game_data_for_account(current_account_index, pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, accounts)
+                                current_state = START_MENU
+                            elif jeu_button.collidepoint(mouse_pos):
+                                # Si on revient du menu après avoir cliqué sur retour, réinitialiser la partie
+                                if game_needs_reset:
+                                    # Réinitialiser la partie complètement
+                                    maze = [row[:] for row in MAZES[0]]
+                                    pacman = Pacman(10, 15)
+                                    ghosts = [
+                                        Ghost(10, 9, BLUE),
+                                    ]
+                                    # Définir le chemin pour tous les fantômes bleus
+                                    for ghost in ghosts:
+                                        if ghost.color == BLUE:
+                                            ghost.set_path(maze)
+                                    score = 0
+                                    level = 1
+                                    last_bonus_score = 0
+                                    game_over = False
+                                    won = False
+                                    vulnerable_timer = 0
+                                    ice_tiles = {}  # Réinitialiser les cases de glace
+                                    fire_tiles = {}  # Réinitialiser les cases de feu
+                                    fire_active = False
+                                    fire_timer = 0
+                                    gadget_cooldown = 0
+                                    mort_cooldown = 0
+                                    bombe_cooldown = 0
+                                    bombe_active = False
+                                    pieges = {}
+                                    portal1_pos = None
+                                    portal2_pos = None
+                                    portal_use_count = 0
+                                    mur_pos = None
+                                    mur_use_count = 0
+                                    gadget_use_count = 0
+                                    invincibility_timer = 30 + invincibilite_bonus  # Réinitialiser le timer d'invincibilité
+                                    level_transition = False
+                                    level_transition_timer = 0
+                                    respawn_timer = 0
+                                    crown_count = 0  # Réinitialiser le compteur de couronnes temporaires
+                                    jeton_count = 0  # Réinitialiser le compteur de jetons temporaires
+                                    last_ghost_time = 0  # Réinitialiser le timer depuis le dernier fantôme mangé
+                                    has_indigestion = False
+                                    indigestion_timer = 0
+                                    game_needs_reset = False
+                                    # Ouvrir l'inventaire pour permettre de changer l'équipement avant de commencer
+                                    current_state = INVENTAIRE
+                                    inventaire_before_game = True  # Variable pour indiquer qu'on est dans l'inventaire avant de commencer la partie
+                                else:
+                                    # Initialiser le jeu pour la première fois
+                                    if not game_initialized:
+                                        # Initialiser le labyrinthe et les entités
+                                        maze = [row[:] for row in MAZES[0]]
+                                        pacman = Pacman(10, 15)
+                                        ghosts = [
+                                            Ghost(10, 9, BLUE),
+                                        ]
+                                        # Définir le chemin pour tous les fantômes bleus
+                                        for ghost in ghosts:
+                                            if ghost.color == BLUE:
+                                                ghost.set_path(maze)
+                                        score = 0
+                                        level = 1
+                                        last_bonus_score = 0
+                                        game_over = False
+                                        won = False
+                                        vulnerable_timer = 0
+                                        ice_tiles = {}
+                                        fire_tiles = {}
+                                        fire_active = False
+                                        fire_timer = 0
+                                        gadget_cooldown = 0
+                                        mort_cooldown = 0
+                                        bombe_cooldown = 0
+                                        bombe_active = False
+                                        pieges = {}
+                                        portal1_pos = None
+                                        portal2_pos = None
+                                        portal_use_count = 0
+                                        mur_pos = None
+                                        mur_use_count = 0
+                                        gadget_use_count = 0
+                                        invincibility_timer = 30 + invincibilite_bonus
+                                        level_transition = False
+                                        level_transition_timer = 0
+                                        respawn_timer = 0
+                                        crown_count = 0
+                                        jeton_count = 0
+                                        last_ghost_time = 0
+                                        has_indigestion = False
+                                        indigestion_timer = 0
+                                        game_initialized = True
+                                    # Ouvrir l'inventaire pour permettre de changer l'équipement avant de commencer
+                                    current_state = INVENTAIRE
+                                    inventaire_before_game = True
+                            elif magasin_button.collidepoint(mouse_pos):
+                                current_state = SHOP
+                            elif difficulte_button.collidepoint(mouse_pos):
+                                current_state = DIFFICULTY
+                            elif poche_button.collidepoint(mouse_pos):
+                                current_state = POCHE
+                            elif inventaire_button.collidepoint(mouse_pos):
+                                current_state = INVENTAIRE
+                            elif vente_button.collidepoint(mouse_pos):
+                                current_state = VENTE
+                            elif supprimer_compte_button.collidepoint(mouse_pos):
+                                # Démarrer la confirmation de suppression du compte
+                                if current_account_index is not None:
+                                    account_to_delete = current_account_index
+                                    delete_confirmation_step = 1
                     elif current_state == SHOP:
                         # Les boutons sont retournés par draw_shop (appelé dans la partie dessin)
                         # Vérifier que les boutons sont définis avant de les utiliser
@@ -8320,6 +8457,8 @@ def main():
         
         # Gérer la logique du jeu seulement si on est dans l'état GAME
         if current_state == GAME:
+            if success_notification_timer > 0:
+                success_notification_timer -= 1
             # Gérer la transition entre niveaux
             if level_transition:
                 level_transition_timer -= 1
@@ -8785,6 +8924,23 @@ def main():
                     if count_points(maze) == 0:
                         # Passer au niveau suivant
                         level += 1
+                        if level == 2 and not first_level_success_unlocked:
+                            first_level_success_unlocked = True
+                            # Vérifier si ce trophée a déjà été gagné par n'importe quel compte
+                            trophy_already_earned = False
+                            for account in accounts:
+                                if TROPHY_FIRST_LEVEL in account.get('trophies', []):
+                                    trophy_already_earned = True
+                                    break
+                            
+                            if not trophy_already_earned:
+                                success_notification_text = "Nouveau succès débloqué !"
+                                success_notification_timer = 60  # Afficher le succès pendant 1 seconde
+                                if current_account_index is not None and 0 <= current_account_index < len(accounts):
+                                    trophies = accounts[current_account_index].setdefault('trophies', [])
+                                    if TROPHY_FIRST_LEVEL not in trophies:
+                                        trophies.append(TROPHY_FIRST_LEVEL)
+                                        save_accounts_data(accounts)
                         # Vérifier si "coffre fort" est équipé
                         has_coffre_fort = (('objet0' in inventaire_items and inventaire_items['objet0'].get('type') == 'coffre fort') or
                                           ('objet1' in inventaire_items and inventaire_items['objet1'].get('type') == 'coffre fort') or
@@ -9794,7 +9950,7 @@ def main():
         
         # Dessiner selon l'état actuel
         if current_state == START_MENU:
-            start_plus_button, start_profile_rects = draw_start_menu(screen, accounts, current_account_index)
+            start_plus_button, start_profile_rects, start_menu_total_height = draw_start_menu(screen, accounts, current_account_index, start_menu_scroll_offset)
             
             # Gérer l'appui long pour la suppression
             if mouse_button_down and account_long_press_index is not None and delete_confirmation_step == 0:
@@ -9806,18 +9962,25 @@ def main():
                     mouse_button_down = False  # Réinitialiser pour éviter les problèmes
             
             # Afficher la boîte de dialogue de confirmation si nécessaire
-            if delete_confirmation_step > 0 and account_to_delete is not None and account_to_delete < len(accounts):
+            if delete_confirmation_step > 0 and account_to_delete is not None and account_to_delete < len(accounts) and (current_state == START_MENU or current_state == MENU):
                 draw_delete_confirmation(screen, delete_confirmation_step, accounts[account_to_delete].get('player_name', ''))
         elif current_state == CUSTOMIZATION_MENU:
-            customization_retour_button, customization_font_button, customization_avatar_button, customization_nom_button, customization_creer_compte_button = draw_customization_menu(screen, player_name, selected_avatar, selected_font)
+            current_trophy_count = 0
+            if current_account_index is not None and 0 <= current_account_index < len(accounts):
+                current_trophy_count = len(accounts[current_account_index].get('trophies', []))
+            customization_retour_button, customization_font_button, customization_avatar_button, customization_nom_button, customization_creer_compte_button, customization_avatar_circle = draw_customization_menu(screen, player_name, selected_avatar, selected_font, trophy_count=current_trophy_count)
         elif current_state == NAME_MENU:
             name_retour_button, name_input_rect = draw_name_menu(screen, player_name, name_input_active)
         elif current_state == FONT_MENU:
-            font_retour_button, font_rect1, font_rect2, font_rect3, font_valider_button = draw_font_menu(screen, pending_font if pending_font is not None else selected_font, pending_font)
+            font_retour_button, font_rects, font_valider_button = draw_font_menu(screen, selected_font, pending_font)
         elif current_state == AVATAR_MENU:
             avatar_retour_button, avatar_rect1, avatar_rect2, avatar_rect3, avatar_valider_button = draw_avatar_menu(screen, pending_avatar if pending_avatar is not None else selected_avatar, pending_avatar)
         elif current_state == MENU:
-            jeu_button, magasin_button, difficulte_button, poche_button, inventaire_button, vente_button, changer_compte_button = draw_menu(screen, difficulty=difficulty)
+            jeu_button, magasin_button, difficulte_button, poche_button, inventaire_button, vente_button, changer_compte_button, supprimer_compte_button = draw_menu(screen, difficulty=difficulty)
+            
+            # Afficher la boîte de dialogue de confirmation si nécessaire
+            if delete_confirmation_step > 0 and account_to_delete is not None and account_to_delete < len(accounts):
+                draw_delete_confirmation(screen, delete_confirmation_step, accounts[account_to_delete].get('player_name', ''))
         elif current_state == SHOP:
             shop_retour_button, shop_gadget_button, shop_pouvoir_button, shop_objet_button, shop_capacite_button = draw_shop(screen)
         elif current_state == SHOP_GADGET:
@@ -10057,6 +10220,16 @@ def main():
                 won_text = font.render("vous avez gagné", True, YELLOW)
                 text_rect = won_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2))
                 screen.blit(won_text, text_rect)
+            
+            if first_level_success_unlocked and success_notification_timer > 0 and success_notification_text:
+                success_height = 60
+                success_surface = pygame.Surface((WINDOW_WIDTH, success_height), pygame.SRCALPHA)
+                success_surface.fill((0, 0, 0, 180))
+                screen.blit(success_surface, (0, 180))
+                font_success = pygame.font.Font(None, 40)
+                success_text = font_success.render(success_notification_text, True, (0, 255, 0))
+                success_rect = success_text.get_rect(center=(WINDOW_WIDTH//2, 210))
+                screen.blit(success_text, success_rect)
             
             # Afficher l'indicateur de cooldown du gadget en bas de l'écran
             equipped_gadget_cooldown = get_equipped_gadget(inventaire_items)
