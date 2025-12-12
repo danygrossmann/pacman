@@ -27,7 +27,54 @@ WHITE = (255, 255, 255)
 DARK_BLUE = (0, 0, 150)
 
 TROPHY_FIRST_LEVEL = "premier_niveau"
-TOTAL_TROPHY_COUNT = 1
+TROPHY_SURVIVAL_START = "survie_debut"
+TROPHY_SURVIVAL_10 = "survie_10_points"
+TROPHY_SURVIVAL_50 = "survie_50_points"
+TROPHY_SURVIVAL_100 = "survie_100_points"
+TROPHY_SURVIVAL_GHOST = "survie_fantome"
+TROPHY_SURVIVAL_POWER = "survie_power_up"
+TOTAL_TROPHY_COUNT = 6
+
+# Structure de l'arbre des trophées de survie (similaire à Minecraft)
+# Format: {trophy_id: {"name": "Nom", "description": "Description", "position": (x, y), "parents": [trophy_ids]}}
+SURVIVAL_TROPHY_TREE = {
+    TROPHY_SURVIVAL_START: {
+        "name": "Premier niveau",
+        "description": "Commencer une partie de survie",
+        "position": (100, 200),
+        "parents": []
+    },
+    TROPHY_SURVIVAL_10: {
+        "name": "Premiers pas",
+        "description": "Atteindre 10 points",
+        "position": (200, 150),
+        "parents": [TROPHY_SURVIVAL_START]
+    },
+    TROPHY_SURVIVAL_50: {
+        "name": "Survivant",
+        "description": "Atteindre 50 points",
+        "position": (300, 100),
+        "parents": [TROPHY_SURVIVAL_10]
+    },
+    TROPHY_SURVIVAL_100: {
+        "name": "Maître survivant",
+        "description": "Atteindre 100 points",
+        "position": (400, 50),
+        "parents": [TROPHY_SURVIVAL_50]
+    },
+    TROPHY_SURVIVAL_GHOST: {
+        "name": "Chasseur de fantômes",
+        "description": "Manger 5 fantômes",
+        "position": (200, 250),
+        "parents": [TROPHY_SURVIVAL_START]
+    },
+    TROPHY_SURVIVAL_POWER: {
+        "name": "Puissance maximale",
+        "description": "Manger un power-up",
+        "position": (300, 300),
+        "parents": [TROPHY_SURVIVAL_GHOST]
+    }
+}
 
 # Configuration des images de font
 FONT_IMAGE_EXTENSIONS = ('.png', '.jpg', '.jpeg', '.webp')
@@ -45,7 +92,9 @@ FONT_IMAGE_EXCLUDE = {
     "67.jpg",
     "67.jpeg",
     "67.webp",
-    "six seveen .png"
+    "six seveen .png",
+    "le_super_67.webp",
+    "le_super_67"
 }
 LEGACY_FONT_MAPPINGS = {
     "font1": ["font tout bleu.png", "font_tout_bleu.png", "font.png"],
@@ -76,6 +125,25 @@ def ensure_account_structure(account):
         account['selected_avatar'] = 'avatar1'
     return account
 
+def get_second_font():
+    """Retourne le deuxième font (celui qui est exclu de la liste des fonts disponibles)."""
+    font_files = []
+    for entry in sorted(os.listdir(".")):
+        entry_path = os.path.join(".", entry)
+        if not os.path.isfile(entry_path):
+            continue
+        entry_lower = entry.lower()
+        if not entry_lower.endswith(FONT_IMAGE_EXTENSIONS):
+            continue
+        # Exclure les images dans FONT_IMAGE_EXCLUDE, les avatars, les images avec "67", "le_super_67", et les images avec "(2)"
+        if entry_lower in FONT_IMAGE_EXCLUDE or entry_lower.startswith("avatar") or entry_lower.startswith("67") or "le_super_67" in entry_lower or "(2)" in entry_lower:
+            continue
+        font_files.append(entry)
+    # Retourner le deuxième font (index 1) s'il existe
+    if len(font_files) > 1:
+        return font_files[1]
+    return None
+
 def get_available_font_images():
     """Retourne la liste triée des images disponibles pour les fonts."""
     font_files = []
@@ -86,10 +154,13 @@ def get_available_font_images():
         entry_lower = entry.lower()
         if not entry_lower.endswith(FONT_IMAGE_EXTENSIONS):
             continue
-        # Exclure les images dans FONT_IMAGE_EXCLUDE, les avatars, les images avec "67", et les images avec "(2)"
-        if entry_lower in FONT_IMAGE_EXCLUDE or entry_lower.startswith("avatar") or entry_lower.startswith("67") or "(2)" in entry_lower:
+        # Exclure les images dans FONT_IMAGE_EXCLUDE, les avatars, les images avec "67", "le_super_67", et les images avec "(2)"
+        if entry_lower in FONT_IMAGE_EXCLUDE or entry_lower.startswith("avatar") or entry_lower.startswith("67") or "le_super_67" in entry_lower or "(2)" in entry_lower:
             continue
         font_files.append(entry)
+    # Supprimer le deuxième font en partant de la gauche (index 1)
+    if len(font_files) > 1:
+        font_files.pop(1)
     return font_files
 
 def build_font_option_rects(font_files, small_size=FONT_GRID_IMAGE_SIZE, spacing=FONT_GRID_SPACING, start_y=FONT_GRID_START_Y):
@@ -569,7 +640,7 @@ class Pacman:
                     pygame.draw.rect(screen, BLACK, block_rect, 2)
 
 class Ghost:
-    def __init__(self, x, y, color, harmless=False):
+    def __init__(self, x, y, color, harmless=False, hits_required=1):
         self.x = x
         self.y = y
         self.start_x = x
@@ -584,6 +655,8 @@ class Ghost:
         self.harmless = harmless  # Si True, ce fantôme ne peut pas tuer Pacman (pour l'indigestion)
         self.flee_timer = 0  # Timer pour faire fuir le fantôme (10 secondes = 100 frames à 10 FPS)
         self.immobilized_timer = 0  # Timer pour immobiliser le fantôme (10 secondes = 100 frames à 10 FPS)
+        self.hits_required = hits_required  # Nombre de "coups" nécessaires pour tuer le fantôme (par défaut 1)
+        self.hits_taken = 0  # Nombre de "coups" déjà reçus
         # Chemin prédéfini pour les fantômes bleus
         if color == BLUE:
             # Le chemin sera généré lors de l'initialisation avec le labyrinthe
@@ -886,7 +959,9 @@ class Ghost:
                 pygame.draw.circle(screen, BLACK, (center_x - 5, center_y - 3), 1)
                 pygame.draw.circle(screen, BLACK, (center_x + 5, center_y - 3), 1)
 
-def draw_maze(screen, maze, ice_tiles=None, fire_tiles=None):
+
+
+def draw_maze(screen, maze, ice_tiles=None, fire_tiles=None, is_adventure_mode=False):
     if ice_tiles is None:
         ice_tiles = {}
     if fire_tiles is None:
@@ -898,12 +973,13 @@ def draw_maze(screen, maze, ice_tiles=None, fire_tiles=None):
             if maze[y][x] == 1:
                 pygame.draw.rect(screen, DARK_BLUE, rect)
             elif maze[y][x] == 2:
-                # Dessiner un point
-                center_x = x * CELL_SIZE + CELL_SIZE // 2
-                center_y = y * CELL_SIZE + CELL_SIZE // 2
-                pygame.draw.circle(screen, YELLOW, (center_x, center_y), 2)
+                # Dessiner un point (sauf en mode aventure)
+                if not is_adventure_mode:
+                    center_x = x * CELL_SIZE + CELL_SIZE // 2
+                    center_y = y * CELL_SIZE + CELL_SIZE // 2
+                    pygame.draw.circle(screen, YELLOW, (center_x, center_y), 2)
             elif maze[y][x] == 3:
-                # Dessiner une pacgomme (plus grande)
+                # Dessiner une pacgomme (toujours visible, même en mode aventure)
                 center_x = x * CELL_SIZE + CELL_SIZE // 2
                 center_y = y * CELL_SIZE + CELL_SIZE // 2
                 pygame.draw.circle(screen, YELLOW, (center_x, center_y), 6)
@@ -986,7 +1062,7 @@ def get_most_common_ghost_color(ghosts, level):
     else:
         return RED
 
-def start_next_level(level):
+def start_next_level(level, is_adventure_mode=False):
     """Initialise le niveau suivant avec un labyrinthe différent"""
     # Choisir un labyrinthe différent selon le niveau (rotation entre les 100 labyrinthes)
     maze_index = (level - 1) % len(MAZES)
@@ -1005,6 +1081,7 @@ def start_next_level(level):
     ghosts = []
     ORANGE = (255, 165, 0)
     ROSE = (255, 192, 203)
+    VIOLET = (148, 0, 211)  # Violet pour le fantôme spécial au niveau 5 en mode aventure
     
     if level <= 2:
         # Niveaux 1-2: 1 fantôme bleu
@@ -1018,9 +1095,14 @@ def start_next_level(level):
             ghosts.append(Ghost(10 + i, 9, BLUE))
     elif level <= 6:
         # Niveaux 5-6: 1 fantôme bleu, 1 fantôme orange
+        # En mode aventure niveau 5: remplacer le fantôme orange par un fantôme violet spécial (nécessite 2 coups)
         num_ghosts = 2
         ghosts.append(Ghost(10, 9, BLUE))
-        ghosts.append(Ghost(11, 9, ORANGE))
+        if is_adventure_mode and level == 5:
+            # Fantôme violet spécial au niveau 5 en mode aventure (nécessite 2 coups)
+            ghosts.append(Ghost(11, 9, VIOLET, harmless=False, hits_required=2))
+        else:
+            ghosts.append(Ghost(11, 9, ORANGE))
     elif level <= 8:
         # Niveaux 7-8: 2 fantômes orange
         num_ghosts = 2
@@ -1226,15 +1308,9 @@ def draw_delete_confirmation(screen, step=1, account_name=""):
     button_height = 40
     button_spacing = 20
     
-    # Inverser les positions lors de la deuxième vérification
-    if step == 1:
-        # Première vérification : OUI à gauche, NON à droite
-        oui_button = pygame.Rect(dialog_x + dialog_width // 2 - button_width - button_spacing // 2, dialog_y + 130, button_width, button_height)
-        non_button = pygame.Rect(dialog_x + dialog_width // 2 + button_spacing // 2, dialog_y + 130, button_width, button_height)
-    else:
-        # Deuxième vérification : OUI à droite, NON à gauche (inversé)
-        non_button = pygame.Rect(dialog_x + dialog_width // 2 - button_width - button_spacing // 2, dialog_y + 130, button_width, button_height)
-        oui_button = pygame.Rect(dialog_x + dialog_width // 2 + button_spacing // 2, dialog_y + 130, button_width, button_height)
+    # OUI toujours à droite, NON toujours à gauche
+    non_button = pygame.Rect(dialog_x + dialog_width // 2 - button_width - button_spacing // 2, dialog_y + 130, button_width, button_height)
+    oui_button = pygame.Rect(dialog_x + dialog_width // 2 + button_spacing // 2, dialog_y + 130, button_width, button_height)
     
     # Bouton Oui (rouge)
     pygame.draw.rect(screen, RED, oui_button)
@@ -1272,16 +1348,11 @@ def draw_start_menu(screen, accounts=None, current_account_index=None, scroll_of
     trophy_header_rect = trophy_header_text.get_rect(center=(WINDOW_WIDTH//2, 30))
     screen.blit(trophy_header_text, trophy_header_rect)
     
-    # Titre
-    font_title = pygame.font.Font(None, 72)
-    title_text = font_title.render("PACMAN", True, YELLOW)
-    title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2 - 100))
-    screen.blit(title_text, title_rect)
     
     # Afficher tous les comptes créés en haut à gauche, les uns après les autres
     profile_rects = []  # Liste des rectangles cliquables pour chaque compte
     start_x = 50
-    start_y = 50
+    start_y = 120  # Décaler vers le bas pour laisser de la place au bouton
     circle_radius = 50
     spacing = 120  # Espacement horizontal entre les comptes
     line_height = circle_radius * 2 + 80  # Hauteur d'une ligne (cercle + nom + espacement)
@@ -1333,9 +1404,13 @@ def draw_start_menu(screen, accounts=None, current_account_index=None, scroll_of
             if selected_avatar == "avatar1":
                 avatar_paths = ["fatome_epee.png", "avatar.png", "image-t26edcoUjiXQ72uQKAB3R(2).png", "avatar.jpg", "avatar.jpeg"]
             elif selected_avatar == "avatar2":
-                avatar_paths = ["fatome_epee.png", "avatar.png", "image-t26edcoUjiXQ72uQKAB3R(2).png", "avatar.jpg", "avatar.jpeg"]
+                # Utiliser le deuxième font comme avatar2
+                second_font = get_second_font()
+                avatar_paths = [second_font] if second_font else []
             elif selected_avatar == "avatar3":
                 avatar_paths = ["image-1uA5ykn6ZPDhIyRHwCxym.webp"]
+            elif selected_avatar == "avatar4":
+                avatar_paths = ["le_super_67.webp"]
             else:
                 avatar_paths = []
             
@@ -1368,7 +1443,7 @@ def draw_start_menu(screen, accounts=None, current_account_index=None, scroll_of
                 circle_radius * 2 + rect_padding * 2,
                 circle_radius * 2 + rect_padding * 2 + 50
             )
-            profile_rects.append((profile_rect, i))  # Stocker l'index du compte avec le rectangle
+            profile_rects.append(("profile", profile_rect, i))  # Stocker l'index du compte avec le rectangle
             
             screen.blit(name_text, (name_x, name_y))
             
@@ -1410,6 +1485,363 @@ def draw_start_menu(screen, accounts=None, current_account_index=None, scroll_of
     screen.blit(plus_text, plus_text_rect)
     
     return plus_button, profile_rects, total_height
+
+def draw_skill_tree_menu(screen):
+    """Dessine le menu de l'arbre des trophées"""
+    screen.fill(BLACK)
+    
+    # Titre sur 2 lignes
+    font_title = pygame.font.Font(None, 72)
+    title_text1 = font_title.render("ARBRE DES", True, YELLOW)
+    title_text2 = font_title.render("TROPHÉES", True, YELLOW)
+    title_rect1 = title_text1.get_rect(center=(WINDOW_WIDTH//2, 60))
+    title_rect2 = title_text2.get_rect(center=(WINDOW_WIDTH//2, 100))
+    screen.blit(title_text1, title_rect1)
+    screen.blit(title_text2, title_rect2)
+    
+    # Bouton retour
+    retour_button = pygame.Rect(10, 10, 100, 40)
+    pygame.draw.rect(screen, RED, retour_button)
+    pygame.draw.rect(screen, WHITE, retour_button, 2)
+    font_retour = pygame.font.Font(None, 36)
+    retour_text = font_retour.render("RETOUR", True, WHITE)
+    retour_text_rect = retour_text.get_rect(center=retour_button.center)
+    screen.blit(retour_text, retour_text_rect)
+    
+    # Boutons "Survie" et "Équipement"
+    font_button = pygame.font.Font(None, 48)
+    button_width = 200
+    button_height = 60
+    button_spacing = 30
+    total_buttons_width = (button_width * 2) + button_spacing
+    start_x = (WINDOW_WIDTH - total_buttons_width) // 2
+    
+    # Bouton "Survie"
+    survie_button = pygame.Rect(start_x, WINDOW_HEIGHT//2 - button_height//2, button_width, button_height)
+    pygame.draw.rect(screen, (0, 150, 0), survie_button)  # Vert foncé
+    pygame.draw.rect(screen, WHITE, survie_button, 3)
+    survie_text = font_button.render("Survie", True, WHITE)
+    survie_text_rect = survie_text.get_rect(center=survie_button.center)
+    screen.blit(survie_text, survie_text_rect)
+    
+    # Bouton "Équipement"
+    equipement_button = pygame.Rect(start_x + button_width + button_spacing, WINDOW_HEIGHT//2 - button_height//2, button_width, button_height)
+    pygame.draw.rect(screen, (150, 100, 0), equipement_button)  # Orange
+    pygame.draw.rect(screen, WHITE, equipement_button, 3)
+    equipement_text = font_button.render("Équipement", True, WHITE)
+    equipement_text_rect = equipement_text.get_rect(center=equipement_button.center)
+    screen.blit(equipement_text, equipement_text_rect)
+    
+    return retour_button, survie_button, equipement_button
+
+def draw_survie_skill_tree_menu(screen, unlocked_trophies=None):
+    """Dessine l'arbre de trophée de survie (style Minecraft)"""
+    if unlocked_trophies is None:
+        unlocked_trophies = []
+    
+    screen.fill(BLACK)
+    
+    # Titre
+    font_title = pygame.font.Font(None, 72)
+    title_text = font_title.render("ARBRE DE TROPHÉE - SURVIE", True, YELLOW)
+    title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 40))
+    screen.blit(title_text, title_rect)
+    
+    # Bouton retour
+    retour_button = pygame.Rect(10, 10, 100, 40)
+    pygame.draw.rect(screen, RED, retour_button)
+    pygame.draw.rect(screen, WHITE, retour_button, 2)
+    font_retour = pygame.font.Font(None, 36)
+    retour_text = font_retour.render("RETOUR", True, WHITE)
+    retour_text_rect = retour_text.get_rect(center=retour_button.center)
+    screen.blit(retour_text, retour_text_rect)
+    
+    # Zone de l'arbre (avec décalage pour le titre)
+    tree_area_y = 100
+    tree_area_height = WINDOW_HEIGHT - tree_area_y - 20
+    
+    # Dessiner les connexions entre les trophées (lignes)
+    for trophy_id, trophy_data in SURVIVAL_TROPHY_TREE.items():
+        trophy_pos = trophy_data["position"]
+        parents = trophy_data["parents"]
+        
+        for parent_id in parents:
+            if parent_id in SURVIVAL_TROPHY_TREE:
+                parent_pos = SURVIVAL_TROPHY_TREE[parent_id]["position"]
+                
+                # Vérifier si le parent est débloqué pour déterminer la couleur de la ligne
+                parent_unlocked = parent_id in unlocked_trophies
+                line_color = (100, 200, 100) if parent_unlocked else (80, 80, 80)  # Vert si débloqué, gris sinon
+                
+                # Dessiner la ligne de connexion
+                pygame.draw.line(screen, line_color, parent_pos, trophy_pos, 3)
+    
+    # Dessiner les trophées
+    trophy_rects = {}
+    trophy_size = 50
+    
+    for trophy_id, trophy_data in SURVIVAL_TROPHY_TREE.items():
+        trophy_pos = trophy_data["position"]
+        is_unlocked = trophy_id in unlocked_trophies
+        
+        # Vérifier si tous les parents sont débloqués (pour déterminer si accessible)
+        parents_unlocked = all(parent_id in unlocked_trophies for parent_id in trophy_data["parents"])
+        is_accessible = len(trophy_data["parents"]) == 0 or parents_unlocked
+        
+        # Couleur du trophée
+        if is_unlocked:
+            trophy_color = (255, 215, 0)  # Or pour débloqué
+            border_color = (255, 255, 0)  # Jaune vif
+        elif is_accessible:
+            trophy_color = (150, 150, 150)  # Gris clair pour accessible mais non débloqué
+            border_color = (200, 200, 200)
+        else:
+            trophy_color = (60, 60, 60)  # Gris foncé pour verrouillé
+            border_color = (100, 100, 100)
+        
+        # Dessiner le cercle du trophée
+        trophy_rect = pygame.Rect(trophy_pos[0] - trophy_size//2, trophy_pos[1] - trophy_size//2, trophy_size, trophy_size)
+        pygame.draw.circle(screen, trophy_color, trophy_pos, trophy_size//2)
+        pygame.draw.circle(screen, border_color, trophy_pos, trophy_size//2, 3)
+        
+        # Dessiner une icône simple (étoile ou cercle)
+        if is_unlocked:
+            # Étoile pour trophée débloqué
+            star_points = []
+            for i in range(5):
+                angle = (i * 2 * math.pi / 5) - math.pi / 2
+                outer_x = trophy_pos[0] + int((trophy_size//2 - 5) * math.cos(angle))
+                outer_y = trophy_pos[1] + int((trophy_size//2 - 5) * math.sin(angle))
+                star_points.append((outer_x, outer_y))
+            pygame.draw.polygon(screen, (255, 255, 255), star_points)
+        else:
+            # Cercle simple pour trophée non débloqué
+            pygame.draw.circle(screen, (100, 100, 100), trophy_pos, trophy_size//4)
+        
+        # Stocker le rectangle pour les interactions
+        trophy_rects[trophy_id] = trophy_rect
+        
+        # Afficher le nom du trophée en dessous
+        font_name = pygame.font.Font(None, 20)
+        name_text = font_name.render(trophy_data["name"], True, WHITE if is_unlocked else (150, 150, 150))
+        name_rect = name_text.get_rect(center=(trophy_pos[0], trophy_pos[1] + trophy_size//2 + 15))
+        screen.blit(name_text, name_rect)
+    
+    # Afficher la description du trophée survolé (si nécessaire, peut être ajouté plus tard)
+    # Pour l'instant, affichons un message d'aide en bas
+    font_help = pygame.font.Font(None, 24)
+    help_text = font_help.render("Les trophées dorés sont débloqués, les gris sont verrouillés", True, (150, 150, 150))
+    help_rect = help_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT - 30))
+    screen.blit(help_text, help_rect)
+    
+    return retour_button, trophy_rects
+
+def draw_equipement_skill_tree_menu(screen):
+    """Dessine l'arbre de trophée d'équipement"""
+    screen.fill(BLACK)
+    
+    # Titre
+    font_title = pygame.font.Font(None, 72)
+    title_text = font_title.render("ARBRE DE TROPHÉE - ÉQUIPEMENT", True, YELLOW)
+    title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 80))
+    screen.blit(title_text, title_rect)
+    
+    # Bouton retour
+    retour_button = pygame.Rect(10, 10, 100, 40)
+    pygame.draw.rect(screen, RED, retour_button)
+    pygame.draw.rect(screen, WHITE, retour_button, 2)
+    font_retour = pygame.font.Font(None, 36)
+    retour_text = font_retour.render("RETOUR", True, WHITE)
+    retour_text_rect = retour_text.get_rect(center=retour_button.center)
+    screen.blit(retour_text, retour_text_rect)
+    
+    # Première formule : "Mieux gagner niveau 1"
+    font_formula = pygame.font.Font(None, 48)
+    formula_y = 200
+    formula_text = font_formula.render("Mieux gagner niveau 1", True, WHITE)
+    formula_rect = formula_text.get_rect(center=(WINDOW_WIDTH//2, formula_y))
+    screen.blit(formula_text, formula_rect)
+    
+    # Zone pour l'arbre de trophée (à développer plus tard)
+    skill_area = pygame.Rect(50, formula_y + 60, WINDOW_WIDTH - 100, WINDOW_HEIGHT - formula_y - 120)
+    pygame.draw.rect(screen, (30, 30, 30), skill_area)
+    pygame.draw.rect(screen, WHITE, skill_area, 2)
+    
+    # Message informatif
+    font_info = pygame.font.Font(None, 32)
+    info_text = font_info.render("Arbre de trophée d'équipement - À développer", True, (150, 150, 150))
+    info_rect = info_text.get_rect(center=(WINDOW_WIDTH//2, skill_area.centery))
+    screen.blit(info_text, info_rect)
+    
+    return retour_button
+
+def draw_aventure_menu(screen):
+    """Dessine le menu d'aventure"""
+    screen.fill(BLACK)
+    
+    # Titre
+    font_title = pygame.font.Font(None, 72)
+    title_text = font_title.render("AVENTURE", True, YELLOW)
+    title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 80))
+    screen.blit(title_text, title_rect)
+    
+    # Bouton retour
+    retour_button = pygame.Rect(10, 10, 100, 40)
+    pygame.draw.rect(screen, RED, retour_button)
+    pygame.draw.rect(screen, WHITE, retour_button, 2)
+    font_retour = pygame.font.Font(None, 36)
+    retour_text = font_retour.render("RETOUR", True, WHITE)
+    retour_text_rect = retour_text.get_rect(center=retour_button.center)
+    screen.blit(retour_text, retour_text_rect)
+    
+    # Bouton pour démarrer la carte 1
+    font_button = pygame.font.Font(None, 48)
+    button_width = 250
+    button_height = 60
+    carte1_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, WINDOW_HEIGHT//2 - button_height//2, button_width, button_height)
+    pygame.draw.rect(screen, (0, 150, 255), carte1_button)  # Bleu
+    pygame.draw.rect(screen, WHITE, carte1_button, 3)
+    carte1_text = font_button.render("CARTE 1", True, WHITE)
+    carte1_text_rect = carte1_text.get_rect(center=carte1_button.center)
+    screen.blit(carte1_text, carte1_text_rect)
+    
+    # Afficher les paramètres de l'aventure
+    font_info = pygame.font.Font(None, 28)
+    info_text = font_info.render("3 vies | 0 couronnes | 0 pacoins", True, (150, 150, 150))
+    info_rect = info_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2 + 80))
+    screen.blit(info_text, info_rect)
+    
+    return retour_button, carte1_button
+
+def draw_reward_animation(screen, reward_animations):
+    """Dessine les animations de récompenses"""
+    for anim in reward_animations[:]:  # Copie de la liste pour éviter les problèmes de modification
+        # Calculer la position (animation vers le haut)
+        y_offset = anim['timer'] * 2  # Se déplace vers le haut
+        x = anim['x']
+        y = anim['y'] - y_offset
+        
+        # Calculer l'opacité (disparaît progressivement)
+        max_timer = 180  # 3 secondes à 60 FPS
+        alpha = max(0, 255 - (anim['timer'] * 255 // max_timer))
+        
+        # Couleur avec alpha
+        color = anim['color']
+        if alpha < 255:
+            color = tuple(int(c * alpha / 255) for c in color[:3])
+        
+        # Taille du texte (légèrement agrandie)
+        font_size = 36 + (anim['timer'] // 10)  # Grandit légèrement
+        font = pygame.font.Font(None, font_size)
+        
+        # Dessiner le texte de la récompense
+        reward_text = font.render(anim['text'], True, color)
+        text_rect = reward_text.get_rect(center=(x, y))
+        
+        # Dessiner un fond semi-transparent pour la lisibilité
+        bg_rect = text_rect.inflate(20, 10)
+        bg_surface = pygame.Surface((bg_rect.width, bg_rect.height))
+        bg_surface.set_alpha(alpha // 2)
+        bg_surface.fill((0, 0, 0))
+        screen.blit(bg_surface, bg_rect)
+        
+        # Dessiner le texte
+        screen.blit(reward_text, text_rect)
+        
+        # Incrémenter le timer
+        anim['timer'] += 1
+        
+        # Supprimer l'animation si elle est terminée
+        if anim['timer'] >= max_timer:
+            reward_animations.remove(anim)
+
+def draw_star_upgrade_menu(screen, star_rarity="rare", clicks_remaining=5):
+    """Dessine le menu d'amélioration d'étoile"""
+    screen.fill(BLACK)
+    
+    # Titre
+    font_title = pygame.font.Font(None, 72)
+    title_text = font_title.render("AMÉLIORATION D'ÉTOILE", True, YELLOW)
+    title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 80))
+    screen.blit(title_text, title_rect)
+    
+    # Bouton retour
+    retour_button = pygame.Rect(10, 10, 100, 40)
+    pygame.draw.rect(screen, RED, retour_button)
+    pygame.draw.rect(screen, WHITE, retour_button, 2)
+    font_retour = pygame.font.Font(None, 36)
+    retour_text = font_retour.render("RETOUR", True, WHITE)
+    retour_text_rect = retour_text.get_rect(center=retour_button.center)
+    screen.blit(retour_text, retour_text_rect)
+    
+    # Dessiner l'étoile au centre de l'écran
+    star_size = 150
+    star_center_x = WINDOW_WIDTH // 2
+    star_center_y = WINDOW_HEIGHT // 2
+    
+    # Couleur selon la rareté
+    rarity_colors = {
+        "rare": (0, 200, 0),  # Vert
+        "super_rare": (0, 100, 255),  # Bleu
+        "epique": (148, 0, 211),  # Violet
+        "legendaire": (255, 215, 0)  # Jaune/Or
+    }
+    star_color = rarity_colors.get(star_rarity, (0, 200, 0))
+    
+    # Dessiner une grande étoile
+    import math
+    star_points = []
+    outer_radius = star_size // 2
+    inner_radius = star_size // 4
+    
+    for i in range(10):  # 10 points pour 5 branches
+        angle = (i * math.pi / 5) - (math.pi / 2)
+        if i % 2 == 0:
+            # Point extérieur
+            radius = outer_radius
+        else:
+            # Point intérieur
+            radius = inner_radius
+        x = star_center_x + radius * math.cos(angle)
+        y = star_center_y + radius * math.sin(angle)
+        star_points.append((int(x), int(y)))
+    
+    # Dessiner l'étoile
+    pygame.draw.polygon(screen, star_color, star_points)
+    pygame.draw.polygon(screen, WHITE, star_points, 3)
+    
+    # Afficher le nom de la rareté
+    font_rarity = pygame.font.Font(None, 48)
+    rarity_names = {
+        "rare": "RARE",
+        "super_rare": "SUPER RARE",
+        "epique": "ÉPIQUE",
+        "legendaire": "LÉGENDAIRE"
+    }
+    rarity_name = rarity_names.get(star_rarity, "RARE")
+    rarity_text = font_rarity.render(rarity_name, True, star_color)
+    rarity_rect = rarity_text.get_rect(center=(star_center_x, star_center_y + star_size // 2 + 40))
+    screen.blit(rarity_text, rarity_rect)
+    
+    # Afficher les clics restants
+    font_clicks = pygame.font.Font(None, 36)
+    clicks_text = font_clicks.render(f"Clics restants: {clicks_remaining}", True, WHITE)
+    clicks_rect = clicks_text.get_rect(center=(star_center_x, star_center_y + star_size // 2 + 90))
+    screen.blit(clicks_text, clicks_rect)
+    
+    # Instructions
+    font_instructions = pygame.font.Font(None, 28)
+    if clicks_remaining > 0:
+        instructions_text = font_instructions.render("Cliquez sur l'étoile pour tenter de l'améliorer", True, (150, 150, 150))
+    else:
+        instructions_text = font_instructions.render("Plus de clics disponibles", True, (150, 150, 150))
+    instructions_rect = instructions_text.get_rect(center=(star_center_x, WINDOW_HEIGHT - 100))
+    screen.blit(instructions_text, instructions_rect)
+    
+    # Rectangle cliquable pour l'étoile
+    star_clickable_rect = pygame.Rect(star_center_x - star_size // 2, star_center_y - star_size // 2, star_size, star_size)
+    
+    return retour_button, star_clickable_rect
 
 def draw_customization_menu(screen, player_name="", selected_avatar=None, selected_font=None, trophy_count=0):
     """Dessine le menu de personnalisation avec les boutons Font et Avatar"""
@@ -1471,9 +1903,13 @@ def draw_customization_menu(screen, player_name="", selected_avatar=None, select
             if selected_avatar == "avatar1":
                 avatar_paths = ["fatome_epee.png", "avatar.png", "image-t26edcoUjiXQ72uQKAB3R(2).png", "avatar.jpg", "avatar.jpeg"]
             elif selected_avatar == "avatar2":
-                avatar_paths = ["fatome_epee.png", "avatar.png", "image-t26edcoUjiXQ72uQKAB3R(2).png", "avatar.jpg", "avatar.jpeg"]
+                # Utiliser le deuxième font comme avatar2
+                second_font = get_second_font()
+                avatar_paths = [second_font] if second_font else []
             elif selected_avatar == "avatar3":
                 avatar_paths = ["image-1uA5ykn6ZPDhIyRHwCxym.webp"]
+            elif selected_avatar == "avatar4":
+                avatar_paths = ["le_super_67.webp"]
             else:
                 avatar_paths = []
             
@@ -1674,9 +2110,16 @@ def draw_name_menu(screen, player_name="", input_active=False):
     
     # Instructions
     font_instruction = pygame.font.Font(None, 24)
-    instruction_text = font_instruction.render("Tapez votre nom et appuyez sur Entrée pour valider", True, WHITE)
+    instruction_text = font_instruction.render("Tapez votre nom (max 7 caractères) et appuyez sur Entrée pour valider", True, WHITE)
     instruction_rect = instruction_text.get_rect(center=(WINDOW_WIDTH//2, input_y + 80))
     screen.blit(instruction_text, instruction_rect)
+    
+    # Afficher le nombre de caractères restants
+    font_counter = pygame.font.Font(None, 20)
+    remaining = 7 - len(player_name)
+    counter_text = font_counter.render(f"Caractères restants: {remaining}", True, (150, 150, 150))
+    counter_rect = counter_text.get_rect(center=(WINDOW_WIDTH//2, input_y + 110))
+    screen.blit(counter_text, counter_rect)
     
     # Bouton retour
     retour_button = pygame.Rect(10, 10, 100, 40)
@@ -1703,9 +2146,13 @@ def draw_avatar_menu(screen, selected_avatar=None, pending_avatar=None):
     avatar_image1 = None
     avatar_image2 = None
     avatar_image3 = None
+    avatar_image4 = None
     avatar_paths1 = ["fatome_epee.png", "avatar.png", "image-t26edcoUjiXQ72uQKAB3R(2).png", "avatar.jpg", "avatar.jpeg"]
-    avatar_paths2 = []
+    # Utiliser le deuxième font comme avatar2
+    second_font = get_second_font()
+    avatar_paths2 = [second_font] if second_font else []
     avatar_paths3 = ["image-1uA5ykn6ZPDhIyRHwCxym.webp"]
+    avatar_paths4 = ["le_super_67.webp"]
     
     # Charger la première image
     for path in avatar_paths1:
@@ -1734,6 +2181,15 @@ def draw_avatar_menu(screen, selected_avatar=None, pending_avatar=None):
             except:
                 continue
     
+    # Charger la quatrième image
+    for path in avatar_paths4:
+        if os.path.exists(path):
+            try:
+                avatar_image4 = pygame.image.load(path)
+                break
+            except:
+                continue
+    
     # Afficher les images si elles existent
     small_size = 80  # Taille fixe de 80x80 pixels
     
@@ -1743,7 +2199,7 @@ def draw_avatar_menu(screen, selected_avatar=None, pending_avatar=None):
     
     # Calculer la position horizontale pour centrer les images
     total_width = 0
-    image_count = sum([1 for img in [avatar_image1, avatar_image2, avatar_image3] if img is not None])
+    image_count = sum([1 for img in [avatar_image1, avatar_image2, avatar_image3, avatar_image4] if img is not None])
     if image_count > 0:
         total_width = (image_count * small_size) + ((image_count - 1) * (spacing - small_size))
         start_x = (WINDOW_WIDTH - total_width) // 2
@@ -1754,6 +2210,10 @@ def draw_avatar_menu(screen, selected_avatar=None, pending_avatar=None):
     avatar_rect1 = None
     avatar_rect2 = None
     avatar_rect3 = None
+    avatar_rect4 = None
+    
+    # Déterminer quel avatar est actuellement sélectionné (pending_avatar a la priorité)
+    current_selection = pending_avatar if pending_avatar is not None else selected_avatar
     
     # Première image
     if avatar_image1:
@@ -1762,8 +2222,8 @@ def draw_avatar_menu(screen, selected_avatar=None, pending_avatar=None):
         avatar_rect1 = pygame.Rect(img_x, img_y, small_size, small_size)
         screen.blit(avatar_image1, (img_x, img_y))
         # Dessiner une bordure (jaune si sélectionné, blanche sinon)
-        border_color = YELLOW if selected_avatar == "avatar1" else WHITE
-        border_width = 4 if selected_avatar == "avatar1" else 2
+        border_color = YELLOW if current_selection == "avatar1" else WHITE
+        border_width = 4 if current_selection == "avatar1" else 2
         pygame.draw.rect(screen, border_color, avatar_rect1, border_width)
         start_x += spacing
     
@@ -1774,8 +2234,8 @@ def draw_avatar_menu(screen, selected_avatar=None, pending_avatar=None):
         avatar_rect2 = pygame.Rect(img_x, img_y, small_size, small_size)
         screen.blit(avatar_image2, (img_x, img_y))
         # Dessiner une bordure (jaune si sélectionné, blanche sinon)
-        border_color = YELLOW if (selected_avatar is not None and selected_avatar == "avatar2") else WHITE
-        border_width = 4 if (selected_avatar is not None and selected_avatar == "avatar2") else 2
+        border_color = YELLOW if current_selection == "avatar2" else WHITE
+        border_width = 4 if current_selection == "avatar2" else 2
         pygame.draw.rect(screen, border_color, avatar_rect2, border_width)
         start_x += spacing
     
@@ -1786,11 +2246,23 @@ def draw_avatar_menu(screen, selected_avatar=None, pending_avatar=None):
         avatar_rect3 = pygame.Rect(img_x, img_y, small_size, small_size)
         screen.blit(avatar_image3, (img_x, img_y))
         # Dessiner une bordure (jaune si sélectionné, blanche sinon)
-        border_color = YELLOW if (selected_avatar is not None and selected_avatar == "avatar3") else WHITE
-        border_width = 4 if (selected_avatar is not None and selected_avatar == "avatar3") else 2
+        border_color = YELLOW if current_selection == "avatar3" else WHITE
+        border_width = 4 if current_selection == "avatar3" else 2
         pygame.draw.rect(screen, border_color, avatar_rect3, border_width)
+        start_x += spacing
+    
+    # Quatrième image
+    if avatar_image4:
+        avatar_image4 = pygame.transform.scale(avatar_image4, (small_size, small_size))
+        img_x = start_x
+        avatar_rect4 = pygame.Rect(img_x, img_y, small_size, small_size)
+        screen.blit(avatar_image4, (img_x, img_y))
+        # Dessiner une bordure (jaune si sélectionné, blanche sinon)
+        border_color = YELLOW if current_selection == "avatar4" else WHITE
+        border_width = 4 if current_selection == "avatar4" else 2
+        pygame.draw.rect(screen, border_color, avatar_rect4, border_width)
     # Afficher un message si aucune image n'est trouvée
-    if not avatar_image1 and not avatar_image2 and not avatar_image3:
+    if not avatar_image1 and not avatar_image2 and not avatar_image3 and not avatar_image4:
         font_info = pygame.font.Font(None, 36)
         info_text = font_info.render("Images d'avatar non trouvées", True, WHITE)
         info_rect = info_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2))
@@ -1820,7 +2292,7 @@ def draw_avatar_menu(screen, selected_avatar=None, pending_avatar=None):
         valider_text_rect = valider_text.get_rect(center=valider_button.center)
         screen.blit(valider_text, valider_text_rect)
     
-    return retour_button, avatar_rect1, avatar_rect2, avatar_rect3, valider_button
+    return retour_button, avatar_rect1, avatar_rect2, avatar_rect3, avatar_rect4, valider_button
 
 def draw_menu(screen, difficulty=None):
     """Dessine le menu principal"""
@@ -1835,18 +2307,13 @@ def draw_menu(screen, difficulty=None):
     changer_compte_text_rect = changer_compte_text.get_rect(center=changer_compte_button.center)
     screen.blit(changer_compte_text, changer_compte_text_rect)
     
-    # Titre
-    font_title = pygame.font.Font(None, 72)
-    title_text = font_title.render("PACMAN", True, YELLOW)
-    title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 100))
-    screen.blit(title_text, title_rect)
     
     # Boutons
-    font_button = pygame.font.Font(None, 36)
-    button_height = 45
-    button_width = 150
-    button_spacing = 50
-    start_y = 180
+    font_button = pygame.font.Font(None, 32)  # Réduit de 36 à 32
+    button_height = 40  # Réduit de 45 à 40
+    button_width = 140  # Réduit de 150 à 140
+    button_spacing = 42  # Réduit de 50 à 42
+    start_y = 170  # Réduit de 180 à 170
     
     # Afficher la difficulté choisie au-dessus du bouton "Jouer" si une difficulté a été sélectionnée
     if difficulty:
@@ -1916,15 +2383,802 @@ def draw_menu(screen, difficulty=None):
     vente_text_rect = vente_text.get_rect(center=vente_button.center)
     screen.blit(vente_text, vente_text_rect)
     
-    # Bouton Supprimer le compte (en bas, en rouge pour indiquer le danger)
-    supprimer_compte_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 6, button_width, button_height)
-    pygame.draw.rect(screen, RED, supprimer_compte_button)  # Rouge pour indiquer le danger
-    pygame.draw.rect(screen, WHITE, supprimer_compte_button, 3)
-    supprimer_text = font_button.render("SUPPRIMER", True, WHITE)
-    supprimer_text_rect = supprimer_text.get_rect(center=supprimer_compte_button.center)
-    screen.blit(supprimer_text, supprimer_text_rect)
+    # Bouton Aventure (entre Vente et Passe)
+    aventure_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 6, button_width, button_height)
+    pygame.draw.rect(screen, (0, 150, 255), aventure_button)  # Bleu
+    pygame.draw.rect(screen, WHITE, aventure_button, 3)
+    aventure_text = font_button.render("AVENTURE", True, WHITE)
+    aventure_text_rect = aventure_text.get_rect(center=aventure_button.center)
+    screen.blit(aventure_text, aventure_text_rect)
     
-    return jeu_button, magasin_button, difficulte_button, poche_button, inventaire_button, vente_button, changer_compte_button, supprimer_compte_button
+    # Bouton Boutique
+    boutique_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 7, button_width, button_height)
+    pygame.draw.rect(screen, (255, 215, 0), boutique_button)  # Or
+    pygame.draw.rect(screen, WHITE, boutique_button, 3)
+    boutique_text = font_button.render("BOUTIQUE", True, BLACK)
+    boutique_text_rect = boutique_text.get_rect(center=boutique_button.center)
+    screen.blit(boutique_text, boutique_text_rect)
+    
+    # Bouton Passe de combat
+    passe_combat_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 8, button_width, button_height)
+    pygame.draw.rect(screen, (200, 100, 0), passe_combat_button)  # Orange
+    pygame.draw.rect(screen, WHITE, passe_combat_button, 3)
+    passe_combat_text = font_button.render("PASSE", True, WHITE)
+    passe_combat_text_rect = passe_combat_text.get_rect(center=passe_combat_button.center)
+    screen.blit(passe_combat_text, passe_combat_text_rect)
+    
+    # Bouton "Arbre des trophées" en dessous de PASSE
+    skill_tree_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 9, button_width, button_height)
+    pygame.draw.rect(screen, (100, 50, 200), skill_tree_button)  # Violet
+    pygame.draw.rect(screen, WHITE, skill_tree_button, 3)
+    font_skill_tree = pygame.font.Font(None, 28)  # Police plus petite pour le texte sur 2 lignes
+    skill_tree_text1 = font_skill_tree.render("Arbre des", True, WHITE)
+    skill_tree_text2 = font_skill_tree.render("trophées", True, WHITE)
+    skill_tree_text_rect1 = skill_tree_text1.get_rect(center=(skill_tree_button.centerx, skill_tree_button.centery - 8))
+    skill_tree_text_rect2 = skill_tree_text2.get_rect(center=(skill_tree_button.centerx, skill_tree_button.centery + 8))
+    screen.blit(skill_tree_text1, skill_tree_text_rect1)
+    screen.blit(skill_tree_text2, skill_tree_text_rect2)
+    
+    # Bouton Tutoriel
+    tutoriel_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 10, button_width, button_height)
+    pygame.draw.rect(screen, (150, 0, 150), tutoriel_button)  # Violet
+    pygame.draw.rect(screen, WHITE, tutoriel_button, 3)
+    tutoriel_text = font_button.render("TUTORIEL", True, WHITE)
+    tutoriel_text_rect = tutoriel_text.get_rect(center=tutoriel_button.center)
+    screen.blit(tutoriel_text, tutoriel_text_rect)
+    
+    return jeu_button, magasin_button, difficulte_button, poche_button, inventaire_button, vente_button, changer_compte_button, aventure_button, boutique_button, passe_combat_button, skill_tree_button, tutoriel_button
+
+def draw_tutorial_menu(screen, page=0):
+    """Dessine le menu de tutoriel avec plusieurs pages"""
+    screen.fill(BLACK)
+    
+    # Navigation en haut
+    font_nav = pygame.font.Font(None, 32)
+    prev_button = None
+    next_button = None
+    
+    # Bouton Précédent en haut à gauche
+    if page > 0:
+        prev_button = pygame.Rect(10, 10, 120, 40)
+        pygame.draw.rect(screen, BLUE, prev_button)
+        pygame.draw.rect(screen, WHITE, prev_button, 2)
+        prev_text = font_nav.render("PRÉCÉDENT", True, WHITE)
+        prev_text_rect = prev_text.get_rect(center=prev_button.center)
+        screen.blit(prev_text, prev_text_rect)
+    
+    # Bouton Suivant en haut à droite
+    total_pages = 6
+    if page < total_pages - 1:
+        next_button = pygame.Rect(WINDOW_WIDTH - 130, 10, 120, 40)
+        pygame.draw.rect(screen, (0, 200, 0), next_button)  # Vert
+        pygame.draw.rect(screen, WHITE, next_button, 2)
+        next_text = font_nav.render("SUIVANT", True, WHITE)
+        next_text_rect = next_text.get_rect(center=next_button.center)
+        screen.blit(next_text, next_text_rect)
+    
+    # Titre
+    font_title = pygame.font.Font(None, 72)
+    title_text = font_title.render("TUTORIEL", True, YELLOW)
+    title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 50))
+    screen.blit(title_text, title_rect)
+    
+    # Contenu de la page
+    font_content = pygame.font.Font(None, 28)
+    font_subtitle = pygame.font.Font(None, 40)
+    content_y = 120
+    line_height = 35
+    max_width = WINDOW_WIDTH - 100
+    
+    if page == 0:
+        # Page 1: Bienvenue et objectif
+        subtitle = font_subtitle.render("BIENVENUE DANS PACMAN !", True, YELLOW)
+        subtitle_rect = subtitle.get_rect(center=(WINDOW_WIDTH//2, content_y))
+        screen.blit(subtitle, subtitle_rect)
+        content_y += 60
+        
+        lines = [
+            "Ce jeu est une version améliorée du classique Pacman.",
+            "",
+            "OBJECTIF PRINCIPAL :",
+            "• Collectez tous les points jaunes et les pacgommes",
+            "• Évitez les fantômes qui vous poursuivent",
+            "• Survivez le plus longtemps possible",
+            "",
+            "CONTRÔLES :",
+            "• Flèches directionnelles (↑ ↓ ← →) : Déplacer Pacman",
+            "• R : Redémarrer après une partie terminée",
+            "",
+            "POINTS ET SCORE :",
+            "• Points jaunes : 10 points chacun",
+            "• Pacgommes (grosses pastilles) : 50 points",
+            "• Fantômes vulnérables : 200 points chacun"
+        ]
+        
+    elif page == 1:
+        # Page 2: Mécaniques de jeu
+        subtitle = font_subtitle.render("MÉCANIQUES DE JEU", True, YELLOW)
+        subtitle_rect = subtitle.get_rect(center=(WINDOW_WIDTH//2, content_y))
+        screen.blit(subtitle, subtitle_rect)
+        content_y += 60
+        
+        lines = [
+            "PACGOMMES :",
+            "• Les pacgommes rendent tous les fantômes vulnérables",
+            "• Les fantômes deviennent bleus pendant 5 secondes",
+            "• Vous pouvez les manger pour gagner 200 points",
+            "",
+            "FANTÔMES :",
+            "• Les fantômes normaux vous poursuivent",
+            "• Les fantômes vulnérables (bleus) vous fuient",
+            "• Quand un fantôme est mangé, il devient des yeux",
+            "• Les yeux retournent à la base et ne peuvent pas vous toucher",
+            "",
+            "VIES :",
+            "• Vous commencez avec 2 vies",
+            "• Si un fantôme normal vous touche, vous perdez une vie",
+            "• Vous réapparaissez à la position de départ",
+            "• Le jeu se termine quand vous n'avez plus de vies"
+        ]
+        
+    elif page == 2:
+        # Page 3: Système de niveaux
+        subtitle = font_subtitle.render("SYSTÈME DE NIVEAUX", True, YELLOW)
+        subtitle_rect = subtitle.get_rect(center=(WINDOW_WIDTH//2, content_y))
+        screen.blit(subtitle, subtitle_rect)
+        content_y += 60
+        
+        lines = [
+            "PROGRESSION :",
+            "• Le jeu continue indéfiniment avec des niveaux",
+            "• 4 labyrinthes différents alternent entre les niveaux",
+            "• La difficulté augmente avec chaque niveau",
+            "",
+            "FANTÔMES PAR NIVEAU :",
+            "• Niveau 1 : 2 fantômes",
+            "• Niveaux 2-3 : 3 fantômes",
+            "• Niveau 4+ : 4 fantômes (maximum)",
+            "",
+            "TÉLÉPORTATION :",
+            "• Vous pouvez traverser les bords du labyrinthe",
+            "• Sortir d'un côté vous fait apparaître de l'autre"
+        ]
+        
+    elif page == 3:
+        # Page 4: Menu et comptes
+        subtitle = font_subtitle.render("MENU ET COMPTES", True, YELLOW)
+        subtitle_rect = subtitle.get_rect(center=(WINDOW_WIDTH//2, content_y))
+        screen.blit(subtitle, subtitle_rect)
+        content_y += 60
+        
+        lines = [
+            "CRÉATION DE COMPTE :",
+            "• Au démarrage, créez votre compte",
+            "• Choisissez un nom (max 7 caractères)",
+            "• Sélectionnez un avatar parmi les options",
+            "• Choisissez une police pour votre profil",
+            "",
+            "MENU PRINCIPAL :",
+            "• JEU : Lancer une partie",
+            "• DIFFICULTÉ : Choisir la difficulté (Facile, Moyen, Difficile, Hardcore)",
+            "• MAGASIN : Acheter des objets et améliorations",
+            "• INVENTAIRE : Voir vos objets possédés",
+            "• POCHE : Consulter vos ressources (jetons, couronnes, gemmes)"
+        ]
+        
+    elif page == 4:
+        # Page 5: Fonctionnalités avancées
+        subtitle = font_subtitle.render("FONCTIONNALITÉS AVANCÉES", True, YELLOW)
+        subtitle_rect = subtitle.get_rect(center=(WINDOW_WIDTH//2, content_y))
+        screen.blit(subtitle, subtitle_rect)
+        content_y += 60
+        
+        lines = [
+            "AVENTURE :",
+            "• Mode spécial avec 3 vies et progression",
+            "• Commencez avec 0 couronnes et 0 pacoins",
+            "",
+            "PASSE DE COMBAT :",
+            "• Gagnez de l'XP en jouant",
+            "• Débloquez des récompenses à chaque niveau",
+            "• Utilisez les étoiles pour des bonus spéciaux",
+            "",
+            "ARBRE DES TROPHÉES :",
+            "• Débloquez des trophées en accomplissant des défis",
+            "• Deux catégories : Survie et Équipement",
+            "• Les trophées débloquent de nouvelles capacités",
+            "",
+            "BOUTIQUE :",
+            "• Achetez des objets avec vos ressources",
+            "• VENTE : Vendez vos objets pour obtenir des ressources"
+        ]
+        
+    elif page == 5:
+        # Page 6: Conseils et stratégies
+        subtitle = font_subtitle.render("CONSEILS ET STRATÉGIES", True, YELLOW)
+        subtitle_rect = subtitle.get_rect(center=(WINDOW_WIDTH//2, content_y))
+        screen.blit(subtitle, subtitle_rect)
+        content_y += 60
+        
+        lines = [
+            "STRATÉGIES :",
+            "• Planifiez votre route pour collecter les points efficacement",
+            "• Utilisez les pacgommes stratégiquement",
+            "• Les coins sont souvent plus sûrs que le centre",
+            "",
+            "GESTION DES FANTÔMES :",
+            "• Observez les patterns de déplacement des fantômes",
+            "• Utilisez les murs pour bloquer les fantômes",
+            "• Attirez les fantômes dans des zones mortes",
+            "",
+            "SURVIE :",
+            "• Ne prenez pas de risques inutiles",
+            "• Gardez toujours une voie de fuite",
+            "• Utilisez la téléportation pour échapper aux fantômes",
+            "",
+            "BONNE CHANCE ET AMUSEZ-VOUS BIEN !"
+        ]
+    
+    # Afficher les lignes de contenu
+    for line in lines:
+        if line:
+            text_surface = font_content.render(line, True, WHITE)
+            # Centrer le texte si c'est un titre ou une ligne courte
+            if line.startswith("•") or ":" in line:
+                text_rect = text_surface.get_rect(x=100, y=content_y)
+            else:
+                text_rect = text_surface.get_rect(center=(WINDOW_WIDTH//2, content_y))
+            screen.blit(text_surface, text_rect)
+        content_y += line_height
+    
+    # Numéro de page
+    total_pages = 6
+    page_text = font_content.render(f"Page {page + 1}/{total_pages}", True, (150, 150, 150))
+    page_rect = page_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT - 30))
+    screen.blit(page_text, page_rect)
+    
+    return prev_button, next_button
+
+def draw_passe_menu(screen, battle_pass_level=1, battle_pass_xp=0, battle_pass_xp_needed=100, claimed_rewards=None, jeton_poche=0, crown_poche=0, gemme_poche=0, used_stars=None, scroll_offset=0):
+    """Dessine le menu de la passe de combat (style Brawl Stars)"""
+    if claimed_rewards is None:
+        claimed_rewards = []
+    if used_stars is None:
+        used_stars = []
+    MAX_BATTLE_PASS_LEVEL = 30  # Niveau maximum avant de recommencer
+    # Niveaux avec récompenses en pacoins
+    REWARD_LEVELS_PACOINS = {
+        1: 300, 5: 300, 7: 300, 9: 300, 11: 300, 15: 300, 18: 300, 22: 300, 25: 300, 28: 1000, 29: 300
+    }
+    # Niveaux avec récompenses en couronnes
+    REWARD_LEVELS_CROWNS = {
+        2: 5, 6: 5, 13: 5, 20: 5, 27: 5
+    }
+    # Niveaux avec récompenses en gemmes
+    REWARD_LEVELS_GEMS = {
+        3: 10, 12: 10, 17: 10, 21: 10, 26: 10
+    }
+    screen.fill(BLACK)
+    
+    # Titre
+    font_title = pygame.font.Font(None, 72)
+    title_text = font_title.render("PASSE DE COMBAT", True, YELLOW)
+    title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 50))
+    screen.blit(title_text, title_rect)
+    
+    # Bouton retour
+    retour_button = pygame.Rect(10, 10, 100, 40)
+    pygame.draw.rect(screen, RED, retour_button)
+    pygame.draw.rect(screen, WHITE, retour_button, 2)
+    font_retour = pygame.font.Font(None, 36)
+    retour_text = font_retour.render("RETOUR", True, WHITE)
+    retour_text_rect = retour_text.get_rect(center=retour_button.center)
+    screen.blit(retour_text, retour_text_rect)
+    
+    # Barre de progression (style Brawl Stars)
+    progress_y = 120
+    progress_width = WINDOW_WIDTH - 100
+    progress_height = 40
+    progress_x = (WINDOW_WIDTH - progress_width) // 2
+    
+    # Fond de la barre de progression (gris)
+    progress_bg = pygame.Rect(progress_x, progress_y, progress_width, progress_height)
+    pygame.draw.rect(screen, (50, 50, 50), progress_bg)
+    pygame.draw.rect(screen, WHITE, progress_bg, 2)
+    
+    # Barre de progression remplie (orange/jaune)
+    progress_percent = min(battle_pass_xp / battle_pass_xp_needed, 1.0) if battle_pass_xp_needed > 0 else 0
+    progress_filled_width = int(progress_width * progress_percent)
+    if progress_filled_width > 0:
+        progress_filled = pygame.Rect(progress_x, progress_y, progress_filled_width, progress_height)
+        pygame.draw.rect(screen, (255, 200, 0), progress_filled)
+    
+    # Texte du niveau et XP
+    font_progress = pygame.font.Font(None, 32)
+    progress_text = f"Niveau {battle_pass_level} - {battle_pass_xp}/{battle_pass_xp_needed} XP"
+    progress_text_surface = font_progress.render(progress_text, True, WHITE)
+    progress_text_rect = progress_text_surface.get_rect(center=(WINDOW_WIDTH//2, progress_y + progress_height//2))
+    screen.blit(progress_text_surface, progress_text_rect)
+    
+    # Afficher les pacoins, couronnes et gemmes disponibles
+    font_currency = pygame.font.Font(None, 28)
+    pacoins_text = font_currency.render(f"Pacoins: {jeton_poche}", True, YELLOW)
+    pacoins_rect = pacoins_text.get_rect(center=(WINDOW_WIDTH//2 - 150, progress_y + progress_height + 25))
+    screen.blit(pacoins_text, pacoins_rect)
+    
+    crowns_text = font_currency.render(f"Couronnes: {crown_poche}", True, (255, 215, 0))
+    crowns_rect = crowns_text.get_rect(center=(WINDOW_WIDTH//2, progress_y + progress_height + 25))
+    screen.blit(crowns_text, crowns_rect)
+    
+    gems_text = font_currency.render(f"Gemmes: {gemme_poche}", True, (0, 255, 255))
+    gems_rect = gems_text.get_rect(center=(WINDOW_WIDTH//2 + 150, progress_y + progress_height + 25))
+    screen.blit(gems_text, gems_rect)
+    
+    # Zone des récompenses (niveaux de la passe)
+    rewards_start_y = progress_y + progress_height + 30
+    rewards_area_height = WINDOW_HEIGHT - rewards_start_y - 60
+    rewards_area = pygame.Rect(50, rewards_start_y, WINDOW_WIDTH - 100, rewards_area_height)
+    pygame.draw.rect(screen, (30, 30, 30), rewards_area)
+    pygame.draw.rect(screen, WHITE, rewards_area, 2)
+    
+    # Afficher quelques niveaux de récompenses (style Brawl Stars)
+    font_reward = pygame.font.Font(None, 20)
+    reward_item_size = 45
+    reward_spacing = 55
+    rewards_per_row = 10
+    start_reward_x = rewards_area.x + 10
+    start_reward_y = rewards_area.y + 10
+    
+    # Calculer le niveau effectif (boucle après le niveau 30)
+    effective_level = ((battle_pass_level - 1) % MAX_BATTLE_PASS_LEVEL) + 1
+    
+    # Liste pour stocker les rectangles des récompenses (pour les clics)
+    reward_rects = []
+    
+    # Afficher les récompenses pour les niveaux 1-30 avec défilement
+    for level in range(1, MAX_BATTLE_PASS_LEVEL + 1):
+        row = (level - 1) // rewards_per_row
+        col = (level - 1) % rewards_per_row
+        reward_x = start_reward_x + col * reward_spacing
+        reward_y = start_reward_y + row * reward_spacing - scroll_offset
+        
+        # Ne dessiner que les récompenses visibles dans la zone
+        if reward_y + reward_item_size < rewards_area.y:
+            continue  # Trop haut, ne pas dessiner
+        if reward_y > rewards_area.y + rewards_area.height:
+            continue  # Trop bas, ne pas dessiner
+        
+        # Calculer le niveau équivalent dans le cycle actuel
+        # Si on est au niveau 31, on est au niveau 1 du nouveau cycle
+        cycle_number = (battle_pass_level - 1) // MAX_BATTLE_PASS_LEVEL
+        level_in_current_cycle = level
+        
+        # Couleur selon l'état du niveau
+        if battle_pass_level > MAX_BATTLE_PASS_LEVEL:
+            # Si on a dépassé le niveau 30, on est dans un nouveau cycle
+            # Tous les niveaux sont récupérables (vert) car on recommence
+            if level == effective_level:
+                reward_color = (0, 200, 0)  # Vert si on peut le récupérer maintenant
+            elif level < effective_level:
+                reward_color = (255, 165, 0)  # Orange si déjà récupéré dans ce cycle
+            else:
+                reward_color = (100, 100, 100)  # Gris si pas encore atteint dans ce cycle
+        else:
+            # Cycle normal (niveau 1-30)
+            if level < battle_pass_level:
+                reward_color = (255, 165, 0)  # Orange si déjà débloqué et récupéré
+            elif level == battle_pass_level:
+                reward_color = (0, 200, 0)  # Vert si on peut encore le récupérer
+            else:
+                reward_color = (100, 100, 100)  # Gris si verrouillé
+        
+        # Rectangle pour la récompense
+        reward_rect = pygame.Rect(reward_x, reward_y, reward_item_size, reward_item_size)
+        pygame.draw.rect(screen, reward_color, reward_rect)
+        pygame.draw.rect(screen, WHITE, reward_rect, 2)
+        
+        # Numéro du niveau (seulement si ce n'est pas une case avec étoile)
+        STAR_LEVELS = [4, 8, 10, 14, 16, 19, 23, 24, 30]
+        if level not in STAR_LEVELS:
+            level_text = font_reward.render(str(level), True, WHITE)
+            level_text_rect = level_text.get_rect(center=(reward_rect.centerx, reward_rect.centery - 10))
+            screen.blit(level_text, level_text_rect)
+        
+        # Afficher l'icône de récompense si c'est un niveau avec récompense (mais pas si c'est une case avec étoile)
+        if level not in STAR_LEVELS:
+            if level in REWARD_LEVELS_PACOINS:
+                reward_amount = REWARD_LEVELS_PACOINS[level]
+                reward_icon_text = font_reward.render(str(reward_amount), True, YELLOW)
+                reward_icon_rect = reward_icon_text.get_rect(center=(reward_rect.centerx, reward_rect.centery + 1))
+                screen.blit(reward_icon_text, reward_icon_rect)
+                # Afficher "pacoins" en dessous
+                font_pacoins_small = pygame.font.Font(None, 14)
+                pacoins_text = font_pacoins_small.render("pacoins", True, YELLOW)
+                pacoins_rect = pacoins_text.get_rect(center=(reward_rect.centerx, reward_rect.centery + 12))
+                screen.blit(pacoins_text, pacoins_rect)
+            elif level in REWARD_LEVELS_CROWNS:
+                reward_amount = REWARD_LEVELS_CROWNS[level]
+                reward_icon_text = font_reward.render(str(reward_amount), True, (255, 215, 0))  # Or pour les couronnes
+                reward_icon_rect = reward_icon_text.get_rect(center=(reward_rect.centerx, reward_rect.centery + 1))
+                screen.blit(reward_icon_text, reward_icon_rect)
+                # Afficher "couronnes" en dessous
+                font_crowns_small = pygame.font.Font(None, 14)
+                crowns_text = font_crowns_small.render("couronnes", True, (255, 215, 0))
+                crowns_rect = crowns_text.get_rect(center=(reward_rect.centerx, reward_rect.centery + 12))
+                screen.blit(crowns_text, crowns_rect)
+            elif level in REWARD_LEVELS_GEMS:
+                reward_amount = REWARD_LEVELS_GEMS[level]
+                reward_icon_text = font_reward.render(str(reward_amount), True, (0, 255, 255))  # Cyan pour les gemmes
+                reward_icon_rect = reward_icon_text.get_rect(center=(reward_rect.centerx, reward_rect.centery + 1))
+                screen.blit(reward_icon_text, reward_icon_rect)
+                # Afficher "gemmes" en dessous
+                font_gems_small = pygame.font.Font(None, 14)
+                gems_text = font_gems_small.render("gemmes", True, (0, 255, 255))
+                gems_rect = gems_text.get_rect(center=(reward_rect.centerx, reward_rect.centery + 12))
+                screen.blit(gems_text, gems_rect)
+        
+        # Afficher une étoile cliquable sur les cases 4, 8, 10, 14, 16, 19, 23, 24, 30
+        star_rect = None
+        STAR_LEVELS = [4, 8, 10, 14, 16, 19, 23, 24, 30]
+        if level in STAR_LEVELS:
+            # Dessiner une grande étoile qui remplit toute la case
+            star_rect = reward_rect  # L'étoile remplit toute la case
+            star_size = reward_item_size  # Utiliser la taille de la case
+            
+            # Dessiner une étoile simple avec des lignes (5 branches) qui remplit la case
+            import math
+            star_points = []
+            center_x, center_y = reward_rect.centerx, reward_rect.centery
+            outer_radius = star_size // 2 - 5  # Laisser un peu de marge
+            inner_radius = outer_radius * 0.4  # Ratio pour l'étoile
+            
+            for i in range(10):  # 10 points pour 5 branches
+                angle = (i * math.pi / 5) - (math.pi / 2)
+                if i % 2 == 0:
+                    # Point extérieur
+                    radius = outer_radius
+                else:
+                    # Point intérieur
+                    radius = inner_radius
+                x = center_x + radius * math.cos(angle)
+                y = center_y + radius * math.sin(angle)
+                star_points.append((int(x), int(y)))
+            
+            # Couleur de l'étoile selon si le niveau est atteint et si elle a été utilisée
+            # Si l'étoile a été utilisée, elle est grise
+            # Si le niveau est atteint et l'étoile n'a pas été utilisée, l'étoile est verte et cliquable
+            # Sinon, l'étoile est grise et non cliquable
+            if level in used_stars:
+                # Étoile déjà utilisée - étoile grise
+                pygame.draw.polygon(screen, (100, 100, 100), star_points)
+                pygame.draw.polygon(screen, (150, 150, 150), star_points, 2)
+            elif level <= battle_pass_level:
+                # Niveau atteint et étoile non utilisée
+                # Étoile légendaire (jaune) pour le niveau 30, verte pour les autres
+                if level == 30:
+                    pygame.draw.polygon(screen, (255, 215, 0), star_points)  # Jaune/Or pour légendaire
+                    pygame.draw.polygon(screen, (255, 255, 0), star_points, 2)  # Jaune clair pour le contour
+                else:
+                    pygame.draw.polygon(screen, (0, 200, 0), star_points)  # Vert pour rare
+                    pygame.draw.polygon(screen, (0, 255, 0), star_points, 2)  # Vert clair pour le contour
+            else:
+                # Niveau non atteint - étoile grise et non cliquable
+                pygame.draw.polygon(screen, (100, 100, 100), star_points)
+                pygame.draw.polygon(screen, (150, 150, 150), star_points, 2)
+        
+        # Stocker le rectangle pour les clics (récompense et étoile si présente)
+        reward_rects.append(("reward", reward_rect, level))
+        # Stocker l'étoile seulement si le niveau est atteint (acheté) et qu'elle n'a pas été utilisée
+        if star_rect and level <= battle_pass_level and level not in used_stars:
+            reward_rects.append(("star", star_rect, level))
+    
+    # Flèche vers la droite pour aller au pass +
+    arrow_button = pygame.Rect(WINDOW_WIDTH - 110, WINDOW_HEIGHT // 2 - 50 + 100, 100, 100)
+    pygame.draw.rect(screen, (100, 100, 100), arrow_button)
+    pygame.draw.rect(screen, WHITE, arrow_button, 2)
+    # Dessiner une flèche vers la droite (pointe à droite) - 100 pixels
+    arrow_points = [
+        (arrow_button.centerx + 30, arrow_button.centery),  # Pointe de la flèche (droite)
+        (arrow_button.centerx - 10, arrow_button.centery - 30),  # Haut gauche
+        (arrow_button.centerx - 10, arrow_button.centery - 10),  # Milieu gauche haut
+        (arrow_button.centerx - 30, arrow_button.centery - 10),  # Extrémité gauche haut
+        (arrow_button.centerx - 30, arrow_button.centery + 10),  # Extrémité gauche bas
+        (arrow_button.centerx - 10, arrow_button.centery + 10),  # Milieu gauche bas
+        (arrow_button.centerx - 10, arrow_button.centery + 30)  # Bas gauche
+    ]
+    pygame.draw.polygon(screen, WHITE, arrow_points)
+    
+    return retour_button, reward_rects, arrow_button
+
+def draw_passe_plus_menu(screen, battle_pass_level=1, battle_pass_xp=0, battle_pass_xp_needed=100, claimed_rewards=None, jeton_poche=0, crown_poche=0, gemme_poche=0, used_stars=None, scroll_offset=0, pass_plus_purchased=False):
+    """Dessine le menu du passe de combat + (premium) - mêmes récompenses que le pass normal"""
+    if claimed_rewards is None:
+        claimed_rewards = []
+    if used_stars is None:
+        used_stars = []
+    PASS_PLUS_PRICE = 100  # Prix du pass + en gemmes
+    MAX_BATTLE_PASS_LEVEL = 30  # Niveau maximum avant de recommencer
+    # Niveaux avec récompenses en pacoins
+    REWARD_LEVELS_PACOINS = {
+        1: 300, 5: 300, 7: 300, 9: 300, 11: 300, 15: 300, 18: 300, 22: 300, 25: 300, 28: 1000, 29: 300
+    }
+    # Niveaux avec récompenses en couronnes
+    REWARD_LEVELS_CROWNS = {
+        2: 5, 6: 5, 13: 5, 20: 5, 27: 5
+    }
+    # Niveaux avec récompenses en gemmes
+    REWARD_LEVELS_GEMS = {
+        3: 10, 12: 10, 17: 10, 21: 10, 26: 10
+    }
+    screen.fill(BLACK)
+    
+    # Titre
+    font_title = pygame.font.Font(None, 72)
+    title_text = font_title.render("PASSE DE COMBAT +", True, (255, 215, 0))  # Or
+    title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 50))
+    screen.blit(title_text, title_rect)
+    
+    # Bouton retour
+    retour_button = pygame.Rect(10, 10, 100, 40)
+    pygame.draw.rect(screen, RED, retour_button)
+    pygame.draw.rect(screen, WHITE, retour_button, 2)
+    font_retour = pygame.font.Font(None, 36)
+    retour_text = font_retour.render("RETOUR", True, WHITE)
+    retour_text_rect = retour_text.get_rect(center=retour_button.center)
+    screen.blit(retour_text, retour_text_rect)
+    
+    # Barre de progression (style Brawl Stars)
+    progress_y = 120
+    progress_width = WINDOW_WIDTH - 100
+    progress_height = 40
+    progress_x = (WINDOW_WIDTH - progress_width) // 2
+    
+    # Fond de la barre de progression (gris)
+    progress_bg = pygame.Rect(progress_x, progress_y, progress_width, progress_height)
+    pygame.draw.rect(screen, (50, 50, 50), progress_bg)
+    pygame.draw.rect(screen, WHITE, progress_bg, 2)
+    
+    # Barre de progression remplie (orange/jaune)
+    progress_percent = min(battle_pass_xp / battle_pass_xp_needed, 1.0) if battle_pass_xp_needed > 0 else 0
+    progress_filled_width = int(progress_width * progress_percent)
+    if progress_filled_width > 0:
+        progress_filled = pygame.Rect(progress_x, progress_y, progress_filled_width, progress_height)
+        pygame.draw.rect(screen, (255, 200, 0), progress_filled)
+    
+    # Texte du niveau et XP
+    font_progress = pygame.font.Font(None, 32)
+    progress_text = f"Niveau {battle_pass_level} - {battle_pass_xp}/{battle_pass_xp_needed} XP"
+    progress_text_surface = font_progress.render(progress_text, True, WHITE)
+    progress_text_rect = progress_text_surface.get_rect(center=(WINDOW_WIDTH//2, progress_y + progress_height//2))
+    screen.blit(progress_text_surface, progress_text_rect)
+    
+    # Afficher les pacoins, couronnes et gemmes disponibles
+    font_currency = pygame.font.Font(None, 28)
+    pacoins_text = font_currency.render(f"Pacoins: {jeton_poche}", True, YELLOW)
+    pacoins_rect = pacoins_text.get_rect(center=(WINDOW_WIDTH//2 - 150, progress_y + progress_height + 25))
+    screen.blit(pacoins_text, pacoins_rect)
+    
+    crowns_text = font_currency.render(f"Couronnes: {crown_poche}", True, (255, 215, 0))
+    crowns_rect = crowns_text.get_rect(center=(WINDOW_WIDTH//2, progress_y + progress_height + 25))
+    screen.blit(crowns_text, crowns_rect)
+    
+    gems_text = font_currency.render(f"Gemmes: {gemme_poche}", True, (0, 255, 255))
+    gems_rect = gems_text.get_rect(center=(WINDOW_WIDTH//2 + 150, progress_y + progress_height + 25))
+    screen.blit(gems_text, gems_rect)
+    
+    # Zone des récompenses (niveaux de la passe)
+    rewards_start_y = progress_y + progress_height + 30
+    rewards_area_height = WINDOW_HEIGHT - rewards_start_y - 60
+    rewards_area = pygame.Rect(50, rewards_start_y, WINDOW_WIDTH - 100, rewards_area_height)
+    pygame.draw.rect(screen, (30, 30, 30), rewards_area)
+    pygame.draw.rect(screen, WHITE, rewards_area, 2)
+    
+    # Afficher quelques niveaux de récompenses (style Brawl Stars)
+    font_reward = pygame.font.Font(None, 20)
+    reward_item_size = 45
+    reward_spacing = 55
+    rewards_per_row = 10
+    start_reward_x = rewards_area.x + 10
+    start_reward_y = rewards_area.y + 10
+    
+    # Calculer le niveau effectif (boucle après le niveau 30)
+    effective_level = ((battle_pass_level - 1) % MAX_BATTLE_PASS_LEVEL) + 1
+    
+    # Liste pour stocker les rectangles des récompenses (pour les clics)
+    reward_rects = []
+    
+    # Afficher les récompenses pour les niveaux 1-30 avec défilement
+    for level in range(1, MAX_BATTLE_PASS_LEVEL + 1):
+        row = (level - 1) // rewards_per_row
+        col = (level - 1) % rewards_per_row
+        reward_x = start_reward_x + col * reward_spacing
+        reward_y = start_reward_y + row * reward_spacing - scroll_offset
+        
+        # Ne dessiner que les récompenses visibles dans la zone
+        if reward_y + reward_item_size < rewards_area.y:
+            continue  # Trop haut, ne pas dessiner
+        if reward_y > rewards_area.y + rewards_area.height:
+            continue  # Trop bas, ne pas dessiner
+        
+        # Calculer le niveau équivalent dans le cycle actuel
+        # Si on est au niveau 31, on est au niveau 1 du nouveau cycle
+        cycle_number = (battle_pass_level - 1) // MAX_BATTLE_PASS_LEVEL
+        level_in_current_cycle = level
+        
+        # Couleur selon l'état du niveau (utiliser claimed_rewards pour le pass +)
+        # Si le pass + n'est pas acheté, toutes les récompenses sont grisées
+        if not pass_plus_purchased:
+            reward_color = (50, 50, 50)  # Gris foncé si pass + non acheté
+        elif battle_pass_level > MAX_BATTLE_PASS_LEVEL:
+            # Si on a dépassé le niveau 30, on est dans un nouveau cycle
+            # Tous les niveaux sont récupérables (vert) car on recommence
+            if level == effective_level:
+                reward_color = (0, 200, 0)  # Vert si on peut le récupérer maintenant
+            elif level < effective_level:
+                # Vérifier si la récompense a été récupérée dans claimed_rewards
+                if level in claimed_rewards or level in used_stars:
+                    reward_color = (255, 165, 0)  # Orange si déjà récupéré dans ce cycle
+                else:
+                    reward_color = (0, 200, 0)  # Vert si pas encore récupéré
+            else:
+                reward_color = (100, 100, 100)  # Gris si pas encore atteint dans ce cycle
+        else:
+            # Cycle normal (niveau 1-30)
+            if level < battle_pass_level:
+                # Vérifier si la récompense a été récupérée dans claimed_rewards
+                if level in claimed_rewards or level in used_stars:
+                    reward_color = (255, 165, 0)  # Orange si déjà débloqué et récupéré
+                else:
+                    reward_color = (0, 200, 0)  # Vert si débloqué mais pas encore récupéré
+            elif level == battle_pass_level:
+                reward_color = (0, 200, 0)  # Vert si on peut encore le récupérer
+            else:
+                reward_color = (100, 100, 100)  # Gris si verrouillé
+        
+        # Rectangle pour la récompense
+        reward_rect = pygame.Rect(reward_x, reward_y, reward_item_size, reward_item_size)
+        pygame.draw.rect(screen, reward_color, reward_rect)
+        pygame.draw.rect(screen, WHITE, reward_rect, 2)
+        
+        # Numéro du niveau (seulement si ce n'est pas une case avec étoile)
+        STAR_LEVELS = [4, 8, 10, 14, 16, 19, 23, 24, 30]
+        if level not in STAR_LEVELS:
+            level_text = font_reward.render(str(level), True, WHITE)
+            level_text_rect = level_text.get_rect(center=(reward_rect.centerx, reward_rect.centery - 10))
+            screen.blit(level_text, level_text_rect)
+        
+        # Afficher l'icône de récompense si c'est un niveau avec récompense (mais pas si c'est une case avec étoile)
+        if level not in STAR_LEVELS:
+            if level in REWARD_LEVELS_PACOINS:
+                reward_amount = REWARD_LEVELS_PACOINS[level]
+                reward_icon_text = font_reward.render(str(reward_amount), True, YELLOW)
+                reward_icon_rect = reward_icon_text.get_rect(center=(reward_rect.centerx, reward_rect.centery + 1))
+                screen.blit(reward_icon_text, reward_icon_rect)
+                # Afficher "pacoins" en dessous
+                font_pacoins_small = pygame.font.Font(None, 14)
+                pacoins_text = font_pacoins_small.render("pacoins", True, YELLOW)
+                pacoins_rect = pacoins_text.get_rect(center=(reward_rect.centerx, reward_rect.centery + 12))
+                screen.blit(pacoins_text, pacoins_rect)
+            elif level in REWARD_LEVELS_CROWNS:
+                reward_amount = REWARD_LEVELS_CROWNS[level]
+                reward_icon_text = font_reward.render(str(reward_amount), True, (255, 215, 0))  # Or pour les couronnes
+                reward_icon_rect = reward_icon_text.get_rect(center=(reward_rect.centerx, reward_rect.centery + 1))
+                screen.blit(reward_icon_text, reward_icon_rect)
+                # Afficher "couronnes" en dessous
+                font_crowns_small = pygame.font.Font(None, 14)
+                crowns_text = font_crowns_small.render("couronnes", True, (255, 215, 0))
+                crowns_rect = crowns_text.get_rect(center=(reward_rect.centerx, reward_rect.centery + 12))
+                screen.blit(crowns_text, crowns_rect)
+            elif level in REWARD_LEVELS_GEMS:
+                reward_amount = REWARD_LEVELS_GEMS[level]
+                reward_icon_text = font_reward.render(str(reward_amount), True, (0, 255, 255))  # Cyan pour les gemmes
+                reward_icon_rect = reward_icon_text.get_rect(center=(reward_rect.centerx, reward_rect.centery + 1))
+                screen.blit(reward_icon_text, reward_icon_rect)
+                # Afficher "gemmes" en dessous
+                font_gems_small = pygame.font.Font(None, 14)
+                gems_text = font_gems_small.render("gemmes", True, (0, 255, 255))
+                gems_rect = gems_text.get_rect(center=(reward_rect.centerx, reward_rect.centery + 12))
+                screen.blit(gems_text, gems_rect)
+        
+        # Afficher une étoile cliquable sur les cases 4, 8, 10, 14, 16, 19, 23, 24, 30
+        star_rect = None
+        STAR_LEVELS = [4, 8, 10, 14, 16, 19, 23, 24, 30]
+        if level in STAR_LEVELS:
+            # Dessiner une grande étoile qui remplit toute la case
+            star_rect = reward_rect  # L'étoile remplit toute la case
+            star_size = reward_item_size  # Utiliser la taille de la case
+            
+            # Dessiner une étoile simple avec des lignes (5 branches) qui remplit la case
+            import math
+            star_points = []
+            center_x, center_y = reward_rect.centerx, reward_rect.centery
+            outer_radius = star_size // 2 - 5  # Laisser un peu de marge
+            inner_radius = outer_radius * 0.4  # Ratio pour l'étoile
+            
+            for i in range(10):  # 10 points pour 5 branches
+                angle = (i * math.pi / 5) - (math.pi / 2)
+                if i % 2 == 0:
+                    # Point extérieur
+                    radius = outer_radius
+                else:
+                    # Point intérieur
+                    radius = inner_radius
+                x = center_x + radius * math.cos(angle)
+                y = center_y + radius * math.sin(angle)
+                star_points.append((int(x), int(y)))
+            
+            # Couleur de l'étoile selon si le niveau est atteint et si elle a été utilisée
+            # Si l'étoile a été utilisée, elle est grise
+            # Si le niveau est atteint et l'étoile n'a pas été utilisée, l'étoile est verte et cliquable
+            # Sinon, l'étoile est grise et non cliquable
+            # Si le pass + n'est pas acheté, toutes les étoiles sont grisées
+            if not pass_plus_purchased:
+                # Pass + non acheté - étoile grise foncée
+                pygame.draw.polygon(screen, (50, 50, 50), star_points)
+                pygame.draw.polygon(screen, (100, 100, 100), star_points, 2)
+            elif level in used_stars:
+                # Étoile déjà utilisée - étoile grise
+                pygame.draw.polygon(screen, (100, 100, 100), star_points)
+                pygame.draw.polygon(screen, (150, 150, 150), star_points, 2)
+            elif level <= battle_pass_level:
+                # Niveau atteint et étoile non utilisée
+                # Étoile légendaire (jaune) pour le niveau 30, verte pour les autres
+                if level == 30:
+                    pygame.draw.polygon(screen, (255, 215, 0), star_points)  # Jaune/Or pour légendaire
+                    pygame.draw.polygon(screen, (255, 255, 0), star_points, 2)  # Jaune clair pour le contour
+                else:
+                    pygame.draw.polygon(screen, (0, 200, 0), star_points)  # Vert pour rare
+                    pygame.draw.polygon(screen, (0, 255, 0), star_points, 2)  # Vert clair pour le contour
+            else:
+                # Niveau non atteint - étoile grise et non cliquable
+                pygame.draw.polygon(screen, (100, 100, 100), star_points)
+                pygame.draw.polygon(screen, (150, 150, 150), star_points, 2)
+        
+        # Stocker le rectangle pour les clics (récompense et étoile si présente)
+        reward_rects.append(("reward", reward_rect, level))
+        # Stocker l'étoile seulement si le niveau est atteint (acheté) et qu'elle n'a pas été utilisée
+        if star_rect and level <= battle_pass_level and level not in used_stars:
+            reward_rects.append(("star", star_rect, level))
+    
+    # Bouton pour acheter le pass + (si non acheté)
+    buy_pass_plus_button = None
+    if not pass_plus_purchased:
+        buy_pass_plus_button = pygame.Rect(WINDOW_WIDTH // 2 - 150, WINDOW_HEIGHT - 60, 300, 50)
+        pygame.draw.rect(screen, (255, 215, 0), buy_pass_plus_button)  # Or
+        pygame.draw.rect(screen, WHITE, buy_pass_plus_button, 3)
+        font_buy = pygame.font.Font(None, 36)
+        buy_text = font_buy.render(f"ACHETER PASS + ({PASS_PLUS_PRICE} gemmes)", True, BLACK)
+        buy_text_rect = buy_text.get_rect(center=buy_pass_plus_button.center)
+        screen.blit(buy_text, buy_text_rect)
+    
+    # Bouton pour gagner 100 XP (en bas à droite, seulement si le pass + est acheté)
+    gain_xp_button = None
+    if pass_plus_purchased:
+        gain_xp_button = pygame.Rect(WINDOW_WIDTH - 200, WINDOW_HEIGHT - 60, 180, 50)
+        pygame.draw.rect(screen, (0, 200, 0), gain_xp_button)  # Vert
+        pygame.draw.rect(screen, WHITE, gain_xp_button, 3)
+        font_gain_xp = pygame.font.Font(None, 32)
+        gain_xp_text = font_gain_xp.render("+100 XP", True, WHITE)
+        gain_xp_text_rect = gain_xp_text.get_rect(center=gain_xp_button.center)
+        screen.blit(gain_xp_text, gain_xp_text_rect)
+    
+    # Flèche vers la gauche pour revenir au pass normal
+    arrow_left_button = pygame.Rect(10, WINDOW_HEIGHT // 2 - 50 + 100, 100, 100)
+    pygame.draw.rect(screen, (100, 100, 100), arrow_left_button)
+    pygame.draw.rect(screen, WHITE, arrow_left_button, 2)
+    # Dessiner une flèche vers la gauche (pointe à gauche) - 100 pixels
+    arrow_left_points = [
+        (arrow_left_button.centerx - 30, arrow_left_button.centery),  # Pointe de la flèche (gauche)
+        (arrow_left_button.centerx + 10, arrow_left_button.centery - 30),  # Haut droite
+        (arrow_left_button.centerx + 10, arrow_left_button.centery - 10),  # Milieu droite haut
+        (arrow_left_button.centerx + 30, arrow_left_button.centery - 10),  # Extrémité droite haut
+        (arrow_left_button.centerx + 30, arrow_left_button.centery + 10),  # Extrémité droite bas
+        (arrow_left_button.centerx + 10, arrow_left_button.centery + 10),  # Milieu droite bas
+        (arrow_left_button.centerx + 10, arrow_left_button.centery + 30)  # Bas droite
+    ]
+    pygame.draw.polygon(screen, WHITE, arrow_left_points)
+    
+    return retour_button, gain_xp_button, reward_rects, arrow_left_button, buy_pass_plus_button
 
 def draw_shop(screen):
     """Dessine l'écran du magasin"""
@@ -5487,7 +6741,7 @@ def draw_vente(screen, inventaire_items=None, jeton_poche=0, crown_poche=0, scro
     
     return retour_button, item_rects, sell_prices
 
-def draw_poche(screen, crown_poche=0, jeton_poche=0):
+def draw_poche(screen, crown_poche=0, jeton_poche=0, gemme_poche=0):
     """Dessine l'écran de la poche"""
     screen.fill(BLACK)
     
@@ -5511,6 +6765,11 @@ def draw_poche(screen, crown_poche=0, jeton_poche=0):
     jeton_rect = jeton_count_text.get_rect(center=(WINDOW_WIDTH//2, y_offset + spacing))
     screen.blit(jeton_count_text, jeton_rect)
     
+    # Afficher le compteur de gemmes dans la poche
+    gemme_count_text = font.render(f"Gemmes: {gemme_poche}", True, (0, 255, 255))  # Cyan
+    gemme_rect = gemme_count_text.get_rect(center=(WINDOW_WIDTH//2, y_offset + spacing * 2))
+    screen.blit(gemme_count_text, gemme_rect)
+    
     # Bouton retour
     font_button = pygame.font.Font(None, 36)
     retour_button = pygame.Rect(10, 10, 100, 40)
@@ -5521,6 +6780,74 @@ def draw_poche(screen, crown_poche=0, jeton_poche=0):
     screen.blit(retour_text, retour_text_rect)
     
     return retour_button
+
+def draw_boutique(screen, jeton_poche=0, crown_poche=0, gemme_poche=0):
+    """Dessine le menu de la boutique pour échanger des devises"""
+    screen.fill(BLACK)
+    
+    font_title = pygame.font.Font(None, 72)
+    title_text = font_title.render("BOUTIQUE", True, (255, 215, 0))  # Or
+    title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 100))
+    screen.blit(title_text, title_rect)
+    
+    # Afficher les devises disponibles
+    font_currency = pygame.font.Font(None, 36)
+    currency_y = 180
+    spacing = 40
+    
+    pacoins_text = font_currency.render(f"Pacoins: {jeton_poche}", True, (255, 192, 203))  # Rose
+    pacoins_rect = pacoins_text.get_rect(center=(WINDOW_WIDTH//2, currency_y))
+    screen.blit(pacoins_text, pacoins_rect)
+    
+    couronnes_text = font_currency.render(f"Couronnes: {crown_poche}", True, (255, 215, 0))  # Or
+    couronnes_rect = couronnes_text.get_rect(center=(WINDOW_WIDTH//2, currency_y + spacing))
+    screen.blit(couronnes_text, couronnes_rect)
+    
+    gemmes_text = font_currency.render(f"Gemmes: {gemme_poche}", True, (0, 255, 255))  # Cyan
+    gemmes_rect = gemmes_text.get_rect(center=(WINDOW_WIDTH//2, currency_y + spacing * 2))
+    screen.blit(gemmes_text, gemmes_rect)
+    
+    # Boutons d'échange
+    font_button = pygame.font.Font(None, 32)
+    button_width = 400
+    button_height = 60
+    button_spacing = 80
+    start_y = 350
+    
+    # Échange 1: 500 pacoins → 1 couronne
+    exchange1_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y, button_width, button_height)
+    pygame.draw.rect(screen, (0, 200, 0), exchange1_button)  # Vert
+    pygame.draw.rect(screen, WHITE, exchange1_button, 2)
+    exchange1_text = font_button.render("500 Pacoins → 1 Couronne", True, WHITE)
+    exchange1_text_rect = exchange1_text.get_rect(center=exchange1_button.center)
+    screen.blit(exchange1_text, exchange1_text_rect)
+    
+    # Échange 2: 1 couronne → 500 pacoins
+    exchange2_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing, button_width, button_height)
+    pygame.draw.rect(screen, (0, 200, 0), exchange2_button)  # Vert
+    pygame.draw.rect(screen, WHITE, exchange2_button, 2)
+    exchange2_text = font_button.render("1 Couronne → 500 Pacoins", True, WHITE)
+    exchange2_text_rect = exchange2_text.get_rect(center=exchange2_button.center)
+    screen.blit(exchange2_text, exchange2_text_rect)
+    
+    # Échange 3: 10 gemmes → 10 couronnes
+    exchange3_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 2, button_width, button_height)
+    pygame.draw.rect(screen, (0, 200, 0), exchange3_button)  # Vert
+    pygame.draw.rect(screen, WHITE, exchange3_button, 2)
+    exchange3_text = font_button.render("10 Gemmes → 10 Couronnes", True, WHITE)
+    exchange3_text_rect = exchange3_text.get_rect(center=exchange3_button.center)
+    screen.blit(exchange3_text, exchange3_text_rect)
+    
+    # Bouton retour
+    font_retour = pygame.font.Font(None, 36)
+    retour_button = pygame.Rect(10, 10, 100, 40)
+    pygame.draw.rect(screen, RED, retour_button)
+    pygame.draw.rect(screen, WHITE, retour_button, 2)
+    retour_text = font_retour.render("RETOUR", True, WHITE)
+    retour_text_rect = retour_text.get_rect(center=retour_button.center)
+    screen.blit(retour_text, retour_text_rect)
+    
+    return retour_button, exchange1_button, exchange2_button, exchange3_button
 
 def save_accounts_data(accounts):
     """Sauvegarde tous les comptes dans un fichier JSON"""
@@ -5547,10 +6874,14 @@ def load_accounts_data():
             return []
     return []
 
-def save_game_data_for_account(account_index, pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, accounts_list=None):
+def save_game_data_for_account(account_index, pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, battle_pass_xp=0, battle_pass_claimed_rewards=None, gemme_poche=0, used_stars=None, accounts_list=None, battle_pass_plus_claimed_rewards=None, used_stars_plus=None, pass_plus_purchased=False):
     """Sauvegarde les données de jeu d'un compte spécifique"""
     if accounts_list is None:
         accounts_list = load_accounts_data()
+    if used_stars is None:
+        used_stars = []
+    if used_stars_plus is None:
+        used_stars_plus = []
     if 0 <= account_index < len(accounts_list):
         accounts_list[account_index]['game_data'] = {
             'pouvoir_items': pouvoir_items,
@@ -5560,7 +6891,14 @@ def save_game_data_for_account(account_index, pouvoir_items, gadget_items, objet
             'inventaire_items': inventaire_items,
             'jeton_poche': jeton_poche,
             'crown_poche': crown_poche,
-            'bon_marche_ameliore': bon_marche_ameliore
+            'bon_marche_ameliore': bon_marche_ameliore,
+            'battle_pass_xp': battle_pass_xp,
+            'battle_pass_claimed_rewards': battle_pass_claimed_rewards if battle_pass_claimed_rewards is not None else [],
+            'battle_pass_plus_claimed_rewards': battle_pass_plus_claimed_rewards if battle_pass_plus_claimed_rewards is not None else [],
+            'gemme_poche': gemme_poche,
+            'used_stars': used_stars,
+            'used_stars_plus': used_stars_plus,
+            'pass_plus_purchased': pass_plus_purchased
         }
         save_accounts_data(accounts_list)
 
@@ -5577,14 +6915,36 @@ def load_game_data_for_account(account_index):
             game_data.get('inventaire_items', {}),
             game_data.get('jeton_poche', 0),
             game_data.get('crown_poche', 0),
-            game_data.get('bon_marche_ameliore', False)
+            game_data.get('bon_marche_ameliore', False),
+            int(game_data.get('battle_pass_xp', 0)) if isinstance(game_data.get('battle_pass_xp', 0), (int, float)) else 0,
+            game_data.get('battle_pass_claimed_rewards', []),
+            int(game_data.get('gemme_poche', 0)) if isinstance(game_data.get('gemme_poche', 0), (int, float)) else 0,
+            game_data.get('used_stars', []),
+            game_data.get('battle_pass_plus_claimed_rewards', []),
+            game_data.get('used_stars_plus', []),
+            game_data.get('pass_plus_purchased', False)
         )
-    return [], [], [], [], {}, 0, 0, False
+    return [], [], [], [], {}, 0, 0, False, 0, [], 0, [], [], [], False
 
-def auto_save_account_data(account_index, pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, accounts_list):
+def all_battle_pass_rewards_claimed(battle_pass_claimed_rewards, used_stars, max_level=30):
+    """Vérifie si toutes les récompenses du battle pass ont été récupérées"""
+    for level in range(1, max_level + 1):
+        if level not in battle_pass_claimed_rewards and level not in used_stars:
+            return False
+    return True
+
+def auto_save_account_data(account_index, pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, battle_pass_xp, battle_pass_claimed_rewards=None, gemme_poche=0, used_stars=None, accounts_list=None, battle_pass_plus_claimed_rewards=None, used_stars_plus=None, pass_plus_purchased=False):
     """Sauvegarde automatiquement les données du compte actuel"""
     if account_index is not None:
-        save_game_data_for_account(account_index, pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, accounts_list)
+        if battle_pass_claimed_rewards is None:
+            battle_pass_claimed_rewards = []
+        if used_stars is None:
+            used_stars = []
+        if battle_pass_plus_claimed_rewards is None:
+            battle_pass_plus_claimed_rewards = []
+        if used_stars_plus is None:
+            used_stars_plus = []
+        save_game_data_for_account(account_index, pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, battle_pass_xp, battle_pass_claimed_rewards, gemme_poche, used_stars, accounts_list, battle_pass_plus_claimed_rewards, used_stars_plus, pass_plus_purchased)
 
 def main():
     screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
@@ -5598,6 +6958,15 @@ def main():
     AVATAR_MENU = "avatar_menu"
     NAME_MENU = "name_menu"
     MENU = "menu"
+    TUTORIAL_MENU = "tutorial_menu"
+    SKILL_TREE_MENU = "skill_tree_menu"
+    SURVIE_SKILL_TREE_MENU = "survie_skill_tree_menu"
+    EQUIPEMENT_SKILL_TREE_MENU = "equipement_skill_tree_menu"
+    AVENTURE_MENU = "aventure_menu"
+    PASSE_MENU = "passe_menu"
+    BOUTIQUE = "boutique"
+    PASSE_PLUS_MENU = "passe_plus_menu"
+    STAR_UPGRADE_MENU = "star_upgrade_menu"
     GAME = "game"
     SHOP = "shop"
     SHOP_GADGET = "shop_gadget"
@@ -5645,6 +7014,11 @@ def main():
     first_level_success_unlocked = False  # Succès "Premier niveau" déjà débloqué
     success_notification_text = ""  # Texte du dernier succès débloqué
     success_notification_timer = 0  # Timer d'affichage du succès (1 s = 60 frames)
+    is_adventure_mode = False  # Mode aventure activé ou non
+    # Variables pour le système de maps 4x4 aux niveaux multiples de 10 en mode aventure
+    map_x = 0  # Coordonnée X dans la grille 4x4 (0-3)
+    map_y = 0  # Coordonnée Y dans la grille 4x4 (0-3)
+    is_multi_map_mode = False  # Si on est en mode multi-map (niveau multiple de 10 en aventure)
     
     # Initialiser les données de jeu (seront chargées quand un compte est sélectionné)
     pouvoir_items = []  # Liste des items de pouvoir achetés
@@ -5655,6 +7029,21 @@ def main():
     jeton_poche = 0
     crown_poche = 0
     bon_marche_ameliore = False
+    battle_pass_xp = 0  # XP du passe de combat
+    battle_pass_claimed_rewards = []  # Liste des récompenses récupérées du passe de combat
+    battle_pass_plus_claimed_rewards = []  # Liste des récompenses récupérées du passe de combat +
+    pass_plus_purchased = False  # Indique si le pass + a été acheté
+    star_rarity = "rare"  # Rareté de l'étoile (rare, super_rare, epique, legendaire)
+    star_clicks_remaining = 5  # Nombre de clics restants sur l'étoile
+    xp_doubler_active = False  # Doubleur d'XP actif pour la prochaine partie
+    xp_doublers_count = 0  # Nombre de doubleurs d'XP disponibles
+    vulnerable_ghosts_eaten_this_game = 0  # Nombre de fantômes vulnérables mangés dans cette partie
+    used_stars = []  # Liste des niveaux d'étoiles déjà utilisées
+    used_stars_plus = []  # Liste des niveaux d'étoiles déjà utilisées dans le pass +
+    current_star_level = None  # Niveau de l'étoile actuellement ouverte
+    is_plus_star = False  # Indique si l'étoile actuelle est du pass +
+    reward_animations = []  # Liste des animations de récompenses actives
+    passe_scroll_offset = 0  # Décalage de défilement pour le menu du battle pass
     
     inventaire_items = inventaire_items_loaded.copy() if inventaire_items_loaded else {}  # Dictionnaire des items dans l'inventaire {slot_name: item_data}
     jeton_count = 0  # Compteur de jetons gagnés pendant le jeu (temporaires)
@@ -5680,6 +7069,10 @@ def main():
     FIRE_DURATION = 100  # Durée du feu en frames (10 secondes à 10 FPS)
     fire_active = False  # État d'activation du feu (si True, créer du feu sur le chemin)
     fire_timer = 0  # Timer pour la durée d'activation du feu (10 secondes)
+    pacgomme_timers = {}  # Dictionnaire pour stocker les timers de réapparition des pacgommes: {(x, y): timer}
+    PACGOMME_RESPAWN_TIME = 20  # Temps de réapparition des pacgommes en frames (2 secondes à 10 FPS)
+    ghost_timers = {}  # Dictionnaire pour stocker les timers de réapparition des fantômes en mode aventure: {(start_x, start_y, color): timer}
+    GHOST_RESPAWN_TIME = 50  # Temps de réapparition des fantômes en frames (5 secondes à 10 FPS)
     gadget_cooldown = 0  # Cooldown entre les utilisations de gadget (25 secondes = 250 frames à 10 FPS)
     GADGET_COOLDOWN_DURATION = 250  # Durée du cooldown en frames (25 secondes à 10 FPS)
     MORT_COOLDOWN_DURATION = 600  # Durée du cooldown pour "mort" en frames (1 minute = 60 secondes = 600 frames à 10 FPS)
@@ -5764,6 +7157,7 @@ def main():
     selected_font = None  # Nom de fichier de la font sélectionnée (ou valeur legacy)
     pending_font = None  # Nom de fichier temporaire dans le menu font
     pending_avatar = None  # Sélection temporaire dans le menu avatar
+    tutorial_page = 0  # Page actuelle du tutoriel
     
     running = True
     while running:
@@ -5848,6 +7242,26 @@ def main():
                     
                     # Limiter le défilement
                     vente_scroll_offset = max(0, min(vente_scroll_offset, max_scroll))
+                # Gérer le défilement dans le menu du battle pass
+                elif current_state == PASSE_MENU:
+                    # Calculer la hauteur totale nécessaire pour afficher tous les niveaux
+                    MAX_BATTLE_PASS_LEVEL = 30
+                    rewards_per_row = 10
+                    reward_spacing = 55
+                    rewards_start_y = 120 + 40 + 30  # progress_y + progress_height + 30
+                    num_rows = (MAX_BATTLE_PASS_LEVEL + rewards_per_row - 1) // rewards_per_row
+                    total_height = rewards_start_y + num_rows * reward_spacing
+                    
+                    # Calculer le défilement maximum
+                    visible_area_bottom = WINDOW_HEIGHT - 60  # Réserver de l'espace pour le bouton +100 XP
+                    max_scroll = max(0, total_height - visible_area_bottom + rewards_start_y)
+                    
+                    # Ajuster le défilement selon la molette
+                    scroll_speed = 30
+                    passe_scroll_offset += event.y * scroll_speed
+                    
+                    # Limiter le défilement
+                    passe_scroll_offset = max(0, min(passe_scroll_offset, max_scroll))
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # Clic gauche
                     mouse_pos = event.pos
@@ -5856,8 +7270,9 @@ def main():
                     if current_state == START_MENU and delete_confirmation_step == 0:
                         # Vérifier si on clique sur un compte pour commencer l'appui long
                         account_clicked = False
-                        for profile_rect, account_idx in start_profile_rects:
-                            if profile_rect.collidepoint(mouse_pos):
+                        for rect_type, rect, account_idx in start_profile_rects:
+                            if rect_type == "profile" and rect.collidepoint(mouse_pos):
+                                # Sélectionner le compte
                                 account_long_press_index = account_idx
                                 account_long_press_timer = 0
                                 account_clicked = True
@@ -5883,15 +7298,9 @@ def main():
                         button_width = 100
                         button_height = 40
                         button_spacing = 20
-                        # Inverser les positions lors de la deuxième vérification
-                        if delete_confirmation_step == 1:
-                            # Première vérification : OUI à gauche, NON à droite
-                            oui_button = pygame.Rect(dialog_x + dialog_width // 2 - button_width - button_spacing // 2, dialog_y + 130, button_width, button_height)
-                            non_button = pygame.Rect(dialog_x + dialog_width // 2 + button_spacing // 2, dialog_y + 130, button_width, button_height)
-                        else:
-                            # Deuxième vérification : OUI à droite, NON à gauche (inversé)
-                            non_button = pygame.Rect(dialog_x + dialog_width // 2 - button_width - button_spacing // 2, dialog_y + 130, button_width, button_height)
-                            oui_button = pygame.Rect(dialog_x + dialog_width // 2 + button_spacing // 2, dialog_y + 130, button_width, button_height)
+                        # OUI toujours à droite, NON toujours à gauche
+                        non_button = pygame.Rect(dialog_x + dialog_width // 2 - button_width - button_spacing // 2, dialog_y + 130, button_width, button_height)
+                        oui_button = pygame.Rect(dialog_x + dialog_width // 2 + button_spacing // 2, dialog_y + 130, button_width, button_height)
                         
                         if oui_button.collidepoint(mouse_pos):
                             if delete_confirmation_step == 1:
@@ -5932,12 +7341,112 @@ def main():
                             selected_avatar = account.get('selected_avatar')
                             selected_font = account.get('selected_font')
                             # Charger les données de jeu de ce compte
-                            pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items_loaded, jeton_poche, crown_poche, bon_marche_ameliore = load_game_data_for_account(current_account_index)
+                            pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items_loaded, jeton_poche, crown_poche, bon_marche_ameliore, battle_pass_xp, battle_pass_claimed_rewards, gemme_poche, used_stars, battle_pass_plus_claimed_rewards, used_stars_plus, pass_plus_purchased = load_game_data_for_account(current_account_index)
                             # Lancer le jeu
                             current_state = MENU
                         # Réinitialiser le timer
                         account_long_press_index = None
                         account_long_press_timer = 0
+                    elif current_state == AVENTURE_MENU:
+                        aventure_retour_button = pygame.Rect(10, 10, 100, 40)
+                        aventure_carte1_button = pygame.Rect(WINDOW_WIDTH//2 - 125, WINDOW_HEIGHT//2 - 30, 250, 60)
+                        if aventure_retour_button.collidepoint(mouse_pos):
+                            current_state = MENU
+                        elif aventure_carte1_button.collidepoint(mouse_pos):
+                            # Démarrer l'aventure : carte 1 avec 3 vies, 0 couronnes, 0 pacoins
+                            # Réinitialiser les valeurs pour l'aventure
+                            jeton_poche = 0
+                            crown_poche = 0
+                            # Démarrer le jeu avec la carte 1 (niveau 1)
+                            maze, pacman, ghosts = start_next_level(1, is_adventure_mode=True)
+                            # Ajouter 4 pacgommes aux mêmes positions que dans le jeu normal
+                            # Les pacgommes sont généralement aux 4 coins du labyrinthe
+                            # Positions standard : (1,1), (19,1), (1,19), (19,19)
+                            # Mais on vérifie d'abord si ces positions sont valides (pas des murs)
+                            corner_positions = [
+                                (1, 1),   # Coin haut-gauche
+                                (GRID_WIDTH - 2, 1),  # Coin haut-droite (19, 1)
+                                (1, GRID_HEIGHT - 2),  # Coin bas-gauche (1, 19)
+                                (GRID_WIDTH - 2, GRID_HEIGHT - 2)  # Coin bas-droite (19, 19)
+                            ]
+                            
+                            # Placer les pacgommes aux positions des coins si elles sont valides
+                            for x, y in corner_positions:
+                                if 0 <= x < GRID_WIDTH and 0 <= y < GRID_HEIGHT:
+                                    if maze[y][x] != 1:  # Si ce n'est pas un mur
+                                        maze[y][x] = 3  # Placer une pacgomme
+                                    else:
+                                        # Si c'est un mur, chercher la case valide la plus proche
+                                        found = False
+                                        for dy in range(-2, 3):
+                                            for dx in range(-2, 3):
+                                                new_x = x + dx
+                                                new_y = y + dy
+                                                if 0 <= new_x < GRID_WIDTH and 0 <= y < GRID_HEIGHT:
+                                                    if maze[new_y][new_x] != 1 and maze[new_y][new_x] != 3:
+                                                        maze[new_y][new_x] = 3
+                                                        found = True
+                                                        break
+                                            if found:
+                                                break
+                            # Initialiser les variables du jeu
+                            score = 0
+                            last_bonus_score = 0
+                            game_over = False
+                            won = False
+                            ice_tiles = {}
+                            pacgomme_timers = {}  # Réinitialiser les timers de pacgommes pour l'aventure
+                            ghost_timers = {}  # Réinitialiser les timers de fantômes pour l'aventure
+                            pacman_last_pos = (pacman.x, pacman.y)
+                            vulnerable_timer = 0
+                            level_transition = False
+                            level_transition_timer = 0
+                            respawn_timer = 0
+                            lives = 3  # 3 vies pour l'aventure
+                            invincibility_timer = 30
+                            crown_timer = 0
+                            level = 1
+                            invincibilite_bonus = 0
+                            has_indigestion = False
+                            indigestion_timer = 0
+                            gadget_cooldown = 0
+                            gadget_use_count = 0
+                            portal_use_count = 0
+                            portal1_pos = None
+                            portal2_pos = None
+                            vulnerable_ghosts_eaten_this_game = 0
+                            crown_count = 0
+                            jeton_count = 0
+                            last_ghost_time = 0
+                            fire_tiles = {}
+                            fire_active = False
+                            fire_timer = 0
+                            mort_cooldown = 0
+                            bombe_cooldown = 0
+                            bombe_active = False
+                            pieges = {}
+                            mur_pos = None
+                            mur_use_count = 0
+                            rainbow_timer = 0
+                            is_rainbow_critique = False
+                            game_initialized = True
+                            is_adventure_mode = True  # Activer le mode aventure
+                            # Passer à l'état GAME
+                            current_state = GAME
+                    elif current_state == SKILL_TREE_MENU:
+                        # Utiliser les boutons retournés par draw_skill_tree_menu
+                        if skill_tree_retour_button.collidepoint(mouse_pos):
+                            current_state = MENU
+                        elif skill_tree_survie_button.collidepoint(mouse_pos):
+                            current_state = SURVIE_SKILL_TREE_MENU
+                        elif skill_tree_equipement_button.collidepoint(mouse_pos):
+                            current_state = EQUIPEMENT_SKILL_TREE_MENU
+                    elif current_state == SURVIE_SKILL_TREE_MENU:
+                        if survie_skill_tree_retour_button.collidepoint(mouse_pos):
+                            current_state = SKILL_TREE_MENU
+                    elif current_state == EQUIPEMENT_SKILL_TREE_MENU:
+                        if equipement_skill_tree_retour_button.collidepoint(mouse_pos):
+                            current_state = SKILL_TREE_MENU
                     elif current_state == CUSTOMIZATION_MENU:
                         # Calculer les positions des boutons (même logique que dans draw_customization_menu)
                         button_width = 200
@@ -5990,7 +7499,7 @@ def main():
                             accounts.append(new_account)
                             current_account_index = len(accounts) - 1
                             # Charger les données de jeu du nouveau compte
-                            pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items_loaded, jeton_poche, crown_poche, bon_marche_ameliore = load_game_data_for_account(current_account_index)
+                            pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items_loaded, jeton_poche, crown_poche, bon_marche_ameliore, battle_pass_xp, battle_pass_claimed_rewards, gemme_poche, used_stars, battle_pass_plus_claimed_rewards, used_stars_plus, pass_plus_purchased = load_game_data_for_account(current_account_index)
                             # Sauvegarder les comptes
                             save_accounts_data(accounts)
                             # Réinitialiser pour un nouveau compte si nécessaire
@@ -6051,9 +7560,13 @@ def main():
                         avatar_image1 = None
                         avatar_image2 = None
                         avatar_image3 = None
+                        avatar_image4 = None
                         avatar_paths1 = ["fatome_epee.png", "avatar.png", "image-t26edcoUjiXQ72uQKAB3R(2).png", "avatar.jpg", "avatar.jpeg"]
-                        avatar_paths2 = []
+                        # Utiliser le deuxième font comme avatar2
+                        second_font = get_second_font()
+                        avatar_paths2 = [second_font] if second_font else []
                         avatar_paths3 = ["image-1uA5ykn6ZPDhIyRHwCxym.webp"]
+                        avatar_paths4 = ["le_super_67.webp"]
                         
                         for path in avatar_paths1:
                             if os.path.exists(path):
@@ -6076,17 +7589,39 @@ def main():
                                     break
                                 except:
                                     continue
+                        for path in avatar_paths4:
+                            if os.path.exists(path):
+                                try:
+                                    avatar_image4 = pygame.image.load(path)
+                                    break
+                                except:
+                                    continue
                         
-                        image_count = sum([1 for img in [avatar_image1, avatar_image2, avatar_image3] if img is not None])
+                        image_count = sum([1 for img in [avatar_image1, avatar_image2, avatar_image3, avatar_image4] if img is not None])
                         if image_count > 0:
                             total_width = (image_count * small_size) + ((image_count - 1) * (spacing - small_size))
                             start_x = (WINDOW_WIDTH - total_width) // 2
                         else:
                             start_x = 10
                         
-                        avatar_rect1 = pygame.Rect(start_x, img_y, small_size, small_size) if avatar_image1 else None
-                        avatar_rect2 = pygame.Rect(start_x + spacing, img_y, small_size, small_size) if avatar_image2 else None
-                        avatar_rect3 = pygame.Rect(start_x + spacing * 2, img_y, small_size, small_size) if avatar_image3 else None
+                        # Calculer les rectangles de la même manière que dans draw_avatar_menu
+                        avatar_rect1 = None
+                        avatar_rect2 = None
+                        avatar_rect3 = None
+                        avatar_rect4 = None
+                        current_x = start_x
+                        
+                        if avatar_image1:
+                            avatar_rect1 = pygame.Rect(current_x, img_y, small_size, small_size)
+                            current_x += spacing
+                        if avatar_image2:
+                            avatar_rect2 = pygame.Rect(current_x, img_y, small_size, small_size)
+                            current_x += spacing
+                        if avatar_image3:
+                            avatar_rect3 = pygame.Rect(current_x, img_y, small_size, small_size)
+                            current_x += spacing
+                        if avatar_image4:
+                            avatar_rect4 = pygame.Rect(current_x, img_y, small_size, small_size)
                         
                         if avatar_retour_button.collidepoint(mouse_pos):
                             current_state = CUSTOMIZATION_MENU
@@ -6095,6 +7630,10 @@ def main():
                             # Valider la sélection temporaire
                             if pending_avatar is not None:
                                 selected_avatar = pending_avatar
+                                # Sauvegarder dans le compte si un compte est actuellement sélectionné
+                                if current_account_index is not None and current_account_index < len(accounts):
+                                    accounts[current_account_index]['selected_avatar'] = selected_avatar
+                                    save_accounts_data(accounts)
                             current_state = CUSTOMIZATION_MENU
                             pending_avatar = None
                         elif avatar_rect1 and avatar_rect1.collidepoint(mouse_pos):
@@ -6106,28 +7645,34 @@ def main():
                         elif avatar_rect3 and avatar_rect3.collidepoint(mouse_pos):
                             # Sélectionner temporairement le troisième avatar
                             pending_avatar = "avatar3"
+                        elif avatar_rect4 and avatar_rect4.collidepoint(mouse_pos):
+                            # Sélectionner temporairement le quatrième avatar
+                            pending_avatar = "avatar4"
                     elif current_state == MENU:
                         # Si on est en mode confirmation, ignorer tous les autres clics
                         if delete_confirmation_step == 0:
                             # Calculer les positions des boutons (même logique que dans draw_menu)
                             changer_compte_button = pygame.Rect(WINDOW_WIDTH - 180, 10, 170, 35)
-                            button_width = 150
-                            button_height = 45
-                            button_spacing = 50
-                            start_y = 180
+                            button_width = 140  # Réduit pour correspondre à draw_menu
+                            button_height = 40  # Réduit pour correspondre à draw_menu
+                            button_spacing = 42  # Réduit pour correspondre à draw_menu
+                            start_y = 170  # Réduit pour correspondre à draw_menu
                             jeu_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y, button_width, button_height)
                             magasin_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing, button_width, button_height)
                             difficulte_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 2, button_width, button_height)
                             poche_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 3, button_width, button_height)
                             inventaire_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 4, button_width, button_height)
                             vente_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 5, button_width, button_height)
-                            supprimer_compte_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 6, button_width, button_height)
+                            aventure_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 6, button_width, button_height)
+                            boutique_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 7, button_width, button_height)
+                            passe_combat_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 8, button_width, button_height)
+                            skill_tree_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 9, button_width, button_height)
                             
                             # Vérifier le clic sur le bouton "Changer de compte"
                             if changer_compte_button.collidepoint(mouse_pos):
                                 # Sauvegarder les données du compte actuel avant de quitter
                                 if current_account_index is not None:
-                                    save_game_data_for_account(current_account_index, pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, accounts)
+                                    save_game_data_for_account(current_account_index, pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, battle_pass_xp, battle_pass_claimed_rewards, gemme_poche, used_stars, accounts, battle_pass_plus_claimed_rewards, used_stars_plus, pass_plus_purchased)
                                 current_state = START_MENU
                             elif jeu_button.collidepoint(mouse_pos):
                                 # Si on revient du menu après avoir cliqué sur retour, réinitialiser la partie
@@ -6233,11 +7778,746 @@ def main():
                                 current_state = INVENTAIRE
                             elif vente_button.collidepoint(mouse_pos):
                                 current_state = VENTE
-                            elif supprimer_compte_button.collidepoint(mouse_pos):
-                                # Démarrer la confirmation de suppression du compte
+                            elif aventure_button.collidepoint(mouse_pos):
+                                current_state = AVENTURE_MENU
+                            elif boutique_button.collidepoint(mouse_pos):
+                                current_state = BOUTIQUE
+                            elif passe_combat_button.collidepoint(mouse_pos):
+                                current_state = PASSE_MENU
+                            elif skill_tree_button.collidepoint(mouse_pos):
+                                current_state = SKILL_TREE_MENU
+                            elif tutoriel_button.collidepoint(mouse_pos):
+                                current_state = TUTORIAL_MENU
+                                tutorial_page = 0
+                    elif current_state == TUTORIAL_MENU:
+                        # Calculer les boutons pour la détection de collision (en haut)
+                        tutorial_prev_button = None
+                        tutorial_next_button = None
+                        if tutorial_page > 0:
+                            tutorial_prev_button = pygame.Rect(10, 10, 120, 40)
+                        if tutorial_page < 5:
+                            tutorial_next_button = pygame.Rect(WINDOW_WIDTH - 130, 10, 120, 40)
+                        
+                        if tutorial_prev_button is not None and tutorial_prev_button.collidepoint(mouse_pos):
+                            if tutorial_page > 0:
+                                tutorial_page -= 1
+                        elif tutorial_next_button is not None and tutorial_next_button.collidepoint(mouse_pos):
+                            if tutorial_page < 5:
+                                tutorial_page += 1
+                    elif current_state == PASSE_MENU:
+                        passe_retour_button = pygame.Rect(10, 10, 100, 40)
+                        if passe_retour_button.collidepoint(mouse_pos):
+                            current_state = MENU
+                        elif passe_arrow_button.collidepoint(mouse_pos):
+                            current_state = PASSE_PLUS_MENU
+                        else:
+                            # Vérifier si on clique sur une récompense
+                            REWARD_LEVELS_PACOINS = {1: 300, 5: 300, 7: 300, 9: 300, 11: 300, 15: 300, 18: 300, 22: 300, 25: 300, 28: 1000, 29: 300}
+                            REWARD_LEVELS_CROWNS = {2: 5, 6: 5, 13: 5, 20: 5, 27: 5}
+                            REWARD_LEVELS_GEMS = {3: 10, 12: 10, 17: 10, 21: 10, 26: 10}
+                            XP_PER_LEVEL = 100
+                            # S'assurer que battle_pass_xp est un entier
+                            if not isinstance(battle_pass_xp, (int, float)):
+                                battle_pass_xp = 0
+                            battle_pass_level = (int(battle_pass_xp) // XP_PER_LEVEL) + 1
+                            # Niveaux avec étoiles
+                            STAR_LEVELS = [4, 8, 10, 14, 16, 19, 23, 24, 30]
+                            
+                            for reward_type, reward_rect, reward_level in passe_reward_rects:
+                                if reward_rect.collidepoint(mouse_pos):
+                                    # Si c'est une étoile (seulement si le niveau est atteint et non utilisée), ouvrir le menu d'amélioration
+                                    if reward_type == "star":
+                                        # Vérifier que le niveau est atteint (acheté) et que l'étoile n'a pas déjà été utilisée
+                                        if reward_level <= battle_pass_level and reward_level not in used_stars:
+                                            # Ouvrir le menu d'amélioration d'étoile
+                                            current_state = STAR_UPGRADE_MENU
+                                            # Initialiser l'étoile : légendaire pour le niveau 30, rare pour les autres
+                                            if reward_level == 30:
+                                                star_rarity = "legendaire"
+                                            else:
+                                                star_rarity = "rare"
+                                            star_clicks_remaining = 5
+                                            # Activer un doubleur d'XP si disponible
+                                            if xp_doublers_count > 0:
+                                                xp_doubler_active = True
+                                                xp_doublers_count -= 1
+                                            else:
+                                                xp_doubler_active = False
+                                            current_star_level = reward_level  # Sauvegarder le niveau de l'étoile actuelle
+                                            is_plus_star = False  # Étoile du pass normal
+                                        break
+                                    # Si c'est une case avec étoile mais le niveau n'est pas atteint, ne rien faire
+                                    elif reward_type == "reward" and reward_level in STAR_LEVELS:
+                                        # Vérifier que le niveau est atteint et que l'étoile n'a pas déjà été utilisée
+                                        if reward_level <= battle_pass_level and reward_level not in used_stars:
+                                            current_state = STAR_UPGRADE_MENU
+                                            # Initialiser l'étoile : légendaire pour le niveau 30, rare pour les autres
+                                            if reward_level == 30:
+                                                star_rarity = "legendaire"
+                                            else:
+                                                star_rarity = "rare"
+                                            star_clicks_remaining = 5
+                                            current_star_level = reward_level  # Sauvegarder le niveau de l'étoile actuelle
+                                            is_plus_star = False  # Étoile du pass normal
+                                        break
+                                    # Vérifier si le niveau est atteint et si la récompense n'a pas été récupérée
+                                    reward_claimed = False
+                                    if reward_level <= battle_pass_level:
+                                        if reward_level in REWARD_LEVELS_PACOINS:
+                                            # Vérifier si la récompense n'a pas déjà été récupérée
+                                            if reward_level not in battle_pass_claimed_rewards:
+                                                # Ajouter les pacoins selon le niveau
+                                                reward_amount = REWARD_LEVELS_PACOINS[reward_level]
+                                                jeton_poche += reward_amount
+                                                # Marquer la récompense comme récupérée
+                                                battle_pass_claimed_rewards.append(reward_level)
+                                                reward_claimed = True
+                                                # Ajouter une animation de récompense
+                                                reward_animations.append({
+                                                    'text': f"+{reward_amount} pacoins",
+                                                    'x': WINDOW_WIDTH // 2,
+                                                    'y': WINDOW_HEIGHT // 2,
+                                                    'color': (255, 215, 0),  # Or
+                                                    'timer': 0
+                                                })
+                                        elif reward_level in REWARD_LEVELS_CROWNS:
+                                            # Vérifier si la récompense n'a pas déjà été récupérée
+                                            if reward_level not in battle_pass_claimed_rewards:
+                                                # Ajouter les couronnes selon le niveau
+                                                reward_amount = REWARD_LEVELS_CROWNS[reward_level]
+                                                crown_poche += reward_amount
+                                                # Marquer la récompense comme récupérée
+                                                battle_pass_claimed_rewards.append(reward_level)
+                                                reward_claimed = True
+                                                # Ajouter une animation de récompense
+                                                reward_animations.append({
+                                                    'text': f"+{reward_amount} couronnes",
+                                                    'x': WINDOW_WIDTH // 2,
+                                                    'y': WINDOW_HEIGHT // 2,
+                                                    'color': (255, 215, 0),  # Or
+                                                    'timer': 0
+                                                })
+                                        elif reward_level in REWARD_LEVELS_GEMS:
+                                            # Vérifier si la récompense n'a pas déjà été récupérée
+                                            if reward_level not in battle_pass_claimed_rewards:
+                                                # Ajouter les gemmes selon le niveau
+                                                reward_amount = REWARD_LEVELS_GEMS[reward_level]
+                                                gemme_poche += reward_amount
+                                                # Marquer la récompense comme récupérée
+                                                battle_pass_claimed_rewards.append(reward_level)
+                                                reward_claimed = True
+                                                # Ajouter une animation de récompense
+                                                reward_animations.append({
+                                                    'text': f"+{reward_amount} gemmes",
+                                                    'x': WINDOW_WIDTH // 2,
+                                                    'y': WINDOW_HEIGHT // 2,
+                                                    'color': (0, 255, 255),  # Cyan
+                                                    'timer': 0
+                                                })
+                                    
+                                    if reward_claimed:
+                                        # Sauvegarder
+                                        if current_account_index is not None:
+                                            auto_save_account_data(current_account_index, pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, battle_pass_xp, battle_pass_claimed_rewards, gemme_poche, used_stars, accounts, battle_pass_plus_claimed_rewards, used_stars_plus, pass_plus_purchased)
+                                    break
+                    elif current_state == PASSE_PLUS_MENU:
+                        passe_plus_retour_button = pygame.Rect(10, 10, 100, 40)
+                        passe_plus_arrow_left_button = pygame.Rect(10, WINDOW_HEIGHT // 2 - 50 + 100, 100, 100)
+                        PASS_PLUS_PRICE = 100  # Prix du pass + en gemmes
+                        if passe_plus_retour_button.collidepoint(mouse_pos):
+                            current_state = MENU
+                        elif passe_plus_arrow_left_button.collidepoint(mouse_pos):
+                            current_state = PASSE_MENU
+                        elif passe_plus_buy_button is not None and passe_plus_buy_button.collidepoint(mouse_pos):
+                            # Acheter le pass +
+                            if gemme_poche >= PASS_PLUS_PRICE:
+                                gemme_poche -= PASS_PLUS_PRICE
+                                pass_plus_purchased = True
+                                # Sauvegarder
                                 if current_account_index is not None:
-                                    account_to_delete = current_account_index
-                                    delete_confirmation_step = 1
+                                    auto_save_account_data(current_account_index, pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, battle_pass_xp, battle_pass_claimed_rewards, gemme_poche, used_stars, accounts, battle_pass_plus_claimed_rewards, used_stars_plus, pass_plus_purchased)
+                                # Ajouter une animation de confirmation
+                                reward_animations.append({
+                                    'text': "Pass + acheté !",
+                                    'x': WINDOW_WIDTH // 2,
+                                    'y': WINDOW_HEIGHT // 2,
+                                    'color': (255, 215, 0),  # Or
+                                    'timer': 0
+                                })
+                        elif passe_plus_gain_xp_button is not None and passe_plus_gain_xp_button.collidepoint(mouse_pos):
+                            # Gagner 100 XP
+                            # S'assurer que battle_pass_xp est un entier
+                            if not isinstance(battle_pass_xp, (int, float)):
+                                battle_pass_xp = 0
+                            # Calculer le nouveau XP
+                            new_xp = int(battle_pass_xp) + 100
+                            # Limiter l'XP au niveau 30 si toutes les récompenses ne sont pas récupérées
+                            MAX_BATTLE_PASS_LEVEL = 30
+                            XP_PER_LEVEL = 100
+                            MAX_BATTLE_PASS_XP = MAX_BATTLE_PASS_LEVEL * XP_PER_LEVEL
+                            if new_xp >= MAX_BATTLE_PASS_XP:
+                                # Vérifier si toutes les récompenses ont été récupérées (pass +)
+                                if not all_battle_pass_rewards_claimed(battle_pass_plus_claimed_rewards, used_stars_plus, MAX_BATTLE_PASS_LEVEL):
+                                    # Bloquer l'XP au maximum du niveau 30
+                                    new_xp = MAX_BATTLE_PASS_XP
+                            battle_pass_xp = new_xp
+                            # Sauvegarder l'XP gagné
+                            if current_account_index is not None:
+                                auto_save_account_data(current_account_index, pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, battle_pass_xp, battle_pass_claimed_rewards, gemme_poche, used_stars, accounts, battle_pass_plus_claimed_rewards, used_stars_plus)
+                        else:
+                            # Vérifier si on clique sur une récompense
+                            REWARD_LEVELS_PACOINS = {1: 300, 5: 300, 7: 300, 9: 300, 11: 300, 15: 300, 18: 300, 22: 300, 25: 300, 28: 1000, 29: 300}
+                            REWARD_LEVELS_CROWNS = {2: 5, 6: 5, 13: 5, 20: 5, 27: 5}
+                            REWARD_LEVELS_GEMS = {3: 10, 12: 10, 17: 10, 21: 10, 26: 10}
+                            XP_PER_LEVEL = 100
+                            # S'assurer que battle_pass_xp est un entier
+                            if not isinstance(battle_pass_xp, (int, float)):
+                                battle_pass_xp = 0
+                            battle_pass_level = (int(battle_pass_xp) // XP_PER_LEVEL) + 1
+                            # Niveaux avec étoiles
+                            STAR_LEVELS = [4, 8, 10, 14, 16, 19, 23, 24, 30]
+                            
+                            for reward_type, reward_rect, reward_level in passe_plus_reward_rects:
+                                if reward_rect.collidepoint(mouse_pos):
+                                    # Si c'est une étoile (seulement si le niveau est atteint et non utilisée), ouvrir le menu d'amélioration
+                                    # Ne peut ouvrir que si le pass + est acheté
+                                    if not pass_plus_purchased:
+                                        # Pass + non acheté, ne peut pas utiliser les étoiles
+                                        break
+                                    if reward_type == "star":
+                                        # Vérifier que le niveau est atteint (acheté) et que l'étoile n'a pas déjà été utilisée (pass +)
+                                        if reward_level <= battle_pass_level and reward_level not in used_stars_plus:
+                                            # Ouvrir le menu d'amélioration d'étoile
+                                            current_state = STAR_UPGRADE_MENU
+                                            # Initialiser l'étoile : légendaire pour le niveau 30, rare pour les autres
+                                            if reward_level == 30:
+                                                star_rarity = "legendaire"
+                                            else:
+                                                star_rarity = "rare"
+                                            star_clicks_remaining = 5
+                                            # Activer un doubleur d'XP si disponible
+                                            if xp_doublers_count > 0:
+                                                xp_doubler_active = True
+                                                xp_doublers_count -= 1
+                                            else:
+                                                xp_doubler_active = False
+                                            current_star_level = reward_level  # Sauvegarder le niveau de l'étoile actuelle
+                                            is_plus_star = True  # Marquer que c'est une étoile du pass +
+                                        break
+                                    # Si c'est une case avec étoile mais le niveau n'est pas atteint, ne rien faire
+                                    elif reward_type == "reward" and reward_level in STAR_LEVELS:
+                                        # Vérifier que le niveau est atteint et que l'étoile n'a pas déjà été utilisée (pass +)
+                                        if reward_level <= battle_pass_level and reward_level not in used_stars_plus:
+                                            current_state = STAR_UPGRADE_MENU
+                                            # Initialiser l'étoile : légendaire pour le niveau 30, rare pour les autres
+                                            if reward_level == 30:
+                                                star_rarity = "legendaire"
+                                            else:
+                                                star_rarity = "rare"
+                                            star_clicks_remaining = 5
+                                            current_star_level = reward_level  # Sauvegarder le niveau de l'étoile actuelle
+                                            is_plus_star = True  # Marquer que c'est une étoile du pass +
+                                        break
+                                    # Vérifier si le niveau est atteint et si la récompense n'a pas été récupérée (pass +)
+                                    # Ne peut récupérer que si le pass + est acheté
+                                    reward_claimed = False
+                                    if not pass_plus_purchased:
+                                        # Pass + non acheté, ne peut pas récupérer les récompenses
+                                        break
+                                    if reward_level <= battle_pass_level:
+                                        if reward_level in REWARD_LEVELS_PACOINS:
+                                            # Vérifier si la récompense n'a pas déjà été récupérée (pass +)
+                                            if reward_level not in battle_pass_plus_claimed_rewards:
+                                                # Ajouter les pacoins selon le niveau
+                                                reward_amount = REWARD_LEVELS_PACOINS[reward_level]
+                                                jeton_poche += reward_amount
+                                                # Marquer la récompense comme récupérée (pass +)
+                                                battle_pass_plus_claimed_rewards.append(reward_level)
+                                                reward_claimed = True
+                                                # Ajouter une animation de récompense
+                                                reward_animations.append({
+                                                    'text': f"+{reward_amount} pacoins",
+                                                    'x': WINDOW_WIDTH // 2,
+                                                    'y': WINDOW_HEIGHT // 2,
+                                                    'color': (255, 215, 0),  # Or
+                                                    'timer': 0
+                                                })
+                                        elif reward_level in REWARD_LEVELS_CROWNS:
+                                            # Vérifier si la récompense n'a pas déjà été récupérée (pass +)
+                                            if reward_level not in battle_pass_plus_claimed_rewards:
+                                                # Ajouter les couronnes selon le niveau
+                                                reward_amount = REWARD_LEVELS_CROWNS[reward_level]
+                                                crown_poche += reward_amount
+                                                # Marquer la récompense comme récupérée (pass +)
+                                                battle_pass_plus_claimed_rewards.append(reward_level)
+                                                reward_claimed = True
+                                                # Ajouter une animation de récompense
+                                                reward_animations.append({
+                                                    'text': f"+{reward_amount} couronnes",
+                                                    'x': WINDOW_WIDTH // 2,
+                                                    'y': WINDOW_HEIGHT // 2,
+                                                    'color': (255, 215, 0),  # Or
+                                                    'timer': 0
+                                                })
+                                        elif reward_level in REWARD_LEVELS_GEMS:
+                                            # Vérifier si la récompense n'a pas déjà été récupérée (pass +)
+                                            if reward_level not in battle_pass_plus_claimed_rewards:
+                                                # Ajouter les gemmes selon le niveau
+                                                reward_amount = REWARD_LEVELS_GEMS[reward_level]
+                                                gemme_poche += reward_amount
+                                                # Marquer la récompense comme récupérée (pass +)
+                                                battle_pass_plus_claimed_rewards.append(reward_level)
+                                                reward_claimed = True
+                                                # Ajouter une animation de récompense
+                                                reward_animations.append({
+                                                    'text': f"+{reward_amount} gemmes",
+                                                    'x': WINDOW_WIDTH // 2,
+                                                    'y': WINDOW_HEIGHT // 2,
+                                                    'color': (0, 255, 255),  # Cyan
+                                                    'timer': 0
+                                                })
+                                    
+                                    if reward_claimed:
+                                        # Vérifier si toutes les récompenses du pass + ont été récupérées
+                                        MAX_BATTLE_PASS_LEVEL = 30
+                                        all_rewards_claimed_plus = all_battle_pass_rewards_claimed(battle_pass_plus_claimed_rewards, used_stars_plus, MAX_BATTLE_PASS_LEVEL)
+                                        
+                                        # Si toutes les récompenses sont récupérées, perdre le pass + et réinitialiser
+                                        if all_rewards_claimed_plus:
+                                            battle_pass_plus_claimed_rewards = []
+                                            used_stars_plus = []
+                                            pass_plus_purchased = False
+                                            # Ajouter une animation pour informer qu'il faut racheter le pass +
+                                            reward_animations.append({
+                                                'text': "Toutes les récompenses récupérées ! Achetez le pass + pour continuer",
+                                                'x': WINDOW_WIDTH // 2,
+                                                'y': WINDOW_HEIGHT // 2,
+                                                'color': (255, 215, 0),  # Or
+                                                'timer': 0
+                                            })
+                                        
+                                        # Sauvegarder
+                                        if current_account_index is not None:
+                                            auto_save_account_data(current_account_index, pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, battle_pass_xp, battle_pass_claimed_rewards, gemme_poche, used_stars, accounts, battle_pass_plus_claimed_rewards, used_stars_plus, pass_plus_purchased)
+                                    break
+                    elif current_state == STAR_UPGRADE_MENU:
+                        if star_retour_button.collidepoint(mouse_pos):
+                            current_state = PASSE_MENU
+                        elif star_clickable_rect.collidepoint(mouse_pos) and star_clicks_remaining > 0:
+                            # Clic sur l'étoile
+                            
+                            # Si c'est le 5ème clic (quand il reste 1 clic, donc après 4 clics), ouvrir l'étoile et donner une récompense
+                            if star_clicks_remaining == 1:
+                                # Ouvrir l'étoile et donner une récompense aléatoire selon la rareté
+                                rand = random.random() * 100  # 0-100
+                                
+                                # Si l'étoile est épique (violette), utiliser les nouvelles probabilités
+                                if star_rarity == "epique":
+                                    # 40% de chance d'avoir 500 pacoins
+                                    if rand < 40:
+                                        jeton_poche += 500
+                                        reward_message = "Vous avez gagné 500 pacoins !"
+                                        reward_animations.append({
+                                            'text': "+500 pacoins",
+                                            'x': WINDOW_WIDTH // 2,
+                                            'y': WINDOW_HEIGHT // 2,
+                                            'color': (255, 215, 0),  # Or
+                                            'timer': 0
+                                        })
+                                    # 40.9% de chance d'avoir 10 doubleurs d'XP
+                                    elif rand < 80.9:  # 40 + 40.9
+                                        xp_doublers_count += 10
+                                        reward_message = "Vous avez gagné 10 doubleurs d'XP !"
+                                        reward_animations.append({
+                                            'text': "+10 Doubleurs d'XP",
+                                            'x': WINDOW_WIDTH // 2,
+                                            'y': WINDOW_HEIGHT // 2,
+                                            'color': (0, 255, 0),  # Vert
+                                            'timer': 0
+                                        })
+                                    # 19% de chance d'avoir 50 gemmes
+                                    elif rand < 99.9:  # 40 + 40.9 + 19
+                                        gemme_poche += 50
+                                        reward_message = "Vous avez gagné 50 gemmes !"
+                                        reward_animations.append({
+                                            'text': "+50 gemmes",
+                                            'x': WINDOW_WIDTH // 2,
+                                            'y': WINDOW_HEIGHT // 2,
+                                            'color': (0, 255, 255),  # Cyan
+                                            'timer': 0
+                                        })
+                                    # 0.015% de chance d'avoir un item épique (violet)
+                                    elif rand < 99.915:  # 99.9 + 0.015
+                                        # Choisir aléatoirement un item épique parmi les catégories
+                                        epic_items = {
+                                            'pouvoir': ['glace', 'bon goût', 'bon repas'],
+                                            'gadget': ['bombe téléguidée', 'explosion', 'vision x', 'feu', 'tp', 'pacgum', 'invincibilité', 'givre', 'double gadget'],
+                                            'objet': ['coffre fort'],
+                                            'capacite': ['pas d\'indigestion']
+                                        }
+                                        # Choisir une catégorie aléatoirement parmi celles qui ont des items
+                                        categories = [cat for cat, items in epic_items.items() if items]
+                                        if categories:
+                                            chosen_category = random.choice(categories)
+                                            chosen_item = random.choice(epic_items[chosen_category])
+                                            
+                                            if chosen_category == 'pouvoir':
+                                                pouvoir_items.append(chosen_item)
+                                            elif chosen_category == 'gadget':
+                                                gadget_items.append(chosen_item)
+                                            elif chosen_category == 'objet':
+                                                objet_items.append(chosen_item)
+                                            elif chosen_category == 'capacite':
+                                                capacite_items.append(chosen_item)
+                                            
+                                            reward_message = f"Vous avez gagné {chosen_item} (Épique) !"
+                                            reward_animations.append({
+                                                'text': f"+{chosen_item} (Épique)",
+                                                'x': WINDOW_WIDTH // 2,
+                                                'y': WINDOW_HEIGHT // 2,
+                                                'color': (148, 0, 211),  # Violet
+                                                'timer': 0
+                                            })
+                                    # 0.085% de chance d'avoir un item super rare (bleu) (ajusté pour que le total fasse 100%)
+                                    else:  # 99.915 à 100
+                                        # Choisir aléatoirement un item super rare parmi les catégories
+                                        super_rare_items = {
+                                            'pouvoir': [],
+                                            'gadget': ['portail', 'mur'],
+                                            'objet': ['grosse armure', 'armure de fer'],
+                                            'capacite': ['indigestion']
+                                        }
+                                        # Choisir une catégorie aléatoirement parmi celles qui ont des items
+                                        categories = [cat for cat, items in super_rare_items.items() if items]
+                                        if categories:
+                                            chosen_category = random.choice(categories)
+                                            chosen_item = random.choice(super_rare_items[chosen_category])
+                                            
+                                            if chosen_category == 'pouvoir':
+                                                pouvoir_items.append(chosen_item)
+                                            elif chosen_category == 'gadget':
+                                                gadget_items.append(chosen_item)
+                                            elif chosen_category == 'objet':
+                                                objet_items.append(chosen_item)
+                                            elif chosen_category == 'capacite':
+                                                capacite_items.append(chosen_item)
+                                            
+                                            reward_message = f"Vous avez gagné {chosen_item} (Super Rare) !"
+                                            reward_animations.append({
+                                                'text': f"+{chosen_item} (Super Rare)",
+                                                'x': WINDOW_WIDTH // 2,
+                                                'y': WINDOW_HEIGHT // 2,
+                                                'color': (0, 100, 255),  # Bleu
+                                                'timer': 0
+                                            })
+                                # Si l'étoile est légendaire (jaune), utiliser les nouvelles probabilités
+                                elif star_rarity == "legendaire":
+                                    # 40% de chance d'avoir 30 gemmes
+                                    if rand < 40:
+                                        gemme_poche += 30
+                                        reward_message = "Vous avez gagné 30 gemmes !"
+                                        reward_animations.append({
+                                            'text': "+30 gemmes",
+                                            'x': WINDOW_WIDTH // 2,
+                                            'y': WINDOW_HEIGHT // 2,
+                                            'color': (0, 255, 255),  # Cyan
+                                            'timer': 0
+                                        })
+                                    # 30% de chance d'avoir 1000 pacoins
+                                    elif rand < 70:  # 40 + 30
+                                        jeton_poche += 1000
+                                        reward_message = "Vous avez gagné 1000 pacoins !"
+                                        reward_animations.append({
+                                            'text': "+1000 pacoins",
+                                            'x': WINDOW_WIDTH // 2,
+                                            'y': WINDOW_HEIGHT // 2,
+                                            'color': (255, 215, 0),  # Or
+                                            'timer': 0
+                                        })
+                                    # 29.9% de chance d'avoir 100 couronnes
+                                    elif rand < 99.9:  # 40 + 30 + 29.9
+                                        crown_poche += 100
+                                        reward_message = "Vous avez gagné 100 couronnes !"
+                                        reward_animations.append({
+                                            'text': "+100 couronnes",
+                                            'x': WINDOW_WIDTH // 2,
+                                            'y': WINDOW_HEIGHT // 2,
+                                            'color': (255, 215, 0),  # Or
+                                            'timer': 0
+                                        })
+                                    # 0.075% de chance d'avoir un item épique (violet)
+                                    elif rand < 99.975:  # 99.9 + 0.075
+                                        # Choisir aléatoirement un item épique parmi les catégories
+                                        epic_items = {
+                                            'pouvoir': ['glace', 'bon goût', 'bon repas'],
+                                            'gadget': ['bombe téléguidée', 'explosion', 'vision x', 'feu', 'tp', 'pacgum', 'invincibilité', 'givre', 'double gadget'],
+                                            'objet': ['coffre fort'],
+                                            'capacite': ['pas d\'indigestion']
+                                        }
+                                        # Choisir une catégorie aléatoirement parmi celles qui ont des items
+                                        categories = [cat for cat, items in epic_items.items() if items]
+                                        if categories:
+                                            chosen_category = random.choice(categories)
+                                            chosen_item = random.choice(epic_items[chosen_category])
+                                            
+                                            if chosen_category == 'pouvoir':
+                                                pouvoir_items.append(chosen_item)
+                                            elif chosen_category == 'gadget':
+                                                gadget_items.append(chosen_item)
+                                            elif chosen_category == 'objet':
+                                                objet_items.append(chosen_item)
+                                            elif chosen_category == 'capacite':
+                                                capacite_items.append(chosen_item)
+                                            
+                                            reward_message = f"Vous avez gagné {chosen_item} (Épique) !"
+                                            reward_animations.append({
+                                                'text': f"+{chosen_item} (Épique)",
+                                                'x': WINDOW_WIDTH // 2,
+                                                'y': WINDOW_HEIGHT // 2,
+                                                'color': (148, 0, 211),  # Violet
+                                                'timer': 0
+                                            })
+                                    # 0.015% de chance d'avoir un item légendaire (jaune)
+                                    else:  # 99.975 à 100
+                                        # Choisir aléatoirement un item légendaire parmi les catégories
+                                        legendary_items = {
+                                            'pouvoir': ['skin bleu', 'skin orange', 'skin rose', 'skin rouge'],
+                                            'gadget': [],
+                                            'objet': ['coffre au trésor'],
+                                            'capacite': []
+                                        }
+                                        # Choisir une catégorie aléatoirement parmi celles qui ont des items
+                                        categories = [cat for cat, items in legendary_items.items() if items]
+                                        if categories:
+                                            chosen_category = random.choice(categories)
+                                            chosen_item = random.choice(legendary_items[chosen_category])
+                                            
+                                            if chosen_category == 'pouvoir':
+                                                pouvoir_items.append(chosen_item)
+                                            elif chosen_category == 'gadget':
+                                                gadget_items.append(chosen_item)
+                                            elif chosen_category == 'objet':
+                                                objet_items.append(chosen_item)
+                                            elif chosen_category == 'capacite':
+                                                capacite_items.append(chosen_item)
+                                            
+                                            reward_message = f"Vous avez gagné {chosen_item} (Légendaire) !"
+                                            reward_animations.append({
+                                                'text': f"+{chosen_item} (Légendaire)",
+                                                'x': WINDOW_WIDTH // 2,
+                                                'y': WINDOW_HEIGHT // 2,
+                                                'color': (255, 215, 0),  # Jaune/Or
+                                                'timer': 0
+                                            })
+                                # Si l'étoile est super rare (bleue), utiliser les nouvelles probabilités
+                                elif star_rarity == "super_rare":
+                                    # 40% de chance d'avoir 200 pacoins
+                                    if rand < 40:
+                                        jeton_poche += 200
+                                        reward_message = "Vous avez gagné 200 pacoins !"
+                                        reward_animations.append({
+                                            'text': "+200 pacoins",
+                                            'x': WINDOW_WIDTH // 2,
+                                            'y': WINDOW_HEIGHT // 2,
+                                            'color': (255, 215, 0),  # Or
+                                            'timer': 0
+                                        })
+                                    # 40.9% de chance d'avoir 5 doubleurs d'XP
+                                    elif rand < 80.9:  # 40 + 40.9
+                                        xp_doublers_count += 5
+                                        reward_message = "Vous avez gagné 5 doubleurs d'XP !"
+                                        reward_animations.append({
+                                            'text': "+5 Doubleurs d'XP",
+                                            'x': WINDOW_WIDTH // 2,
+                                            'y': WINDOW_HEIGHT // 2,
+                                            'color': (0, 255, 0),  # Vert
+                                            'timer': 0
+                                        })
+                                    # 19% de chance d'avoir 5 couronnes
+                                    elif rand < 99.9:  # 40 + 40.9 + 19
+                                        crown_poche += 5
+                                        reward_message = "Vous avez gagné 5 couronnes !"
+                                        reward_animations.append({
+                                            'text': "+5 couronnes",
+                                            'x': WINDOW_WIDTH // 2,
+                                            'y': WINDOW_HEIGHT // 2,
+                                            'color': (255, 215, 0),  # Or
+                                            'timer': 0
+                                        })
+                                    # 0.075% de chance d'avoir un item rare (vert)
+                                    elif rand < 99.975:  # 99.9 + 0.075
+                                        # Choisir aléatoirement un item rare parmi les catégories
+                                        rare_items = {
+                                            'pouvoir': ['longue vue'],
+                                            'gadget': ['tir', 'piège'],
+                                            'objet': [],
+                                            'capacite': ['bon marché', 'gel']
+                                        }
+                                        # Choisir une catégorie aléatoirement parmi celles qui ont des items
+                                        categories = [cat for cat, items in rare_items.items() if items]
+                                        if categories:
+                                            chosen_category = random.choice(categories)
+                                            chosen_item = random.choice(rare_items[chosen_category])
+                                            
+                                            if chosen_category == 'pouvoir':
+                                                pouvoir_items.append(chosen_item)
+                                            elif chosen_category == 'gadget':
+                                                gadget_items.append(chosen_item)
+                                            elif chosen_category == 'objet':
+                                                objet_items.append(chosen_item)
+                                            elif chosen_category == 'capacite':
+                                                capacite_items.append(chosen_item)
+                                            
+                                            reward_message = f"Vous avez gagné {chosen_item} (Rare) !"
+                                            reward_animations.append({
+                                                'text': f"+{chosen_item} (Rare)",
+                                                'x': WINDOW_WIDTH // 2,
+                                                'y': WINDOW_HEIGHT // 2,
+                                                'color': (0, 255, 0),  # Vert
+                                                'timer': 0
+                                            })
+                                    # 0.015% de chance d'avoir un item super rare (bleu)
+                                    else:  # 99.975 à 100
+                                        # Choisir aléatoirement un item super rare parmi les catégories
+                                        super_rare_items = {
+                                            'pouvoir': [],
+                                            'gadget': ['portail', 'mur'],
+                                            'objet': ['grosse armure', 'armure de fer'],
+                                            'capacite': ['indigestion']
+                                        }
+                                        # Choisir une catégorie aléatoirement parmi celles qui ont des items
+                                        categories = [cat for cat, items in super_rare_items.items() if items]
+                                        if categories:
+                                            chosen_category = random.choice(categories)
+                                            chosen_item = random.choice(super_rare_items[chosen_category])
+                                            
+                                            if chosen_category == 'pouvoir':
+                                                pouvoir_items.append(chosen_item)
+                                            elif chosen_category == 'gadget':
+                                                gadget_items.append(chosen_item)
+                                            elif chosen_category == 'objet':
+                                                objet_items.append(chosen_item)
+                                            elif chosen_category == 'capacite':
+                                                capacite_items.append(chosen_item)
+                                            
+                                            reward_message = f"Vous avez gagné {chosen_item} (Super Rare) !"
+                                            reward_animations.append({
+                                                'text': f"+{chosen_item} (Super Rare)",
+                                                'x': WINDOW_WIDTH // 2,
+                                                'y': WINDOW_HEIGHT // 2,
+                                                'color': (0, 100, 255),  # Bleu
+                                                'timer': 0
+                                            })
+                                else:
+                                    # Ancien système pour les étoiles non super rares
+                                    if rand < 50:
+                                        # 50% de chance d'avoir 100 pacoins
+                                        jeton_poche += 100
+                                        reward_message = "Vous avez gagné 100 pacoins !"
+                                        # Ajouter une animation de récompense
+                                        reward_animations.append({
+                                            'text': "+100 pacoins",
+                                            'x': WINDOW_WIDTH // 2,
+                                            'y': WINDOW_HEIGHT // 2,
+                                            'color': (255, 215, 0),  # Or
+                                            'timer': 0
+                                        })
+                                    elif rand < 70:  # 50% + 20%
+                                        # 20% de chance d'avoir 5 couronnes
+                                        crown_poche += 5
+                                        reward_message = "Vous avez gagné 5 couronnes !"
+                                        # Ajouter une animation de récompense
+                                        reward_animations.append({
+                                            'text': "+5 couronnes",
+                                            'x': WINDOW_WIDTH // 2,
+                                            'y': WINDOW_HEIGHT // 2,
+                                            'color': (255, 215, 0),  # Or
+                                            'timer': 0
+                                        })
+                                    else:  # 30% restant
+                                        # 30% de chance d'avoir 1 doubleur d'XP
+                                        xp_doubler_active = True
+                                        reward_message = "Vous avez gagné un doubleur d'XP pour la prochaine partie !"
+                                        # Ajouter une animation de récompense
+                                        reward_animations.append({
+                                            'text': "+1 Doubleur d'XP",
+                                            'x': WINDOW_WIDTH // 2,
+                                            'y': WINDOW_HEIGHT // 2,
+                                            'color': (0, 255, 0),  # Vert
+                                            'timer': 0
+                                        })
+                                
+                                # Marquer l'étoile comme utilisée (pass normal ou pass +)
+                                if current_star_level is not None:
+                                    if is_plus_star:
+                                        # Étoile du pass +
+                                        if current_star_level not in used_stars_plus:
+                                            used_stars_plus.append(current_star_level)
+                                        
+                                        # Vérifier si toutes les récompenses du pass + ont été récupérées
+                                        MAX_BATTLE_PASS_LEVEL = 30
+                                        all_rewards_claimed_plus = all_battle_pass_rewards_claimed(battle_pass_plus_claimed_rewards, used_stars_plus, MAX_BATTLE_PASS_LEVEL)
+                                        
+                                        # Si toutes les récompenses sont récupérées, perdre le pass + et réinitialiser
+                                        if all_rewards_claimed_plus:
+                                            battle_pass_plus_claimed_rewards = []
+                                            used_stars_plus = []
+                                            pass_plus_purchased = False
+                                            # Ajouter une animation pour informer qu'il faut racheter le pass +
+                                            reward_animations.append({
+                                                'text': "Toutes les récompenses récupérées ! Achetez le pass + pour continuer",
+                                                'x': WINDOW_WIDTH // 2,
+                                                'y': WINDOW_HEIGHT // 2,
+                                                'color': (255, 215, 0),  # Or
+                                                'timer': 0
+                                            })
+                                    else:
+                                        # Étoile du pass normal
+                                        if current_star_level not in used_stars:
+                                            used_stars.append(current_star_level)
+                                
+                                # Sauvegarder
+                                if current_account_index is not None:
+                                    auto_save_account_data(current_account_index, pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, battle_pass_xp, battle_pass_claimed_rewards, gemme_poche, used_stars, accounts, battle_pass_plus_claimed_rewards, used_stars_plus, pass_plus_purchased)
+                                
+                                # Réinitialiser l'étoile et fermer le menu
+                                star_rarity = "rare"
+                                star_clicks_remaining = 5
+                                current_star_level = None
+                                current_state = PASSE_MENU  # Retourner au menu du passe
+                                
+                                # Afficher un message (on pourrait ajouter un système de message ici)
+                                print(reward_message)
+                            else:
+                                # Clics 1-4 : tenter d'améliorer la rareté
+                                rand = random.random() * 100  # 0-100
+                                
+                                # Probabilités de montée en rareté
+                                # L'étoile ne peut que monter, pas descendre
+                                if star_rarity == "rare":
+                                    # 10% super rare, 5% épique, 1% légendaire
+                                    if rand < 1:
+                                        star_rarity = "legendaire"
+                                    elif rand < 6:  # 1% + 5%
+                                        star_rarity = "epique"
+                                    elif rand < 16:  # 1% + 5% + 10%
+                                        star_rarity = "super_rare"
+                                    # Sinon reste rare
+                                elif star_rarity == "super_rare":
+                                    # 5% épique, 1% légendaire
+                                    if rand < 1:
+                                        star_rarity = "legendaire"
+                                    elif rand < 6:  # 1% + 5%
+                                        star_rarity = "epique"
+                                    # Sinon reste super rare
+                                elif star_rarity == "epique":
+                                    # 1% légendaire
+                                    if rand < 1:
+                                        star_rarity = "legendaire"
+                                    # Sinon reste épique
+                                # Légendaire reste légendaire
+                            
+                            star_clicks_remaining -= 1
                     elif current_state == SHOP:
                         # Les boutons sont retournés par draw_shop (appelé dans la partie dessin)
                         # Vérifier que les boutons sont définis avant de les utiliser
@@ -7437,6 +9717,34 @@ def main():
                         retour_button = pygame.Rect(10, 10, 100, 40)
                         if retour_button.collidepoint(mouse_pos):
                             current_state = MENU
+                    elif current_state == BOUTIQUE:
+                        # Gestion des clics dans la boutique
+                        if boutique_retour_button is not None and boutique_retour_button.collidepoint(mouse_pos):
+                            current_state = MENU
+                        elif boutique_exchange1_button is not None and boutique_exchange1_button.collidepoint(mouse_pos):
+                            # Échange 1: 500 pacoins → 1 couronne
+                            if jeton_poche >= 500:
+                                jeton_poche -= 500
+                                crown_poche += 1
+                                # Sauvegarder
+                                if current_account_index is not None:
+                                    auto_save_account_data(current_account_index, pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, battle_pass_xp, battle_pass_claimed_rewards, gemme_poche, used_stars, accounts, battle_pass_plus_claimed_rewards, used_stars_plus, pass_plus_purchased)
+                        elif boutique_exchange2_button is not None and boutique_exchange2_button.collidepoint(mouse_pos):
+                            # Échange 2: 1 couronne → 500 pacoins
+                            if crown_poche >= 1:
+                                crown_poche -= 1
+                                jeton_poche += 500
+                                # Sauvegarder
+                                if current_account_index is not None:
+                                    auto_save_account_data(current_account_index, pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, battle_pass_xp, battle_pass_claimed_rewards, gemme_poche, used_stars, accounts, battle_pass_plus_claimed_rewards, used_stars_plus, pass_plus_purchased)
+                        elif boutique_exchange3_button is not None and boutique_exchange3_button.collidepoint(mouse_pos):
+                            # Échange 3: 10 gemmes → 10 couronnes
+                            if gemme_poche >= 10:
+                                gemme_poche -= 10
+                                crown_poche += 10
+                                # Sauvegarder
+                                if current_account_index is not None:
+                                    auto_save_account_data(current_account_index, pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, battle_pass_xp, battle_pass_claimed_rewards, gemme_poche, used_stars, accounts, battle_pass_plus_claimed_rewards, used_stars_plus, pass_plus_purchased)
                     elif current_state == VENTE:
                         # Calculer les rectangles des items pour détecter les clics
                         # (même calcul que dans draw_vente, mais sans dessiner)
@@ -7571,6 +9879,8 @@ def main():
                              bombe_active, pieges, portal1_pos, portal2_pos, portal_use_count, mur_pos, mur_use_count,
                              gadget_use_count, has_indigestion, indigestion_timer) = start_game_with_difficulty(
                                 difficulty, inventaire_items, capacite_items, invincibilite_bonus, ghosts)
+                            
+                            is_adventure_mode = False  # Désactiver le mode aventure pour le jeu normal
                             
                             if difficulty == "facile":
                                 level = 1
@@ -7774,7 +10084,7 @@ def main():
                         if game_retour_button is not None and game_retour_button.collidepoint(mouse_pos):
                             # Sauvegarder les données du compte actuel avant de quitter
                             if current_account_index is not None:
-                                save_game_data_for_account(current_account_index, pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, accounts)
+                                save_game_data_for_account(current_account_index, pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, battle_pass_xp, battle_pass_claimed_rewards, gemme_poche, used_stars, accounts, battle_pass_plus_claimed_rewards, used_stars_plus)
                             game_needs_reset = True  # Marquer que la partie doit être réinitialisée au retour
                             current_state = MENU  # Retourner au menu principal
                             # Arrêter la musique si elle est en cours
@@ -7948,6 +10258,7 @@ def main():
                                         
                                         # Tuer définitivement le fantôme ciblé (le retirer de la liste)
                                         if target_ghost is not None:
+                                            # En mode aventure, supprimer le fantôme définitivement (pas de réapparition)
                                             ghosts.remove(target_ghost)
                                             # Ajouter des points mais pas de couronnes
                                             score += 300
@@ -8123,6 +10434,39 @@ def main():
                     if current_state == GAME:
                         # Redémarrer le jeu ou continuer après perte de vie avec le clic droit
                         if game_over or won:
+                            # Donner 10 XP minimum si aucun fantôme n'a été tué
+                            if vulnerable_ghosts_eaten_this_game == 0:
+                                xp_gained = 10
+                                # Si le doubleur d'XP est actif, doubler l'XP
+                                if xp_doubler_active:
+                                    xp_gained *= 2
+                                # S'assurer que battle_pass_xp est un entier
+                                if not isinstance(battle_pass_xp, (int, float)):
+                                    battle_pass_xp = 0
+                                # Calculer le nouveau XP
+                                new_xp = int(battle_pass_xp) + xp_gained
+                                # Limiter l'XP au niveau 30 si toutes les récompenses ne sont pas récupérées
+                                MAX_BATTLE_PASS_LEVEL = 30
+                                XP_PER_LEVEL = 100
+                                MAX_BATTLE_PASS_XP = MAX_BATTLE_PASS_LEVEL * XP_PER_LEVEL
+                                if new_xp >= MAX_BATTLE_PASS_XP:
+                                    # Vérifier si toutes les récompenses ont été récupérées
+                                    if not all_battle_pass_rewards_claimed(battle_pass_claimed_rewards, used_stars, MAX_BATTLE_PASS_LEVEL):
+                                        # Bloquer l'XP au maximum du niveau 30
+                                        new_xp = MAX_BATTLE_PASS_XP
+                                battle_pass_xp = new_xp
+                                # Sauvegarder l'XP gagné
+                                if current_account_index is not None:
+                                    auto_save_account_data(current_account_index, pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, battle_pass_xp, battle_pass_claimed_rewards, gemme_poche, used_stars, accounts, battle_pass_plus_claimed_rewards, used_stars_plus, pass_plus_purchased)
+                            
+                            # Utiliser un doubleur d'XP si disponible
+                            if xp_doublers_count > 0:
+                                xp_doubler_active = True
+                                xp_doublers_count -= 1
+                            else:
+                                xp_doubler_active = False
+                            vulnerable_ghosts_eaten_this_game = 0  # Réinitialiser le compteur
+                            
                             # Redémarrer le jeu complètement
                             maze = [row[:] for row in MAZES[0]]
                             pacman = Pacman(10, 15)
@@ -8408,7 +10752,7 @@ def main():
                     elif event.key == pygame.K_BACKSPACE:
                         # Supprimer le dernier caractère
                         player_name = player_name[:-1]
-                    elif event.unicode and len(player_name) < 20:  # Limiter à 20 caractères
+                    elif event.unicode and len(player_name) < 7:  # Limiter à 7 caractères
                         # Ajouter le caractère saisi
                         player_name += event.unicode
                 elif current_state == GAME:
@@ -8457,6 +10801,9 @@ def main():
         
         # Gérer la logique du jeu seulement si on est dans l'état GAME
         if current_state == GAME:
+            # Vérifier si on est en mode multi-map (niveau multiple de 10 en mode aventure)
+            is_multi_map_mode = is_adventure_mode and level % 10 == 0 and level > 0
+            
             if success_notification_timer > 0:
                 success_notification_timer -= 1
             # Gérer la transition entre niveaux
@@ -8613,7 +10960,81 @@ def main():
                         bombe_timer = 0
                 else:
                     # Mettre à jour Pacman normalement seulement si la bombe n'est pas active
-                    pacman.update(maze)
+                    # En mode multi-map, gérer le changement de map au lieu de la téléportation
+                    if is_multi_map_mode:
+                        # Sauvegarder la position avant le déplacement
+                        old_x, old_y = pacman.x, pacman.y
+                        # Essayer de changer de direction
+                        if pacman.can_move(pacman.next_direction, maze):
+                            pacman.direction = pacman.next_direction
+                        
+                        # Se déplacer dans la direction actuelle
+                        if pacman.can_move(pacman.direction, maze):
+                            pacman.x += pacman.direction[0]
+                            pacman.y += pacman.direction[1]
+                            
+                            # Gérer le changement de map aux bords
+                            map_changed = False
+                            if pacman.x < 0:
+                                # Sortir par la gauche, aller à la map de gauche
+                                if map_x > 0:
+                                    map_x -= 1
+                                    pacman.x = GRID_WIDTH - 1
+                                    map_changed = True
+                                else:
+                                    pacman.x = 0  # Bloquer au bord si on est déjà à gauche
+                            elif pacman.x >= GRID_WIDTH:
+                                # Sortir par la droite, aller à la map de droite
+                                if map_x < 3:
+                                    map_x += 1
+                                    pacman.x = 0
+                                    map_changed = True
+                                else:
+                                    pacman.x = GRID_WIDTH - 1  # Bloquer au bord si on est déjà à droite
+                            
+                            if pacman.y < 0:
+                                # Sortir par le haut, aller à la map du haut
+                                if map_y > 0:
+                                    map_y -= 1
+                                    pacman.y = GRID_HEIGHT - 1
+                                    map_changed = True
+                                else:
+                                    pacman.y = 0  # Bloquer au bord si on est déjà en haut
+                            elif pacman.y >= GRID_HEIGHT:
+                                # Sortir par le bas, aller à la map du bas
+                                if map_y < 3:
+                                    map_y += 1
+                                    pacman.y = 0
+                                    map_changed = True
+                                else:
+                                    pacman.y = GRID_HEIGHT - 1  # Bloquer au bord si on est déjà en bas
+                            
+                            # Si on a changé de map, charger la nouvelle map
+                            if map_changed:
+                                # Calculer l'index de la map dans la grille 4x4 (0-15)
+                                map_index = map_y * 4 + map_x
+                                # Utiliser cet index pour choisir une map parmi les MAZES disponibles
+                                maze_index = map_index % len(MAZES)
+                                maze = [row[:] for row in MAZES[maze_index]]
+                                # Réinitialiser les points et pacgommes sur la nouvelle map
+                                for y in range(GRID_HEIGHT):
+                                    for x in range(GRID_WIDTH):
+                                        if maze[y][x] == 0:
+                                            maze[y][x] = 2  # Remettre les points
+                            
+                            # Animation de la bouche
+                            pacman.mouth_angle += 5
+                            if pacman.mouth_angle >= 360:
+                                pacman.mouth_angle = 0
+                            pacman.mouth_open = (pacman.mouth_angle // 30) % 2 == 0
+                        else:
+                            # Animation de la bouche même si on ne peut pas bouger
+                            pacman.mouth_angle += 5
+                            if pacman.mouth_angle >= 360:
+                                pacman.mouth_angle = 0
+                            pacman.mouth_open = (pacman.mouth_angle // 30) % 2 == 0
+                    else:
+                        pacman.update(maze)
                     
                     # Vérifier si Pacman entre dans un portail et le téléporter
                     if portal1_pos is not None and portal2_pos is not None:
@@ -8696,6 +11117,25 @@ def main():
                         expired_tiles.append(tile_pos)
                 for tile_pos in expired_tiles:
                     del ice_tiles[tile_pos]
+                
+                # Gérer la réapparition des pacgommes (seulement en mode aventure)
+                if is_adventure_mode:
+                    pacgomme_positions_to_remove = []
+                    for pos, timer in pacgomme_timers.items():
+                        pacgomme_timers[pos] = timer - 1
+                        if pacgomme_timers[pos] <= 0:
+                            x, y = pos
+                            # Vérifier que la case est toujours valide (pas un mur) et qu'elle n'est pas occupée
+                            if 0 <= x < GRID_WIDTH and 0 <= y < GRID_HEIGHT:
+                                if maze[y][x] != 1:  # Pas un mur
+                                    maze[y][x] = 3  # Faire réapparaître la pacgomme
+                            pacgomme_positions_to_remove.append(pos)
+                    # Supprimer les timers terminés
+                    for pos in pacgomme_positions_to_remove:
+                        del pacgomme_timers[pos]
+                    
+                    # En mode aventure, les fantômes ne réapparaissent pas après avoir été mangés
+                    # (La logique de réapparition a été supprimée)
                 
                 # Gérer le système de feu
                 # Vérifier si le gadget lave ou feu est équipé dans le slot gadget
@@ -8814,11 +11254,12 @@ def main():
                 if maze[pacman.y][pacman.x] == 2:
                     maze[pacman.y][pacman.x] = 0
                     score += 10
-                    # Gagner un jeton pour chaque point mangé (2 si pièce mythique équipée)
-                    if has_piece_mythique:
-                        jeton_count += 2
-                    else:
-                        jeton_count += 1
+                    # Gagner un jeton pour chaque point mangé (2 si pièce mythique équipée) - sauf en mode aventure
+                    if not is_adventure_mode:
+                        if has_piece_mythique:
+                            jeton_count += 2
+                        else:
+                            jeton_count += 1
                     
                     # Coup critique : "bon goût" seul donne 1%, "bon repas" seul donne 0.5%
                     if has_bon_gout:
@@ -8916,8 +11357,9 @@ def main():
                         # En mode difficile et hardcore, on ne peut pas gagner de vies avec les jetons
                         if lives < current_max_lives and difficulty != "difficile" and difficulty != "hardcore":
                             lives += 1
-                        # Mettre les jetons et couronnes dans la poche
-                        jeton_poche += jeton_count
+                        # Mettre les jetons et couronnes dans la poche (sauf en mode aventure)
+                        if not is_adventure_mode:
+                            jeton_poche += jeton_count
                         crown_poche += crown_count
                         jeton_count = 0  # Réinitialiser le compteur de jetons
                         crown_count = 0  # Réinitialiser le compteur de couronnes
@@ -9004,6 +11446,14 @@ def main():
                         # Supprimer le fantôme d'indigestion s'il existe avant de passer au niveau suivant
                         ghosts[:] = [ghost for ghost in ghosts if not ghost.harmless]
                         maze, pacman, ghosts = start_next_level(level)
+                        # Initialiser les coordonnées de la map pour le système 4x4 aux niveaux multiples de 10 en mode aventure
+                        if is_adventure_mode and level % 10 == 0 and level > 0:
+                            map_x = 0
+                            map_y = 0
+                            # Charger la première map de la grille 4x4
+                            map_index = map_y * 4 + map_x
+                            maze_index = map_index % len(MAZES)
+                            maze = [row[:] for row in MAZES[maze_index]]
                         # Ajouter un fantôme bleu supplémentaire pour le mode moyen (niveau 3+)
                         if difficulty == "moyen" and level >= 3:
                             new_ghost = Ghost(12, 9, BLUE)
@@ -9111,13 +11561,17 @@ def main():
                         pacman_last_pos = (pacman.x, pacman.y)  # Réinitialiser la position précédente
                 # Vérifier si Pacman mange une pacgomme (à sa position ou devant si longue vue)
                 elif maze[pacman.y][pacman.x] == 3:
+                    # Enregistrer la position de la pacgomme mangée pour la faire réapparaître (seulement en mode aventure)
+                    if is_adventure_mode:
+                        pacgomme_timers[(pacman.x, pacman.y)] = PACGOMME_RESPAWN_TIME
                     maze[pacman.y][pacman.x] = 0
                     score += 50
-                    # Gagner 5 jetons pour chaque pacgomme mangée (10 si pièce mythique équipée)
-                    if has_piece_mythique:
-                        jeton_count += 10
-                    else:
-                        jeton_count += 5
+                    # Gagner 5 jetons pour chaque pacgomme mangée (10 si pièce mythique équipée) - sauf en mode aventure
+                    if not is_adventure_mode:
+                        if has_piece_mythique:
+                            jeton_count += 10
+                        else:
+                            jeton_count += 5
                     
                     # Coup critique : "bon goût" seul donne 1%, "bon repas" seul donne 0.5%
                     if has_bon_gout:
@@ -9127,10 +11581,11 @@ def main():
                             # Coup critique : arc-en-ciel pendant 2 secondes et +10 jetons (20 si pièce mythique équipée)
                             is_rainbow_critique = True
                             rainbow_timer = 20  # 2 secondes à 10 FPS
-                            if has_piece_mythique:
-                                jeton_count += 20
-                            else:
-                                jeton_count += 10
+                            if not is_adventure_mode:
+                                if has_piece_mythique:
+                                    jeton_count += 20
+                                else:
+                                    jeton_count += 10
                     elif has_bon_repas:
                         # "bon repas" seul : 0.5% de chance de coup critique
                         crit_chance = 0.005
@@ -9138,10 +11593,11 @@ def main():
                             # Coup critique : arc-en-ciel pendant 2 secondes et +10 jetons (20 si pièce mythique équipée)
                             is_rainbow_critique = True
                             rainbow_timer = 20  # 2 secondes à 10 FPS
-                            if has_piece_mythique:
-                                jeton_count += 20
-                            else:
-                                jeton_count += 10
+                            if not is_adventure_mode:
+                                if has_piece_mythique:
+                                    jeton_count += 20
+                                else:
+                                    jeton_count += 10
                     # Vérifier si on a atteint le seuil de jetons pour gagner une vie (100 en facile, 1000 en difficile, 2000 en hardcore, 200 sinon)
                     if difficulty == "facile":
                         jeton_threshold = 100
@@ -9155,16 +11611,18 @@ def main():
                         # En mode difficile et hardcore, on ne peut pas gagner de vies avec les jetons
                         if lives < current_max_lives and difficulty != "difficile" and difficulty != "hardcore":
                             lives += 1
-                        # Mettre les jetons et couronnes dans la poche
-                        jeton_poche += jeton_count
+                        # Mettre les jetons et couronnes dans la poche (sauf en mode aventure)
+                        if not is_adventure_mode:
+                            jeton_poche += jeton_count
                         crown_poche += crown_count
                         jeton_count = 0  # Réinitialiser le compteur de jetons
                         crown_count = 0  # Réinitialiser le compteur de couronnes
                     
                     # Mode difficile : bonus spécial à 4000 pacoins
                     if difficulty == "difficile" and jeton_count >= 4000:
-                        # Transférer les pacoins et couronnes à la poche
-                        jeton_poche += jeton_count
+                        # Transférer les pacoins et couronnes à la poche (sauf en mode aventure)
+                        if not is_adventure_mode:
+                            jeton_poche += jeton_count
                         crown_poche += crown_count
                         # Gagner 1 cœur
                         if lives < current_max_lives:
@@ -9190,11 +11648,12 @@ def main():
                             if maze[check_y][check_x] == 2:  # Point
                                 maze[check_y][check_x] = 0
                                 score += 10
-                                # Gagner un jeton pour chaque point mangé (2 si pièce mythique équipée)
-                                if has_piece_mythique:
-                                    jeton_count += 2
-                                else:
-                                    jeton_count += 1
+                                # Gagner un jeton pour chaque point mangé (2 si pièce mythique équipée) - sauf en mode aventure
+                                if not is_adventure_mode:
+                                    if has_piece_mythique:
+                                        jeton_count += 2
+                                    else:
+                                        jeton_count += 1
                                 
                                 # Coup critique : "bon goût" seul donne 1%, "bon repas" seul donne 0.5%
                                 if has_bon_gout:
@@ -9204,10 +11663,11 @@ def main():
                                         # Coup critique : arc-en-ciel pendant 2 secondes et +10 jetons (20 si pièce mythique équipée)
                                         is_rainbow_critique = True
                                         rainbow_timer = 20  # 2 secondes à 10 FPS
-                                        if has_piece_mythique:
-                                            jeton_count += 20
-                                        else:
-                                            jeton_count += 10
+                                        if not is_adventure_mode:
+                                            if has_piece_mythique:
+                                                jeton_count += 20
+                                            else:
+                                                jeton_count += 10
                                 elif has_bon_repas:
                                     # "bon repas" seul : 0.5% de chance de coup critique
                                     crit_chance = 0.005
@@ -9215,10 +11675,11 @@ def main():
                                         # Coup critique : arc-en-ciel pendant 2 secondes et +10 jetons (20 si pièce mythique équipée)
                                         is_rainbow_critique = True
                                         rainbow_timer = 20  # 2 secondes à 10 FPS
-                                        if has_piece_mythique:
-                                            jeton_count += 20
-                                        else:
-                                            jeton_count += 10
+                                        if not is_adventure_mode:
+                                            if has_piece_mythique:
+                                                jeton_count += 20
+                                            else:
+                                                jeton_count += 10
                                 
                                 # Calculer la chance d'indigestion en fonction de "pas d'indigestion" et de la capacité "indigestion"
                                 base_indigestion_chance = 0.005  # 0.5% de base
@@ -9290,15 +11751,17 @@ def main():
                                     # En mode difficile et hardcore, on ne peut pas gagner de vies avec les jetons
                                     if lives < MAX_LIVES and difficulty != "difficile" and difficulty != "hardcore":
                                         lives += 1
-                                    jeton_poche += jeton_count
+                                    if not is_adventure_mode:
+                                        jeton_poche += jeton_count
                                     crown_poche += crown_count
                                     jeton_count = 0
                                     crown_count = 0
                                 
                                 # Mode difficile : bonus spécial à 4000 pacoins
                                 if difficulty == "difficile" and jeton_count >= 4000:
-                                    # Transférer les pacoins et couronnes à la poche
-                                    jeton_poche += jeton_count
+                                    # Transférer les pacoins et couronnes à la poche (sauf en mode aventure)
+                                    if not is_adventure_mode:
+                                        jeton_poche += jeton_count
                                     crown_poche += crown_count
                                     # Gagner 1 cœur
                                     if lives < MAX_LIVES:
@@ -9464,13 +11927,17 @@ def main():
                                     ice_tiles = {}  # Réinitialiser les cases de glace au nouveau niveau
                                     pacman_last_pos = (pacman.x, pacman.y)  # Réinitialiser la position précédente
                             elif maze[check_y][check_x] == 3:  # Pacgomme
+                                # Enregistrer la position de la pacgomme mangée pour la faire réapparaître (seulement en mode aventure)
+                                if is_adventure_mode:
+                                    pacgomme_timers[(check_x, check_y)] = PACGOMME_RESPAWN_TIME
                                 maze[check_y][check_x] = 0
                                 score += 50
-                                # Gagner 5 jetons pour chaque pacgomme mangée (10 si pièce mythique équipée)
-                                if has_piece_mythique:
-                                    jeton_count += 10
-                                else:
-                                    jeton_count += 5
+                                # Gagner 5 jetons pour chaque pacgomme mangée (10 si pièce mythique équipée) - sauf en mode aventure
+                                if not is_adventure_mode:
+                                    if has_piece_mythique:
+                                        jeton_count += 10
+                                    else:
+                                        jeton_count += 5
                                 
                                 # Coup critique : "bon goût" seul donne 1%, "bon repas" seul donne 0.5%
                                 if has_bon_gout:
@@ -9480,10 +11947,11 @@ def main():
                                         # Coup critique : arc-en-ciel pendant 2 secondes et +10 jetons (20 si pièce mythique équipée)
                                         is_rainbow_critique = True
                                         rainbow_timer = 20  # 2 secondes à 10 FPS
-                                        if has_piece_mythique:
-                                            jeton_count += 20
-                                        else:
-                                            jeton_count += 10
+                                        if not is_adventure_mode:
+                                            if has_piece_mythique:
+                                                jeton_count += 20
+                                            else:
+                                                jeton_count += 10
                                 elif has_bon_repas:
                                     # "bon repas" seul : 0.5% de chance de coup critique
                                     crit_chance = 0.005
@@ -9491,10 +11959,11 @@ def main():
                                         # Coup critique : arc-en-ciel pendant 2 secondes et +10 jetons (20 si pièce mythique équipée)
                                         is_rainbow_critique = True
                                         rainbow_timer = 20  # 2 secondes à 10 FPS
-                                        if has_piece_mythique:
-                                            jeton_count += 20
-                                        else:
-                                            jeton_count += 10
+                                        if not is_adventure_mode:
+                                            if has_piece_mythique:
+                                                jeton_count += 20
+                                            else:
+                                                jeton_count += 10
                                 # Vérifier si on a atteint le seuil de jetons pour gagner une vie
                                 if difficulty == "facile":
                                     jeton_threshold = 100
@@ -9506,7 +11975,8 @@ def main():
                                     # En mode difficile et hardcore, on ne peut pas gagner de vies avec les jetons
                                     if lives < MAX_LIVES and difficulty != "difficile" and difficulty != "hardcore":
                                         lives += 1
-                                    jeton_poche += jeton_count
+                                    if not is_adventure_mode:
+                                        jeton_poche += jeton_count
                                     crown_poche += crown_count
                                     jeton_count = 0
                                     crown_count = 0
@@ -9726,6 +12196,7 @@ def main():
                         ghost.flee_timer -= 1
                 
                 # Mettre à jour les fantômes
+                ghosts_to_remove = []  # Liste des fantômes à supprimer en mode aventure
                 for ghost in ghosts:
                     # Vérifier si le fantôme marche sur un piège
                     ghost_pos = (ghost.x, ghost.y)
@@ -9825,7 +12296,12 @@ def main():
                     if has_longue_vue and len(directions) > 0:
                         ghost_in_range = (ghost.x, ghost.y) in directions
                         if ghost_in_range and not ghost.eyes and ghost.vulnerable and ghost.color != ROSE:
-                            # Manger le fantôme vulnérable avec longue vue
+                            # En mode aventure, supprimer le fantôme définitivement (pas de réapparition)
+                            if is_adventure_mode:
+                                # Supprimer le fantôme immédiatement en mode aventure
+                                ghosts.remove(ghost)
+                                continue  # Passer au fantôme suivant
+                            # Manger le fantôme vulnérable avec longue vue (mode normal)
                             score += 300
                             if difficulty == "facile":
                                 jeton_threshold = 100
@@ -9837,12 +12313,18 @@ def main():
                                 jeton_threshold = 200
                             if jeton_count >= jeton_threshold:
                                 # En mode difficile et hardcore, on ne peut pas gagner de vies avec les jetons
-                                if lives < MAX_LIVES and difficulty != "difficile" and difficulty != "hardcore":
-                                    lives += 1
-                                jeton_poche += jeton_count
-                                crown_poche += crown_count
-                                jeton_count = 0
-                                crown_count = 0
+                                    if lives < MAX_LIVES and difficulty != "difficile" and difficulty != "hardcore":
+                                        lives += 1
+                                    if not is_adventure_mode:
+                                        jeton_poche += jeton_count
+                                    crown_poche += crown_count
+                                    jeton_count = 0
+                                    crown_count = 0
+                            # En mode aventure, marquer le fantôme pour suppression définitive (pas de réapparition)
+                            if is_adventure_mode:
+                                # Marquer le fantôme pour suppression (on le supprimera après la boucle)
+                                ghosts_to_remove.append(ghost)
+                                continue  # Passer au fantôme suivant
                             crown_timer = 30
                             crown_count += 1
                             if last_ghost_time > 0:
@@ -9863,15 +12345,79 @@ def main():
                             # Le fantôme est dans une direction adjacente couverte, on est protégé, pas de collision
                             continue
                     
-                    # Si le fantôme arrive directement sur la case de Pacman, on perd une vie (sauf si invincible ou super vie active)
-                    if ghost.x == pacman.x and ghost.y == pacman.y and invincibility_timer == 0 and not super_vie_active:
+                    # Vérifier collision : même case OU cases adjacentes avec directions opposées
+                    collision = False
+                    # Collision sur la même case
+                    if ghost.x == pacman.x and ghost.y == pacman.y:
+                        collision = True
+                    # Collision sur cases adjacentes si les deux se dirigent l'un vers l'autre
+                    elif invincibility_timer == 0 and not super_vie_active:
+                        # Calculer la direction du fantôme vers Pacman
+                        dx = pacman.x - ghost.x
+                        dy = pacman.y - ghost.y
+                        # Vérifier si le fantôme est adjacent à Pacman (distance de 1 case)
+                        if abs(dx) + abs(dy) == 1:
+                            # Normaliser la direction (dx et dy doivent être -1, 0, ou 1)
+                            if dx != 0:
+                                dx = 1 if dx > 0 else -1
+                            if dy != 0:
+                                dy = 1 if dy > 0 else -1
+                            # Vérifier si le fantôme se dirige vers Pacman (direction du fantôme = direction vers Pacman)
+                            ghost_going_to_pacman = (ghost.direction[0] == dx and ghost.direction[1] == dy)
+                            # Vérifier si Pacman se dirige vers le fantôme (direction de Pacman = direction opposée vers le fantôme)
+                            pacman_going_to_ghost = (pacman.direction[0] == -dx and pacman.direction[1] == -dy)
+                            # Collision si les deux se dirigent l'un vers l'autre
+                            if ghost_going_to_pacman and pacman_going_to_ghost:
+                                collision = True
+                    
+                    if collision and invincibility_timer == 0 and not super_vie_active:
                         # Si le fantôme est en mode yeux, pas de collision
                         if ghost.eyes:
                             continue
                         # Si le fantôme est vulnérable, Pacman le mange
                         if ghost.vulnerable:
-                            # Pacman mange le fantôme - transformer en yeux
+                            # En mode aventure, gérer les fantômes spéciaux qui nécessitent plusieurs coups
+                            if is_adventure_mode:
+                                # Incrémenter le compteur de coups reçus
+                                ghost.hits_taken += 1
+                                # Si le fantôme a reçu assez de coups, le tuer définitivement (pas de réapparition)
+                                if ghost.hits_taken >= ghost.hits_required:
+                                    # Marquer le fantôme pour suppression (on le supprimera après la boucle)
+                                    # Ne pas enregistrer dans ghost_timers pour qu'il ne réapparaisse pas
+                                    ghosts_to_remove.append(ghost)
+                                else:
+                                    # Le fantôme n'est pas encore mort, juste rendre non-vulnérable temporairement
+                                    ghost.vulnerable = False
+                                    # Réinitialiser la position du fantôme à sa position de départ
+                                    ghost.x = ghost.start_x
+                                    ghost.y = ghost.start_y
+                                continue  # Passer au fantôme suivant
+                            # Pacman mange le fantôme - transformer en yeux (mode normal)
                             score += 300  # 200 points de base + 100 points bonus
+                            # Gagner 30 XP pour le passe de combat
+                            # S'assurer que battle_pass_xp est un entier
+                            if not isinstance(battle_pass_xp, (int, float)):
+                                battle_pass_xp = 0
+                            xp_gained = 30
+                            # Si le doubleur d'XP est actif, doubler l'XP
+                            if xp_doubler_active:
+                                xp_gained *= 2
+                            # Calculer le nouveau XP
+                            new_xp = int(battle_pass_xp) + xp_gained
+                            # Limiter l'XP au niveau 30 si toutes les récompenses ne sont pas récupérées
+                            MAX_BATTLE_PASS_LEVEL = 30
+                            XP_PER_LEVEL = 100
+                            MAX_BATTLE_PASS_XP = MAX_BATTLE_PASS_LEVEL * XP_PER_LEVEL
+                            if new_xp >= MAX_BATTLE_PASS_XP:
+                                # Vérifier si toutes les récompenses ont été récupérées
+                                if not all_battle_pass_rewards_claimed(battle_pass_claimed_rewards, used_stars, MAX_BATTLE_PASS_LEVEL):
+                                    # Bloquer l'XP au maximum du niveau 30
+                                    new_xp = MAX_BATTLE_PASS_XP
+                            battle_pass_xp = new_xp
+                            vulnerable_ghosts_eaten_this_game += 1  # Compter le fantôme mangé
+                            # Sauvegarder l'XP gagné
+                            if current_account_index is not None:
+                                auto_save_account_data(current_account_index, pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, battle_pass_xp, battle_pass_claimed_rewards, gemme_poche, used_stars, accounts, battle_pass_plus_claimed_rewards, used_stars_plus)
                             # Vérifier si on a atteint le seuil de jetons pour gagner une vie (100 en facile, 1000 en difficile, 200 sinon)
                             if difficulty == "facile":
                                 jeton_threshold = 100
@@ -9883,8 +12429,9 @@ def main():
                                 # En mode difficile et hardcore, on ne peut pas gagner de vies avec les jetons
                                 if lives < MAX_LIVES and difficulty != "difficile" and difficulty != "hardcore":
                                     lives += 1
-                                # Mettre les jetons et couronnes dans la poche
-                                jeton_poche += jeton_count
+                                # Mettre les jetons et couronnes dans la poche (sauf en mode aventure)
+                                if not is_adventure_mode:
+                                    jeton_poche += jeton_count
                                 crown_poche += crown_count
                                 jeton_count = 0  # Réinitialiser le compteur de jetons
                                 crown_count = 0  # Réinitialiser le compteur de couronnes
@@ -9947,6 +12494,23 @@ def main():
                                 pacman.next_direction = (0, 0)
                             # Sortir de la boucle pour éviter plusieurs collisions dans la même frame
                             break
+                
+                # Supprimer les fantômes marqués pour suppression en mode aventure
+                for ghost_to_remove in ghosts_to_remove:
+                    if ghost_to_remove in ghosts:
+                        ghosts.remove(ghost_to_remove)
+                
+                # En mode aventure, vérifier si tous les fantômes vrais (non-harmless) ont été éliminés
+                if is_adventure_mode and not game_over and not won and not level_transition:
+                    # Compter uniquement les fantômes vrais (non-harmless, pas en mode yeux)
+                    real_ghosts_count = sum(1 for ghost in ghosts if not ghost.harmless and not ghost.eyes)
+                    # Si plus de fantômes vrais, passer au niveau suivant immédiatement
+                    if real_ghosts_count == 0:
+                        level += 1
+                        maze, pacman, ghosts = start_next_level(level, is_adventure_mode=True)
+                        ghost_timers = {}  # Réinitialiser les timers de réapparition
+                        level_transition = True
+                        level_transition_timer = 60  # 2 secondes de transition
         
         # Dessiner selon l'état actuel
         if current_state == START_MENU:
@@ -9964,6 +12528,18 @@ def main():
             # Afficher la boîte de dialogue de confirmation si nécessaire
             if delete_confirmation_step > 0 and account_to_delete is not None and account_to_delete < len(accounts) and (current_state == START_MENU or current_state == MENU):
                 draw_delete_confirmation(screen, delete_confirmation_step, accounts[account_to_delete].get('player_name', ''))
+        elif current_state == SKILL_TREE_MENU:
+            skill_tree_retour_button, skill_tree_survie_button, skill_tree_equipement_button = draw_skill_tree_menu(screen)
+        elif current_state == SURVIE_SKILL_TREE_MENU:
+            # Récupérer les trophées du compte actuel
+            unlocked_trophies = []
+            if current_account_index is not None and 0 <= current_account_index < len(accounts):
+                unlocked_trophies = accounts[current_account_index].get('trophies', [])
+            survie_skill_tree_retour_button, survie_trophy_rects = draw_survie_skill_tree_menu(screen, unlocked_trophies)
+        elif current_state == EQUIPEMENT_SKILL_TREE_MENU:
+            equipement_skill_tree_retour_button = draw_equipement_skill_tree_menu(screen)
+        elif current_state == AVENTURE_MENU:
+            aventure_retour_button, aventure_carte1_button = draw_aventure_menu(screen)
         elif current_state == CUSTOMIZATION_MENU:
             current_trophy_count = 0
             if current_account_index is not None and 0 <= current_account_index < len(accounts):
@@ -9974,9 +12550,71 @@ def main():
         elif current_state == FONT_MENU:
             font_retour_button, font_rects, font_valider_button = draw_font_menu(screen, selected_font, pending_font)
         elif current_state == AVATAR_MENU:
-            avatar_retour_button, avatar_rect1, avatar_rect2, avatar_rect3, avatar_valider_button = draw_avatar_menu(screen, pending_avatar if pending_avatar is not None else selected_avatar, pending_avatar)
+            avatar_retour_button, avatar_rect1, avatar_rect2, avatar_rect3, avatar_rect4, avatar_valider_button = draw_avatar_menu(screen, pending_avatar if pending_avatar is not None else selected_avatar, pending_avatar)
+        elif current_state == TUTORIAL_MENU:
+            tutorial_prev_button, tutorial_next_button = draw_tutorial_menu(screen, tutorial_page)
+        elif current_state == PASSE_MENU:
+            # Calculer le niveau et l'XP nécessaire pour le passe de combat
+            # 100 XP par niveau, maximum 30 niveaux
+            XP_PER_LEVEL = 100
+            MAX_BATTLE_PASS_LEVEL = 30
+            MAX_BATTLE_PASS_XP = MAX_BATTLE_PASS_LEVEL * XP_PER_LEVEL  # 3000 XP pour compléter le passe
+            
+            # S'assurer que battle_pass_xp est un entier (au cas où les données seraient corrompues)
+            if not isinstance(battle_pass_xp, (int, float)):
+                battle_pass_xp = 0
+            battle_pass_xp = int(battle_pass_xp)
+            
+            # Si on dépasse le niveau 30, vérifier si toutes les récompenses ont été récupérées avant de réinitialiser
+            if battle_pass_xp >= MAX_BATTLE_PASS_XP:
+                # Vérifier que toutes les récompenses ont été récupérées
+                all_rewards_claimed = all_battle_pass_rewards_claimed(battle_pass_claimed_rewards, used_stars, MAX_BATTLE_PASS_LEVEL)
+                
+                # Réinitialiser seulement si toutes les récompenses ont été récupérées
+                if all_rewards_claimed:
+                    # Réinitialiser l'XP et recommencer au niveau 1
+                    battle_pass_xp = battle_pass_xp % MAX_BATTLE_PASS_XP
+                    # Réinitialiser les listes de récompenses récupérées et étoiles utilisées
+                    battle_pass_claimed_rewards = []
+                    used_stars = []
+                    # Sauvegarder la réinitialisation
+                    if current_account_index is not None:
+                        auto_save_account_data(current_account_index, pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, battle_pass_xp, battle_pass_claimed_rewards, gemme_poche, used_stars, accounts)
+            
+            battle_pass_level = (battle_pass_xp // XP_PER_LEVEL) + 1
+            battle_pass_xp_current_level = battle_pass_xp % XP_PER_LEVEL
+            battle_pass_xp_needed = XP_PER_LEVEL
+            passe_retour_button, passe_reward_rects, passe_arrow_button = draw_passe_menu(screen, battle_pass_level, battle_pass_xp_current_level, battle_pass_xp_needed, battle_pass_claimed_rewards, jeton_poche, crown_poche, gemme_poche, used_stars, passe_scroll_offset)
+            # Dessiner les animations de récompenses par-dessus le menu
+            draw_reward_animation(screen, reward_animations)
+        elif current_state == PASSE_PLUS_MENU:
+            # Calculer le niveau et l'XP nécessaire pour le passe de combat
+            XP_PER_LEVEL = 100
+            MAX_BATTLE_PASS_LEVEL = 30
+            MAX_BATTLE_PASS_XP = MAX_BATTLE_PASS_LEVEL * XP_PER_LEVEL
+            
+            # S'assurer que battle_pass_xp est un entier
+            if not isinstance(battle_pass_xp, (int, float)):
+                battle_pass_xp = 0
+            battle_pass_xp = int(battle_pass_xp)
+            
+            # La vérification et la réinitialisation du pass + se font maintenant après chaque récupération de récompense
+            # Plus besoin de vérifier ici car c'est fait en temps réel
+            
+            # Calculer le niveau actuel et l'XP dans le niveau actuel
+            battle_pass_level = min((battle_pass_xp // XP_PER_LEVEL) + 1, MAX_BATTLE_PASS_LEVEL)
+            battle_pass_xp_current_level = battle_pass_xp % XP_PER_LEVEL
+            battle_pass_xp_needed = XP_PER_LEVEL
+            
+            passe_plus_retour_button, passe_plus_gain_xp_button, passe_plus_reward_rects, passe_plus_arrow_left_button, passe_plus_buy_button = draw_passe_plus_menu(screen, battle_pass_level, battle_pass_xp_current_level, battle_pass_xp_needed, battle_pass_plus_claimed_rewards, jeton_poche, crown_poche, gemme_poche, used_stars_plus, passe_scroll_offset, pass_plus_purchased)
+            # Dessiner les animations de récompenses par-dessus le menu
+            draw_reward_animation(screen, reward_animations)
+        elif current_state == STAR_UPGRADE_MENU:
+            star_retour_button, star_clickable_rect = draw_star_upgrade_menu(screen, star_rarity, star_clicks_remaining)
+            # Dessiner les animations de récompenses par-dessus le menu
+            draw_reward_animation(screen, reward_animations)
         elif current_state == MENU:
-            jeu_button, magasin_button, difficulte_button, poche_button, inventaire_button, vente_button, changer_compte_button, supprimer_compte_button = draw_menu(screen, difficulty=difficulty)
+            jeu_button, magasin_button, difficulte_button, poche_button, inventaire_button, vente_button, changer_compte_button, aventure_button, boutique_button, passe_combat_button, skill_tree_button, tutoriel_button = draw_menu(screen, difficulty=difficulty)
             
             # Afficher la boîte de dialogue de confirmation si nécessaire
             if delete_confirmation_step > 0 and account_to_delete is not None and account_to_delete < len(accounts):
@@ -9994,7 +12632,9 @@ def main():
         elif current_state == DIFFICULTY:
             retour_button, button1, button2, button3, button4 = draw_difficulty(screen)
         elif current_state == POCHE:
-            draw_poche(screen, crown_poche, jeton_poche)
+            draw_poche(screen, crown_poche, jeton_poche, gemme_poche)
+        elif current_state == BOUTIQUE:
+            boutique_retour_button, boutique_exchange1_button, boutique_exchange2_button, boutique_exchange3_button = draw_boutique(screen, jeton_poche, crown_poche, gemme_poche)
         elif current_state == VENTE:
             vente_retour_button, vente_item_rects, vente_sell_prices = draw_vente(screen, inventaire_items, jeton_poche, crown_poche, vente_scroll_offset, capacite_items, bon_marche_ameliore)
         elif current_state == INVENTAIRE:
@@ -10018,7 +12658,7 @@ def main():
         elif current_state == GAME:
             # Dessiner le jeu
             screen.fill(BLACK)
-            draw_maze(screen, maze, ice_tiles, fire_tiles)
+            draw_maze(screen, maze, ice_tiles, fire_tiles, is_adventure_mode)
             
             # Bouton pour revenir au menu de sélection des comptes (en haut à droite)
             retour_menu_button = pygame.Rect(WINDOW_WIDTH - 120, 10, 110, 40)
@@ -10197,10 +12837,18 @@ def main():
             
             # Message de transition entre niveaux
             if level_transition:
-                maze_index = (level - 1) % len(MAZES)
-                transition_text = font.render(f"NIVEAU {level} - CARTE {maze_index + 1}!", True, YELLOW)
+                if is_multi_map_mode:
+                    transition_text = font.render(f"NIVEAU {level} - MAP {map_x + 1},{map_y + 1}/4x4", True, YELLOW)
+                else:
+                    maze_index = (level - 1) % len(MAZES)
+                    transition_text = font.render(f"NIVEAU {level} - CARTE {maze_index + 1}!", True, YELLOW)
                 text_rect = transition_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2))
                 screen.blit(transition_text, text_rect)
+            
+            # Afficher les coordonnées de la map en mode multi-map
+            if is_multi_map_mode:
+                map_info_text = font.render(f"Map: {map_x + 1},{map_y + 1}/4x4", True, YELLOW)
+                screen.blit(map_info_text, (10, 170))
             
             # Message de perte de vie
             if respawn_timer > 0:
@@ -10208,6 +12856,11 @@ def main():
                 text_rect = lives_lost_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2 - 20))
                 screen.blit(lives_lost_text, text_rect)
                 restart_text = font.render("Clic droit pour relancer", True, WHITE)
+
+
+
+                
+
                 restart_rect = restart_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2 + 20))
                 screen.blit(restart_text, restart_rect)
             
@@ -10305,7 +12958,4 @@ def main():
     sys.exit()
 
 if __name__ == "__main__":
-    main()
-
-
-pacion                                  
+    main()                                  
