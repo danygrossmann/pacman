@@ -1713,6 +1713,304 @@ def draw_aventure_menu(screen):
     
     return retour_button, carte1_button
 
+CREATIVE_LEVEL_FILE = 'pacman_creative_level.json'
+CREATIVE_EDITOR_TOOLBAR_H = 40
+CREATIVE_TILE_PATH = 0
+CREATIVE_TILE_WALL = 1
+CREATIVE_TILE_DOT = 2
+CREATIVE_TILE_PACGOMME = 3
+CREATIVE_TOOL_GHOST = 10
+CREATIVE_GHOST_PALETTE = [BLUE, RED, (255, 165, 0), (255, 192, 203)]
+CREATIVE_TILE_COLORS = {
+    CREATIVE_TILE_WALL: DARK_BLUE,
+    CREATIVE_TILE_PATH: (25, 25, 35),
+    CREATIVE_TILE_DOT: BLACK,
+    CREATIVE_TILE_PACGOMME: BLACK,
+}
+
+def get_default_creative_maze():
+    """Labyrinthe vide par défaut pour l'éditeur créatif (bordures en murs)."""
+    maze = [[CREATIVE_TILE_WALL for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]
+    for y in range(1, GRID_HEIGHT - 1):
+        for x in range(1, GRID_WIDTH - 1):
+            maze[y][x] = CREATIVE_TILE_PATH
+    maze[1][1] = CREATIVE_TILE_PACGOMME
+    maze[1][GRID_WIDTH - 2] = CREATIVE_TILE_PACGOMME
+    maze[GRID_HEIGHT - 2][1] = CREATIVE_TILE_PACGOMME
+    maze[GRID_HEIGHT - 2][GRID_WIDTH - 2] = CREATIVE_TILE_PACGOMME
+    return maze
+
+def validate_creative_maze(maze):
+    if not maze or len(maze) != GRID_HEIGHT:
+        return None
+    if any(len(row) != GRID_WIDTH for row in maze):
+        return None
+    normalized = []
+    for row in maze:
+        clean_row = []
+        for cell in row:
+            if cell in (CREATIVE_TILE_PATH, CREATIVE_TILE_WALL, CREATIVE_TILE_DOT, CREATIVE_TILE_PACGOMME):
+                clean_row.append(int(cell))
+            else:
+                clean_row.append(CREATIVE_TILE_PATH)
+        normalized.append(clean_row)
+    return normalized
+
+def validate_creative_ghosts(ghosts):
+    if not isinstance(ghosts, list):
+        return []
+    valid = []
+    for ghost in ghosts:
+        if not isinstance(ghost, dict):
+            continue
+        x, y = ghost.get('x'), ghost.get('y')
+        if not isinstance(x, int) or not isinstance(y, int):
+            continue
+        if not (0 <= x < GRID_WIDTH and 0 <= y < GRID_HEIGHT):
+            continue
+        color = ghost.get('color', list(BLUE))
+        if isinstance(color, (list, tuple)) and len(color) >= 3:
+            color = [int(color[0]), int(color[1]), int(color[2])]
+        else:
+            color = list(BLUE)
+        if any(g['x'] == x and g['y'] == y for g in valid):
+            continue
+        valid.append({'x': x, 'y': y, 'color': color})
+    return valid
+
+def load_creative_level(account_index=None):
+    key = str(account_index) if account_index is not None else 'default'
+    if os.path.exists(CREATIVE_LEVEL_FILE):
+        try:
+            with open(CREATIVE_LEVEL_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            entry = data.get(key, data.get('default'))
+            if isinstance(entry, list):
+                maze = validate_creative_maze(entry)
+                if maze:
+                    return maze, []
+            if isinstance(entry, dict):
+                maze = validate_creative_maze(entry.get('maze'))
+                ghosts = validate_creative_ghosts(entry.get('ghosts', []))
+                if maze:
+                    return maze, ghosts
+        except (json.JSONDecodeError, OSError, TypeError, ValueError):
+            pass
+    return get_default_creative_maze(), []
+
+def save_creative_level(maze, ghosts, account_index=None):
+    key = str(account_index) if account_index is not None else 'default'
+    data = {}
+    if os.path.exists(CREATIVE_LEVEL_FILE):
+        try:
+            with open(CREATIVE_LEVEL_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            if not isinstance(data, dict):
+                data = {}
+        except (json.JSONDecodeError, OSError):
+            data = {}
+    data[key] = {
+        'maze': validate_creative_maze(maze) or get_default_creative_maze(),
+        'ghosts': validate_creative_ghosts(ghosts),
+    }
+    with open(CREATIVE_LEVEL_FILE, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False)
+
+def load_creative_maze(account_index=None):
+    maze, _ = load_creative_level(account_index)
+    return maze
+
+def save_creative_maze(maze, account_index=None, ghosts=None):
+    if ghosts is None:
+        _, ghosts = load_creative_level(account_index)
+    save_creative_level(maze, ghosts, account_index)
+
+def find_creative_ghost_index(ghosts, x, y):
+    for i, ghost in enumerate(ghosts):
+        if ghost['x'] == x and ghost['y'] == y:
+            return i
+    return None
+
+def remove_creative_ghost_at(ghosts, x, y):
+    idx = find_creative_ghost_index(ghosts, x, y)
+    if idx is not None:
+        ghosts.pop(idx)
+
+def place_creative_ghost(ghosts, x, y, color):
+    color_list = [int(color[0]), int(color[1]), int(color[2])]
+    idx = find_creative_ghost_index(ghosts, x, y)
+    if idx is not None:
+        ghosts[idx]['color'] = color_list
+    else:
+        ghosts.append({'x': x, 'y': y, 'color': color_list})
+
+def build_creative_ghosts(maze, creative_ghosts):
+    ghosts = []
+    for entry in creative_ghosts:
+        color = tuple(entry['color'])
+        ghost = Ghost(entry['x'], entry['y'], color)
+        if color == BLUE:
+            ghost.set_path(maze)
+        ghosts.append(ghost)
+    return ghosts
+
+def find_creative_spawn(maze, ghosts=None):
+    blocked = {(g['x'], g['y']) for g in (ghosts or [])}
+    for y in range(GRID_HEIGHT):
+        for x in range(GRID_WIDTH):
+            if (x, y) in blocked:
+                continue
+            if maze[y][x] in (CREATIVE_TILE_PATH, CREATIVE_TILE_DOT, CREATIVE_TILE_PACGOMME):
+                return x, y
+    return 10, 15
+
+def creative_screen_to_cell(mouse_x, mouse_y):
+    if mouse_y >= WINDOW_HEIGHT - CREATIVE_EDITOR_TOOLBAR_H:
+        return None
+    grid_x = mouse_x // CELL_SIZE
+    grid_y = mouse_y // CELL_SIZE
+    if 0 <= grid_x < GRID_WIDTH and 0 <= grid_y < GRID_HEIGHT:
+        return grid_x, grid_y
+    return None
+
+def draw_creative_menu(screen):
+    """Dessine le menu du mode créatif"""
+    screen.fill(BLACK)
+
+    font_title = pygame.font.Font(None, 72)
+    title_text = font_title.render("CRÉATIF", True, (0, 220, 160))
+    title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 80))
+    screen.blit(title_text, title_rect)
+
+    retour_button = pygame.Rect(10, 10, 100, 40)
+    pygame.draw.rect(screen, RED, retour_button)
+    pygame.draw.rect(screen, WHITE, retour_button, 2)
+    font_retour = pygame.font.Font(None, 36)
+    retour_text = font_retour.render("RETOUR", True, WHITE)
+    retour_text_rect = retour_text.get_rect(center=retour_button.center)
+    screen.blit(retour_text, retour_text_rect)
+
+    font_button = pygame.font.Font(None, 44)
+    button_width = 280
+    button_height = 60
+    editeur_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, WINDOW_HEIGHT//2 - button_height//2, button_width, button_height)
+    pygame.draw.rect(screen, (0, 200, 150), editeur_button)
+    pygame.draw.rect(screen, WHITE, editeur_button, 3)
+    editeur_text = font_button.render("ÉDITER NIVEAU", True, WHITE)
+    editeur_text_rect = editeur_text.get_rect(center=editeur_button.center)
+    screen.blit(editeur_text, editeur_text_rect)
+
+    font_info = pygame.font.Font(None, 26)
+    info_text = font_info.render("Murs, points, pacgommes et fantômes", True, (150, 150, 150))
+    info_rect = info_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2 + button_height//2 + 35))
+    screen.blit(info_text, info_rect)
+
+    return retour_button, editeur_button
+
+def get_creative_editor_ui_rects():
+    """Rectangles des boutons de la barre d'outils de l'éditeur créatif."""
+    toolbar_y = WINDOW_HEIGHT - CREATIVE_EDITOR_TOOLBAR_H
+    retour_button = pygame.Rect(5, toolbar_y + 5, 72, 30)
+    tool_buttons = {}
+    tool_x = 82
+    tool_w = 46
+    for tile_id in (CREATIVE_TILE_WALL, CREATIVE_TILE_PATH, CREATIVE_TILE_DOT, CREATIVE_TILE_PACGOMME, CREATIVE_TOOL_GHOST):
+        tool_buttons[tile_id] = pygame.Rect(tool_x, toolbar_y + 5, tool_w, 30)
+        tool_x += tool_w + 3
+    reset_button = pygame.Rect(tool_x + 2, toolbar_y + 5, 58, 30)
+    save_button = pygame.Rect(WINDOW_WIDTH - 138, toolbar_y + 5, 62, 30)
+    tester_button = pygame.Rect(WINDOW_WIDTH - 72, toolbar_y + 5, 62, 30)
+    return retour_button, tool_buttons, reset_button, save_button, tester_button
+
+def draw_creative_editor(screen, maze, selected_tool, creative_ghosts, ghost_color_index=0):
+    """Dessine l'éditeur de niveau créatif."""
+    screen.fill(BLACK)
+    for y in range(GRID_HEIGHT):
+        for x in range(GRID_WIDTH):
+            rect = pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+            tile = maze[y][x]
+            pygame.draw.rect(screen, CREATIVE_TILE_COLORS.get(tile, BLACK), rect)
+            if tile == CREATIVE_TILE_PATH:
+                pygame.draw.rect(screen, (50, 50, 60), rect, 1)
+            elif tile == CREATIVE_TILE_DOT:
+                center = (rect.centerx, rect.centery)
+                pygame.draw.circle(screen, YELLOW, center, 3)
+            elif tile == CREATIVE_TILE_PACGOMME:
+                center = (rect.centerx, rect.centery)
+                pygame.draw.circle(screen, YELLOW, center, 7)
+
+    for ghost in creative_ghosts:
+        gx, gy = ghost['x'], ghost['y']
+        center = (gx * CELL_SIZE + CELL_SIZE // 2, gy * CELL_SIZE + CELL_SIZE // 2)
+        gcolor = tuple(ghost['color'])
+        pygame.draw.circle(screen, gcolor, center, CELL_SIZE // 2 - 3)
+        pygame.draw.circle(screen, WHITE, center, CELL_SIZE // 2 - 3, 1)
+        pygame.draw.circle(screen, WHITE, (center[0] - 3, center[1] - 2), 2)
+        pygame.draw.circle(screen, WHITE, (center[0] + 3, center[1] - 2), 2)
+
+    toolbar_y = WINDOW_HEIGHT - CREATIVE_EDITOR_TOOLBAR_H
+    pygame.draw.rect(screen, (35, 35, 45), (0, toolbar_y, WINDOW_WIDTH, CREATIVE_EDITOR_TOOLBAR_H))
+    pygame.draw.line(screen, WHITE, (0, toolbar_y), (WINDOW_WIDTH, toolbar_y), 1)
+
+    font_tool = pygame.font.Font(None, 22)
+    font_hint = pygame.font.Font(None, 20)
+    hint = font_hint.render("Clic: placer | Clic droit: effacer | 1-4 tuiles | 5 fantôme | 6 couleur", True, (180, 180, 180))
+    screen.blit(hint, (8, 8))
+
+    retour_button, tool_buttons, reset_button, save_button, tester_button = get_creative_editor_ui_rects()
+
+    pygame.draw.rect(screen, RED, retour_button)
+    pygame.draw.rect(screen, WHITE, retour_button, 1)
+    retour_text = font_tool.render("RETOUR", True, WHITE)
+    screen.blit(retour_text, retour_text.get_rect(center=retour_button.center))
+
+    ghost_btn_color = CREATIVE_GHOST_PALETTE[ghost_color_index % len(CREATIVE_GHOST_PALETTE)]
+    tool_defs = [
+        (CREATIVE_TILE_WALL, "MUR", (60, 60, 120)),
+        (CREATIVE_TILE_PATH, "SOL", (50, 50, 50)),
+        (CREATIVE_TILE_DOT, "PTS", (80, 80, 0)),
+        (CREATIVE_TILE_PACGOMME, "PG", (120, 90, 0)),
+        (CREATIVE_TOOL_GHOST, "FAN", ghost_btn_color),
+    ]
+    for tile_id, label, color in tool_defs:
+        btn = tool_buttons[tile_id]
+        border_color = YELLOW if selected_tool == tile_id else WHITE
+        if tile_id == CREATIVE_TOOL_GHOST:
+            pygame.draw.rect(screen, (30, 30, 40), btn)
+            pygame.draw.circle(screen, color, btn.center, 10)
+        else:
+            pygame.draw.rect(screen, color, btn)
+        pygame.draw.rect(screen, border_color, btn, 2 if selected_tool == tile_id else 1)
+        label_text = font_tool.render(label, True, WHITE)
+        screen.blit(label_text, label_text.get_rect(center=(btn.centerx, btn.bottom - 6)))
+
+    pygame.draw.rect(screen, (120, 60, 60), reset_button)
+    pygame.draw.rect(screen, WHITE, reset_button, 1)
+    reset_text = font_tool.render("RESET", True, WHITE)
+    screen.blit(reset_text, reset_text.get_rect(center=reset_button.center))
+
+    pygame.draw.rect(screen, (60, 120, 60), save_button)
+    pygame.draw.rect(screen, WHITE, save_button, 1)
+    save_text = font_tool.render("SAUVER", True, WHITE)
+    screen.blit(save_text, save_text.get_rect(center=save_button.center))
+
+    pygame.draw.rect(screen, (0, 160, 200), tester_button)
+    pygame.draw.rect(screen, WHITE, tester_button, 1)
+    tester_text = font_tool.render("TEST", True, WHITE)
+    screen.blit(tester_text, tester_text.get_rect(center=tester_button.center))
+
+    tool_name = {
+        CREATIVE_TILE_WALL: "Mur",
+        CREATIVE_TILE_PATH: "Sol",
+        CREATIVE_TILE_DOT: "Points",
+        CREATIVE_TILE_PACGOMME: "Pacgomme",
+        CREATIVE_TOOL_GHOST: "Fantôme",
+    }
+    selected_label = font_hint.render(f"Outil: {tool_name.get(selected_tool, '?')}", True, (0, 220, 160))
+    screen.blit(selected_label, (WINDOW_WIDTH - 160, 10))
+
+    return retour_button, tool_buttons, reset_button, save_button, tester_button
+
 def draw_reward_animation(screen, reward_animations):
     """Dessine les animations de récompenses"""
     for anim in reward_animations[:]:  # Copie de la liste pour éviter les problèmes de modification
@@ -2298,6 +2596,15 @@ def draw_menu(screen, difficulty=None):
     """Dessine le menu principal"""
     screen.fill(BLACK)
     
+    # Bouton Tutoriel en haut à gauche
+    tutoriel_button = pygame.Rect(10, 10, 120, 40)
+    pygame.draw.rect(screen, (150, 0, 150), tutoriel_button)  # Violet
+    pygame.draw.rect(screen, WHITE, tutoriel_button, 3)
+    font_tutoriel = pygame.font.Font(None, 28)
+    tutoriel_text = font_tutoriel.render("TUTORIEL", True, WHITE)
+    tutoriel_text_rect = tutoriel_text.get_rect(center=tutoriel_button.center)
+    screen.blit(tutoriel_text, tutoriel_text_rect)
+
     # Bouton "Changer de compte" en haut à droite
     font_changer_compte = pygame.font.Font(None, 24)
     changer_compte_button = pygame.Rect(WINDOW_WIDTH - 180, 10, 170, 35)
@@ -2308,12 +2615,15 @@ def draw_menu(screen, difficulty=None):
     screen.blit(changer_compte_text, changer_compte_text_rect)
     
     
-    # Boutons
-    font_button = pygame.font.Font(None, 32)  # Réduit de 36 à 32
-    button_height = 40  # Réduit de 45 à 40
-    button_width = 140  # Réduit de 150 à 140
-    button_spacing = 42  # Réduit de 50 à 42
-    start_y = 170  # Réduit de 180 à 170
+    # Boutons (1 px entre chaque bouton)
+    font_button = pygame.font.Font(None, 32)
+    button_height = 40
+    button_width = 140
+    button_gap = 1
+    button_spacing = button_height + button_gap
+    menu_button_count = 10  # JEU … Arbre des trophées
+    creatif_top = WINDOW_HEIGHT - button_height - 10
+    start_y = creatif_top - button_height - button_gap - (menu_button_count - 1) * button_spacing
     
     # Afficher la difficulté choisie au-dessus du bouton "Jouer" si une difficulté a été sélectionnée
     if difficulty:
@@ -2419,15 +2729,15 @@ def draw_menu(screen, difficulty=None):
     screen.blit(skill_tree_text1, skill_tree_text_rect1)
     screen.blit(skill_tree_text2, skill_tree_text_rect2)
     
-    # Bouton Tutoriel
-    tutoriel_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 10, button_width, button_height)
-    pygame.draw.rect(screen, (150, 0, 150), tutoriel_button)  # Violet
-    pygame.draw.rect(screen, WHITE, tutoriel_button, 3)
-    tutoriel_text = font_button.render("TUTORIEL", True, WHITE)
-    tutoriel_text_rect = tutoriel_text.get_rect(center=tutoriel_button.center)
-    screen.blit(tutoriel_text, tutoriel_text_rect)
+    # Bouton Créatif en bas (collé au dernier bouton du menu)
+    creatif_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, creatif_top, button_width, button_height)
+    pygame.draw.rect(screen, (0, 200, 150), creatif_button)
+    pygame.draw.rect(screen, WHITE, creatif_button, 3)
+    creatif_text = font_button.render("CRÉATIF", True, WHITE)
+    creatif_text_rect = creatif_text.get_rect(center=creatif_button.center)
+    screen.blit(creatif_text, creatif_text_rect)
     
-    return jeu_button, magasin_button, difficulte_button, poche_button, inventaire_button, vente_button, changer_compte_button, aventure_button, boutique_button, passe_combat_button, skill_tree_button, tutoriel_button
+    return jeu_button, magasin_button, difficulte_button, poche_button, inventaire_button, vente_button, changer_compte_button, aventure_button, boutique_button, passe_combat_button, skill_tree_button, tutoriel_button, creatif_button
 
 def draw_tutorial_menu(screen, page=0):
     """Dessine le menu de tutoriel avec plusieurs pages"""
@@ -6963,6 +7273,8 @@ def main():
     SURVIE_SKILL_TREE_MENU = "survie_skill_tree_menu"
     EQUIPEMENT_SKILL_TREE_MENU = "equipement_skill_tree_menu"
     AVENTURE_MENU = "aventure_menu"
+    CREATIVE_MENU = "creative_menu"
+    CREATIVE_EDITOR = "creative_editor"
     PASSE_MENU = "passe_menu"
     BOUTIQUE = "boutique"
     PASSE_PLUS_MENU = "passe_plus_menu"
@@ -7015,6 +7327,7 @@ def main():
     success_notification_text = ""  # Texte du dernier succès débloqué
     success_notification_timer = 0  # Timer d'affichage du succès (1 s = 60 frames)
     is_adventure_mode = False  # Mode aventure activé ou non
+    is_creative_mode = False  # Mode créatif activé ou non
     # Variables pour le système de maps 4x4 aux niveaux multiples de 10 en mode aventure
     map_x = 0  # Coordonnée X dans la grille 4x4 (0-3)
     map_y = 0  # Coordonnée Y dans la grille 4x4 (0-3)
@@ -7158,7 +7471,82 @@ def main():
     pending_font = None  # Nom de fichier temporaire dans le menu font
     pending_avatar = None  # Sélection temporaire dans le menu avatar
     tutorial_page = 0  # Page actuelle du tutoriel
-    
+    creative_maze, creative_ghosts = load_creative_level(None)
+    creative_editor_tool = CREATIVE_TILE_WALL
+    creative_ghost_color_index = 0
+
+    def start_creative_gameplay():
+        nonlocal maze, pacman, ghosts, score, last_bonus_score, game_over, won
+        nonlocal ice_tiles, pacgomme_timers, ghost_timers, pacman_last_pos, vulnerable_timer
+        nonlocal level_transition, level_transition_timer, respawn_timer, lives, invincibility_timer
+        nonlocal crown_timer, level, invincibilite_bonus, has_indigestion, indigestion_timer
+        nonlocal gadget_cooldown, gadget_use_count, portal_use_count, portal1_pos, portal2_pos
+        nonlocal vulnerable_ghosts_eaten_this_game, crown_count, jeton_count, last_ghost_time
+        nonlocal fire_tiles, fire_active, fire_timer, mort_cooldown, bombe_cooldown, bombe_active
+        nonlocal pieges, mur_pos, mur_use_count, rainbow_timer, is_rainbow_critique, game_initialized
+        nonlocal is_adventure_mode, is_creative_mode, current_state
+        maze = [row[:] for row in creative_maze]
+        spawn_x, spawn_y = find_creative_spawn(maze, creative_ghosts)
+        pacman = Pacman(spawn_x, spawn_y)
+        ghosts = build_creative_ghosts(maze, creative_ghosts)
+        score = 0
+        last_bonus_score = 0
+        game_over = False
+        won = False
+        ice_tiles = {}
+        pacgomme_timers = {}
+        ghost_timers = {}
+        pacman_last_pos = (pacman.x, pacman.y)
+        vulnerable_timer = 0
+        level_transition = False
+        level_transition_timer = 0
+        respawn_timer = 0
+        lives = 3
+        invincibility_timer = 60
+        crown_timer = 0
+        level = 1
+        invincibilite_bonus = 0
+        has_indigestion = False
+        indigestion_timer = 0
+        gadget_cooldown = 0
+        gadget_use_count = 0
+        portal_use_count = 0
+        portal1_pos = None
+        portal2_pos = None
+        vulnerable_ghosts_eaten_this_game = 0
+        crown_count = 0
+        jeton_count = 0
+        last_ghost_time = 0
+        fire_tiles = {}
+        fire_active = False
+        fire_timer = 0
+        mort_cooldown = 0
+        bombe_cooldown = 0
+        bombe_active = False
+        pieges = {}
+        mur_pos = None
+        mur_use_count = 0
+        rainbow_timer = 0
+        is_rainbow_critique = False
+        game_initialized = True
+        is_adventure_mode = False
+        is_creative_mode = True
+        current_state = GAME
+
+    def apply_creative_editor_cell(x, y, tool, maze, ghosts, ghost_color_index):
+        if tool == CREATIVE_TOOL_GHOST:
+            if maze[y][x] == CREATIVE_TILE_WALL:
+                return
+            gcolor = CREATIVE_GHOST_PALETTE[ghost_color_index % len(CREATIVE_GHOST_PALETTE)]
+            if find_creative_ghost_index(ghosts, x, y) is not None:
+                remove_creative_ghost_at(ghosts, x, y)
+            else:
+                place_creative_ghost(ghosts, x, y, gcolor)
+        else:
+            maze[y][x] = tool
+            if tool == CREATIVE_TILE_WALL:
+                remove_creative_ghost_at(ghosts, x, y)
+
     running = True
     while running:
         for event in pygame.event.get():
@@ -7326,6 +7714,17 @@ def main():
                             account_to_delete = None
                             account_long_press_index = None
                             account_long_press_timer = 0
+                elif event.button == 3 and current_state == CREATIVE_EDITOR:
+                    mouse_pos = event.pos
+                    cell = creative_screen_to_cell(mouse_pos[0], mouse_pos[1])
+                    if cell is not None:
+                        creative_maze[cell[1]][cell[0]] = CREATIVE_TILE_PATH
+                        remove_creative_ghost_at(creative_ghosts, cell[0], cell[1])
+            elif event.type == pygame.MOUSEMOTION:
+                if current_state == CREATIVE_EDITOR and pygame.mouse.get_pressed()[0]:
+                    cell = creative_screen_to_cell(event.pos[0], event.pos[1])
+                    if cell is not None:
+                        apply_creative_editor_cell(cell[0], cell[1], creative_editor_tool, creative_maze, creative_ghosts, creative_ghost_color_index)
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:  # Relâchement du clic gauche
                     mouse_pos = event.pos
@@ -7431,8 +7830,44 @@ def main():
                             is_rainbow_critique = False
                             game_initialized = True
                             is_adventure_mode = True  # Activer le mode aventure
+                            is_creative_mode = False
                             # Passer à l'état GAME
                             current_state = GAME
+                    elif current_state == CREATIVE_MENU:
+                        creative_retour_button = pygame.Rect(10, 10, 100, 40)
+                        btn_w, btn_h = 280, 60
+                        creative_editeur_button = pygame.Rect(WINDOW_WIDTH//2 - btn_w//2, WINDOW_HEIGHT//2 - btn_h//2, btn_w, btn_h)
+                        if creative_retour_button.collidepoint(mouse_pos):
+                            current_state = MENU
+                        elif creative_editeur_button.collidepoint(mouse_pos):
+                            creative_maze, creative_ghosts = load_creative_level(current_account_index)
+                            creative_editor_tool = CREATIVE_TILE_WALL
+                            creative_ghost_color_index = 0
+                            current_state = CREATIVE_EDITOR
+                    elif current_state == CREATIVE_EDITOR:
+                        editor_retour, editor_tools, editor_reset, editor_save, editor_test = get_creative_editor_ui_rects()
+                        if editor_retour.collidepoint(mouse_pos):
+                            save_creative_level(creative_maze, creative_ghosts, current_account_index)
+                            current_state = CREATIVE_MENU
+                        elif editor_reset.collidepoint(mouse_pos):
+                            creative_maze = get_default_creative_maze()
+                            creative_ghosts = []
+                        elif editor_save.collidepoint(mouse_pos):
+                            save_creative_level(creative_maze, creative_ghosts, current_account_index)
+                        elif editor_test.collidepoint(mouse_pos):
+                            save_creative_level(creative_maze, creative_ghosts, current_account_index)
+                            start_creative_gameplay()
+                        else:
+                            tool_clicked = False
+                            for tile_id, tool_btn in editor_tools.items():
+                                if tool_btn.collidepoint(mouse_pos):
+                                    creative_editor_tool = tile_id
+                                    tool_clicked = True
+                                    break
+                            if not tool_clicked:
+                                cell = creative_screen_to_cell(mouse_pos[0], mouse_pos[1])
+                                if cell is not None:
+                                    apply_creative_editor_cell(cell[0], cell[1], creative_editor_tool, creative_maze, creative_ghosts, creative_ghost_color_index)
                     elif current_state == SKILL_TREE_MENU:
                         # Utiliser les boutons retournés par draw_skill_tree_menu
                         if skill_tree_retour_button.collidepoint(mouse_pos):
@@ -7653,10 +8088,13 @@ def main():
                         if delete_confirmation_step == 0:
                             # Calculer les positions des boutons (même logique que dans draw_menu)
                             changer_compte_button = pygame.Rect(WINDOW_WIDTH - 180, 10, 170, 35)
-                            button_width = 140  # Réduit pour correspondre à draw_menu
-                            button_height = 40  # Réduit pour correspondre à draw_menu
-                            button_spacing = 42  # Réduit pour correspondre à draw_menu
-                            start_y = 170  # Réduit pour correspondre à draw_menu
+                            button_width = 140
+                            button_height = 40
+                            button_gap = 1
+                            button_spacing = button_height + button_gap
+                            menu_button_count = 10
+                            creatif_top = WINDOW_HEIGHT - button_height - 10
+                            start_y = creatif_top - button_height - button_gap - (menu_button_count - 1) * button_spacing
                             jeu_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y, button_width, button_height)
                             magasin_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing, button_width, button_height)
                             difficulte_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 2, button_width, button_height)
@@ -7667,6 +8105,7 @@ def main():
                             boutique_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 7, button_width, button_height)
                             passe_combat_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 8, button_width, button_height)
                             skill_tree_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, start_y + button_spacing * 9, button_width, button_height)
+                            creatif_button = pygame.Rect(WINDOW_WIDTH//2 - button_width//2, creatif_top, button_width, button_height)
                             
                             # Vérifier le clic sur le bouton "Changer de compte"
                             if changer_compte_button.collidepoint(mouse_pos):
@@ -7789,6 +8228,8 @@ def main():
                             elif tutoriel_button.collidepoint(mouse_pos):
                                 current_state = TUTORIAL_MENU
                                 tutorial_page = 0
+                            elif creatif_button.collidepoint(mouse_pos):
+                                current_state = CREATIVE_MENU
                     elif current_state == TUTORIAL_MENU:
                         # Calculer les boutons pour la détection de collision (en haut)
                         tutorial_prev_button = None
@@ -9881,6 +10322,7 @@ def main():
                                 difficulty, inventaire_items, capacite_items, invincibilite_bonus, ghosts)
                             
                             is_adventure_mode = False  # Désactiver le mode aventure pour le jeu normal
+                            is_creative_mode = False
                             
                             if difficulty == "facile":
                                 level = 1
@@ -10086,7 +10528,12 @@ def main():
                             if current_account_index is not None:
                                 save_game_data_for_account(current_account_index, pouvoir_items, gadget_items, objet_items, capacite_items, inventaire_items, jeton_poche, crown_poche, bon_marche_ameliore, battle_pass_xp, battle_pass_claimed_rewards, gemme_poche, used_stars, accounts, battle_pass_plus_claimed_rewards, used_stars_plus)
                             game_needs_reset = True  # Marquer que la partie doit être réinitialisée au retour
-                            current_state = MENU  # Retourner au menu principal
+                            if is_creative_mode:
+                                is_creative_mode = False
+                                current_state = CREATIVE_MENU
+                            else:
+                                is_creative_mode = False
+                                current_state = MENU  # Retourner au menu principal
                             # Arrêter la musique si elle est en cours
                             if music_playing:
                                 pygame.mixer.music.stop()
@@ -10743,7 +11190,22 @@ def main():
                             # Si on clique ailleurs, ne pas changer la description (la laisser telle quelle)
                             pass
             elif event.type == pygame.KEYDOWN:
-                if current_state == NAME_MENU and name_input_active:
+                if current_state == CREATIVE_EDITOR:
+                    if event.key == pygame.K_1:
+                        creative_editor_tool = CREATIVE_TILE_WALL
+                    elif event.key == pygame.K_2:
+                        creative_editor_tool = CREATIVE_TILE_PATH
+                    elif event.key == pygame.K_3:
+                        creative_editor_tool = CREATIVE_TILE_DOT
+                    elif event.key == pygame.K_4:
+                        creative_editor_tool = CREATIVE_TILE_PACGOMME
+                    elif event.key == pygame.K_5:
+                        creative_editor_tool = CREATIVE_TOOL_GHOST
+                    elif event.key == pygame.K_6:
+                        creative_ghost_color_index = (creative_ghost_color_index + 1) % len(CREATIVE_GHOST_PALETTE)
+                    elif event.key == pygame.K_s:
+                        save_creative_level(creative_maze, creative_ghosts, current_account_index)
+                elif current_state == NAME_MENU and name_input_active:
                     # Gérer la saisie de texte dans le champ nom
                     if event.key == pygame.K_RETURN:
                         # Valider le nom et sortir automatiquement
@@ -12540,6 +13002,10 @@ def main():
             equipement_skill_tree_retour_button = draw_equipement_skill_tree_menu(screen)
         elif current_state == AVENTURE_MENU:
             aventure_retour_button, aventure_carte1_button = draw_aventure_menu(screen)
+        elif current_state == CREATIVE_MENU:
+            creative_retour_button, creative_editeur_button = draw_creative_menu(screen)
+        elif current_state == CREATIVE_EDITOR:
+            draw_creative_editor(screen, creative_maze, creative_editor_tool, creative_ghosts, creative_ghost_color_index)
         elif current_state == CUSTOMIZATION_MENU:
             current_trophy_count = 0
             if current_account_index is not None and 0 <= current_account_index < len(accounts):
@@ -12614,7 +13080,7 @@ def main():
             # Dessiner les animations de récompenses par-dessus le menu
             draw_reward_animation(screen, reward_animations)
         elif current_state == MENU:
-            jeu_button, magasin_button, difficulte_button, poche_button, inventaire_button, vente_button, changer_compte_button, aventure_button, boutique_button, passe_combat_button, skill_tree_button, tutoriel_button = draw_menu(screen, difficulty=difficulty)
+            jeu_button, magasin_button, difficulte_button, poche_button, inventaire_button, vente_button, changer_compte_button, aventure_button, boutique_button, passe_combat_button, skill_tree_button, tutoriel_button, creatif_button = draw_menu(screen, difficulty=difficulty)
             
             # Afficher la boîte de dialogue de confirmation si nécessaire
             if delete_confirmation_step > 0 and account_to_delete is not None and account_to_delete < len(accounts):
