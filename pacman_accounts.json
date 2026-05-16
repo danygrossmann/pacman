@@ -1,1 +1,42 @@
-[]
+[
+  {
+    "player_name": "hector",
+    "selected_avatar": "avatar1",
+    "selected_font": "plein de carré.png",
+    "trophies": [],
+    "game_data": {
+      "pouvoir_items": [],
+      "gadget_items": [],
+      "objet_items": [],
+      "capacite_items": [],
+      "inventaire_items": {},
+      "jeton_poche": 0,
+      "crown_poche": 0,
+      "bon_marche_ameliore": false,
+      "battle_pass_xp": [
+        {
+          "player_name": "hector",
+          "selected_avatar": "avatar2",
+          "selected_font": "plein de carré.png",
+          "trophies": [],
+          "game_data": {
+            "pouvoir_items": [],
+            "gadget_items": [],
+            "objet_items": [],
+            "capacite_items": [],
+            "inventaire_items": {},
+            "jeton_poche": 0,
+            "crown_poche": 0,
+            "bon_marche_ameliore": false
+          }
+        }
+      ],
+      "battle_pass_claimed_rewards": [],
+      "battle_pass_plus_claimed_rewards": [],
+      "gemme_poche": 0,
+      "used_stars": [],
+      "used_stars_plus": [],
+      "pass_plus_purchased": false
+    }
+  }
+]
